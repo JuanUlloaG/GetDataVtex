@@ -22,6 +22,8 @@ export class UserController {
     });
   }
 
+  
+
   async one(request: Request, response: Response, next: NextFunction, app: any) {
     return null
   }
