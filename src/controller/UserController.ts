@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 const jwt = require('jsonwebtoken');
-// import { User } from "../entity/User";
+const { initDB, insertDB } = require("../config/db")
+import User from "../entity/User";
 import data from "../mock.json";
+import bcrypt from "bcrypt";
+
 
 
 
@@ -24,7 +27,42 @@ export class UserController {
   }
 
   async save(request: Request, response: Response, next: NextFunction, app: any) {
-    return null
+    try {
+      const { name, phone, email, profile, rut, password } = request.body
+      let hashedPassword
+      if (!name || !phone || !email || !profile || !rut || !password) {
+        response.json({
+          mensaje: 'Error! al crear usuario',
+          success: false
+        });
+      }
+
+      bcrypt.genSalt(10, function (err, salt) {
+        bcrypt.hash(password, salt, function (err, hash) {
+          hashedPassword = hash
+          let _user = { name, rut, email, password: hashedPassword, phone, profile }
+          insertDB(User, _user).then((result: any) => {
+            response.json({
+              mensaje: 'Creacion de Usuario',
+              data: result,
+              success: true
+            });
+          }).catch((err: Error) => {
+            console.log(err.message)
+          });
+        });
+      });
+
+
+    } catch (error) {
+      response.json({
+        mensaje: 'Error! al crear usuario',
+        info: error.message,
+        success: false
+      });
+    }
+
+
   }
 
   async remove(request: Request, response: Response, next: NextFunction, app: any) {
@@ -32,6 +70,9 @@ export class UserController {
   }
 
   async auth(request: Request, response: Response, next: NextFunction, app: any) {
+
+    
+
     const payload = {
       check: true
     };
