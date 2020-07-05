@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 const jwt = require('jsonwebtoken');
 // import { User } from "../entity/User";
-import data from "../mock.json";
-import dataB from "../mockBag.json";
+
 
 
 
@@ -12,19 +11,17 @@ export class OrdersController {
   // private userRepository = getRepository(User);
 
   async all(request: Request, response: Response, next: NextFunction, app: any) {
-    console.log(data)
     response.json({
       mensaje: 'Listado de ordenes',
-      data: data,
+      data: [],
       success: true
     });
 
   }
   async orders(request: Request, response: Response, next: NextFunction, app: any) {
-    console.log(data)
     response.json({
       mensaje: 'Listado de ordenes',
-      data: data,
+      data: [],
       success: true
     });
   }
@@ -44,7 +41,7 @@ export class OrdersController {
   async ordersToDelivery(request: Request, response: Response, next: NextFunction, app: any) {
     response.json({
       mensaje: 'Listado de ordenes',
-      data: dataB,
+      data: [],
       success: true
     });
   }

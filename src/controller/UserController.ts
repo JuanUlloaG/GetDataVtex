@@ -2,8 +2,7 @@ import { NextFunction, Request, Response } from "express";
 const jwt = require('jsonwebtoken');
 const { initDB, insertDB } = require("../config/db")
 import User from "../entity/User";
-import data from "../mock.json";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 
 
@@ -14,10 +13,10 @@ export class UserController {
   // private userRepository = getRepository(User);
 
   async all(request: Request, response: Response, next: NextFunction, app: any) {
-    console.log(data)
+    // console.log(data)
     response.json({
       mensaje: 'Listado de ordenes',
-      data: data,
+      data: [],
       success: true
     });
   }

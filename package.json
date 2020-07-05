@@ -1,34 +1,29 @@
 {
-    "name": "midas-server",
+    "name": "picking",
     "version": "1.0.0",
+    "description": "picking server",
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start:dev": "nodemon",
-        "debug": "nodemon --inspect src/index.ts"
+        "tsc": "tsc",
+        "dev": "ts-node src/app.ts",
+        "start": "ts-node dist/app.js",
+        "build": "tsc -p ."
     },
-    "keywords": [],
-    "author": "@offcarlospetit",
+    "author": "",
     "license": "ISC",
-    "devDependencies": {
-        "@types/node": "^14.0.14",
-        "nodemon": "^2.0.4",
-        "ts-node": "^8.10.2",
-        "typescript": "^3.9.3"
-    },
     "dependencies": {
-        "@types/bcrypt": "^3.0.0",
         "@types/express": "^4.17.6",
+        "express": "^4.17.1",
+        "typescript": "^3.9.6",
+        "@types/bcryptjs": "^2.4.2",
         "@types/jwt-decode": "^2.2.1",
         "@types/mongoose": "^5.7.29",
-        "bcrypt": "^5.0.0",
-        "express": "^4.17.1",
+        "bcryptjs": "^2.4.3",
         "firebase-admin": "^8.12.1",
         "jsonwebtoken": "^8.5.1",
         "mongodb": "^3.5.9",
         "mongoose": "^5.9.21",
-        "reflect-metadata": "^0.1.13",
-        "typeorm": "^0.2.25"
-    },
-    "description": ""
+        "reflect-metadata": "^0.1.13"
+    }
 }
