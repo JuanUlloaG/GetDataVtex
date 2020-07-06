@@ -1,5 +1,7 @@
 import { UserController } from "./controller/UserController";
 import { OrdersController } from "./controller/OrdersController";
+import { CompanyControllers } from "./controller/CompanyController";
+import { ShopController } from "./controller/ShopController";
 
 export const Routes = [
     {
@@ -49,5 +51,17 @@ export const Routes = [
         route: "/orders/delivery",
         controller: OrdersController,
         action: "ordersToDelivery"
+    },
+    {
+        method: "post",
+        route: "/company",
+        controller: CompanyControllers,
+        action: "save"
+    },
+    {
+        method: "post",
+        route: "/shop/save",
+        controller: ShopController,
+        action: "save"
     },
 ];
