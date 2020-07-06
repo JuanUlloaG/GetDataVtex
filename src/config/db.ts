@@ -40,5 +40,17 @@ module.exports = {
                 })
         })
     },
+    insertManyDB: async function (form: any, obj: any) {
+        return new Promise(function (resolve, reject) {
+            form.insertMany(obj, function (err: any, docs: any) {
+                if (err) {
+                    reject(err.message)
+                }
+                else {
+                    resolve(docs)
+                }
+            })
+        })
+    },
 }
 
