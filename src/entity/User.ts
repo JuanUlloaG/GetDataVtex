@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { CompanyInterface } from "./Company";
 
 export interface UserInterface extends Document {
     name: string;
@@ -6,7 +7,8 @@ export interface UserInterface extends Document {
     password: string;
     email: string,
     phone: string,
-    profile: string
+    profile: string,
+    company?: CompanyInterface['_id']
 }
 
 
@@ -22,7 +24,8 @@ const UserSchema: Schema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
-    profile: { type: String, required: true }
+    profile: { type: String, required: true },
+    company: { type: Schema.Types.ObjectId, required: false, ref: "Companies" }
 });
 
 const User = mongoose.model<UserInterface>("User", UserSchema);
