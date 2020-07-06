@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 const jwt = require('jsonwebtoken');
-const { initDB, insertDB } = require("../config/db")
+import mongoose from "mongoose";
+const { initDB, insertDB } = require("../config/db");
 import User from "../entity/User";
 import bcrypt from "bcryptjs";
 
@@ -21,7 +22,7 @@ export class UserController {
     });
   }
 
-  
+
 
   async one(request: Request, response: Response, next: NextFunction, app: any) {
     return null
@@ -29,7 +30,7 @@ export class UserController {
 
   async save(request: Request, response: Response, next: NextFunction, app: any) {
     try {
-      const { name, phone, email, profile, rut, password } = request.body
+      const { name, phone, email, profile, rut, password, company } = request.body
       let hashedPassword
       if (!name || !phone || !email || !profile || !rut || !password) {
         response.json({
@@ -41,7 +42,7 @@ export class UserController {
       bcrypt.genSalt(10, function (err, salt) {
         bcrypt.hash(password, salt, function (err, hash) {
           hashedPassword = hash
-          let _user = { name, rut, email, password: hashedPassword, phone, profile }
+          let _user = { name, rut, email, password: hashedPassword, phone, profile, company: mongoose.Types.ObjectId(company) }
           insertDB(User, _user).then((result: any) => {
             response.json({
               mensaje: 'Creacion de Usuario',
@@ -72,7 +73,7 @@ export class UserController {
 
   async auth(request: Request, response: Response, next: NextFunction, app: any) {
 
-    
+
 
     const payload = {
       check: true
