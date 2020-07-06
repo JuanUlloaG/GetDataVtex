@@ -18,7 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // 3
 app.use(bodyParser.json());
 function checkUser(req, res, next) {
-    if (req.path === "/users/auth" || req.path === "/users") {
+    if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company") {
         next();
     }
     else {
@@ -54,8 +54,9 @@ routes_1.Routes.forEach(route => {
     });
 });
 initDB().then((result) => {
-    //     console.log(result)
-    app.listen(3000);
+    app.listen(3001, () => {
+        console.log("Picking server is running");
+    });
 }).catch((err) => {
     console.log(err.message);
 });

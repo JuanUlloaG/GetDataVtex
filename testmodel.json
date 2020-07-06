@@ -1,0 +1,34 @@
+[{
+    "id": 1,
+    "orderNumber": "134546464654",
+    "shopId": "346546546464",
+    "pickerId": "12132646464",
+    "products": [{
+        "id": "fb53bac3-f980-4e6a-a966-e85392c27c19",
+        "barcode": "30187921783733",
+        "product": "Viva",
+        "units": 1,
+        "unitspicked": 1,
+        "unitssubstitutes": 1,
+        "unitsbroken": 1,
+        "unitsreplaced": 1,
+        "description": "Tabasco Sauce, 2 Oz",
+        "name": "Beer - Pilsner Urquell",
+        "image": "https://www.merkadeli.com/wp-content/uploads/2018/12/Crema-NIVEA-Reafirmante-Q10-de-400ml.jpg"
+    }],
+    "client": {
+        "rut": 1,
+        "name": "Newton McNee",
+        "address": "9 Eggendart Circle",
+        "comuna": "Cayungnan",
+        "ciudad": "Mingyue",
+        "long": 119.8370843,
+        "lat": 16.1329692
+    },
+    "startPickingDate": "",
+    "endPickingDate": "161.89.232.131",
+    "starDeliveryDate": "29.95.212.35",
+    "endDeliveryDate": "241.228.153.13",
+    "realdatedelivery": "8/4/2019",
+    "pickerWorkShift": "turno mañana"
+}]

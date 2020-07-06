@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Routes = void 0;
 const UserController_1 = require("./controller/UserController");
 const OrdersController_1 = require("./controller/OrdersController");
+const CompanyController_1 = require("./controller/CompanyController");
 exports.Routes = [
     {
         method: "get",
@@ -51,5 +52,11 @@ exports.Routes = [
         route: "/orders/delivery",
         controller: OrdersController_1.OrdersController,
         action: "ordersToDelivery"
+    },
+    {
+        method: "post",
+        route: "/company",
+        controller: CompanyController_1.CompanyControllers,
+        action: "save"
     },
 ];

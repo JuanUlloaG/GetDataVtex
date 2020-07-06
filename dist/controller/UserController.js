@@ -7,17 +7,14 @@ exports.UserController = void 0;
 const jwt = require('jsonwebtoken');
 const { initDB, insertDB } = require("../config/db");
 const User_1 = __importDefault(require("../entity/User"));
-const data = require("../mock.json");
-const dataB = require("../mockBag.json");
-// const {bcrypt} = require("bcryptjs")
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 class UserController {
     // private userRepository = getRepository(User);
     async all(request, response, next, app) {
-        console.log(data);
+        // console.log(data)
         response.json({
             mensaje: 'Listado de ordenes',
-            data: data,
+            data: [],
             success: true
         });
     }
