@@ -16,8 +16,9 @@ module.exports = {
                             if (error) reject(error.message)
                             if (collections) {
                                 collections.forEach((collection: any, index: any) => {
+                                    console.log(collection.name)
                                 })
-                                resolve()
+                                resolve(true)
 
                             }
                         })

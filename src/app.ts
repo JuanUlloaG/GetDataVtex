@@ -55,9 +55,11 @@ Routes.forEach(route => {
 
 
 initDB().then((result: any) => {
-    //     console.log(result)
-    app.listen(3000)
+    app.listen(3000, () => {
+        console.log(result)
+        console.log("Picking server on! happy hacking")
+    })
 }).catch((err: Error) => {
-    console.log(err.message)
+    console.log(err)
 });
 
