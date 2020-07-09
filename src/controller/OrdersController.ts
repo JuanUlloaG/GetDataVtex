@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 const jwt = require('jsonwebtoken');
-import Order from "../entity/Orders";
-const { initDB, insertDB, insertManyDB } = require("../config/db")
+import Orders from "../entity/Orders";
+const { initDB, insertDB, insertManyDB, findDocuments } = require("../config/db")
 
 
 export class OrdersController {
@@ -18,11 +18,39 @@ export class OrdersController {
 
   }
   async orders(request: Request, response: Response, next: NextFunction, app: any) {
-    response.json({
-      mensaje: 'Listado de ordenes',
-      data: [],
-      success: true
-    });
+
+    try {
+      const { company, profile } = request.body
+      let query: object;
+      if (profile == 2) {
+        query = {
+          "uid": company,
+          "pickerId": { "$eq": null }
+        }
+      } else {
+        query = {}
+      }
+      findDocuments(Orders, query, "", {}, '', '', 0, null, null).then((result: any) => {
+        response.json({
+          message: 'Listado de ordenes',
+          data: result,
+          success: true
+        });
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false
+        });
+      });
+
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+
+
   }
 
   async one(request: Request, response: Response, next: NextFunction, app: any) {
@@ -55,12 +83,12 @@ export class OrdersController {
         _orders.push(_order)
       })
 
-      await insertManyDB(Order, _orders)
+      await insertManyDB(Orders, _orders)
 
 
       response.json({
         mensaje: 'orden creada exitosamente',
-        data: "s",
+        data: "",
         success: true
       });
     } catch (error) {
@@ -85,28 +113,5 @@ export class OrdersController {
   }
 
   async auth(request: Request, response: Response, next: NextFunction, app: any) {
-    // const payload = {
-    //   check: true
-    // };
-    // const token = jwt.sign(payload, app.get('key'), {});
-    // response.json({
-    //   mensaje: 'Autentication successfull',
-    //   token: token,
-    //   perfil: "1"
-    // });
-    // try {
-    //   admin.auth().getUser(request.body.uid).then((result: any) => {
-    //     response.json({
-    //       mensaje: 'Autentication successfull',
-    //       token: token,
-    //       uid: result.uid
-    //     });
-    //   }).catch((err: any) => {
-    //     response.json({ mensaje: "Ha ocurrido algun error: " + err.message })
-    //   });
-
-    // } catch (error) {
-    //   response.json({ mensaje: "Ha ocurrido algun error: " + error.message })
-    // }
   }
 }

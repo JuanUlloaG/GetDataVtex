@@ -53,5 +53,57 @@ module.exports = {
             })
         })
     },
+    findOneDB: async function (form: any, query: any, select: string, sort: any, populate: any, req: any, res: any) {
+        return new Promise(function (resolve, reject) {
+            form
+                .findById(query)
+                .sort(sort)
+                .select(select)
+                .populate(populate)
+                .exec(function (err: Error, document: Document) {
+                    if (err) reject(err.message)
+                    else {
+                        resolve(document)
+                    }
+                })
+        })
+    },
+    findDocuments: async function (form: any, query: any, select: string, sort: any, populate: string, fields: string, limit: number, req: any, res: any) {
+        return new Promise(function (resolve, reject) {
+            form
+                .find(query)
+                .sort(sort)
+                .select(select)
+                .limit(limit)
+                .populate(populate, fields)
+                .exec(function (err: Error, documents: Document) {
+                    if (err) reject(err.message)
+                    else {
+                        resolve(documents)
+                    }
+                })
+        })
+    },
+    findOneAndUpdateDB: async function (form: any, query: any, update: any, req: any, res: any) {
+        return new Promise(function (resolve, reject) {
+            try {
+                form
+                    .findOneAndUpdate(
+                        query,
+                        { $set: update },
+                        { new: true }
+                    )
+                    .exec(function (err: Error, documents: any) {
+                        if (err) reject(err.message)
+                        else {
+                            resolve(documents)
+                        }
+                    })
+            }
+            catch (err) {
+                reject(err.message)
+            }
+        })
+    },
 }
 

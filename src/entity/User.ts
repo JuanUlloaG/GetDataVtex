@@ -28,5 +28,5 @@ const UserSchema: Schema = new Schema({
     company: { type: Schema.Types.ObjectId, required: false, ref: "Companies" }
 });
 
-const User = mongoose.model<UserInterface>("User", UserSchema);
+const User = mongoose.model<UserInterface>("User", UserSchema, "users");
 export default User;

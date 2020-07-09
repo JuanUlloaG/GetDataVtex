@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 const jwt = require('jsonwebtoken');
 import mongoose from "mongoose";
-const { initDB, insertDB } = require("../config/db");
+const { initDB, insertDB, findOneDB, findDocuments } = require("../config/db");
 import User from "../entity/User";
 import bcrypt from "bcryptjs";
 
@@ -42,7 +42,12 @@ export class UserController {
       bcrypt.genSalt(10, function (err, salt) {
         bcrypt.hash(password, salt, function (err, hash) {
           hashedPassword = hash
-          let _user = { name, rut, email, password: hashedPassword, phone, profile, company: mongoose.Types.ObjectId(company) }
+          let _user;
+          if (company) {
+            _user = { name, rut, email, password: hashedPassword, phone, profile, company: mongoose.Types.ObjectId(company) }
+          } else {
+            _user = { name, rut, email, password: hashedPassword, phone, profile }
+          }
           insertDB(User, _user).then((result: any) => {
             response.json({
               mensaje: 'Creacion de Usuario',
@@ -72,47 +77,53 @@ export class UserController {
   }
 
   async auth(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const query = { 'rut': request.body.user }
+      const payload = {
+        check: true
+      };
 
-
-
-    const payload = {
-      check: true
-    };
-    let profile = 3
-    switch (request.body.usuario.charAt(0)) {
-      case "1":
-        profile = 2
-        break;
-      case "2":
-        profile = 3
-        break;
-      case "3":
-        profile = 4
-        break;
-
-      default:
-        break;
+      findDocuments(User, query, "", {}, '', '', 0, null, null).then((result: any) => {
+        if (result.length > 0) {
+          let pass = result[0].password
+          bcrypt.compare(request.body.password, pass, (err, match) => {
+            if (err) {
+              response.json({
+                message: 'Error',
+                success: false,
+                code: err
+              });
+            }
+            if (match) {
+              const token = jwt.sign(payload, app.get('key'), {});
+              response.json({
+                message: 'Autentication successfull',
+                token: token,
+                profile: result[0].profile,
+                company: result[0].company,
+                name: result[0].name,
+                email: result[0].email,
+                id: result[0]._id,
+                success: true
+              });
+            }
+          })
+        } else {
+          response.json({
+            message: 'Error usuario no encontrado',
+            success: false
+          });
+        }
+      })
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
     }
-
-    const token = jwt.sign(payload, app.get('key'), {});
-    response.json({
-      mensaje: 'Autentication successfull',
-      token: token,
-      profile: profile
-    });
-    // try {
-    //   admin.auth().getUser(request.body.uid).then((result: any) => {
-    //     response.json({
-    //       mensaje: 'Autentication successfull',
-    //       token: token,
-    //       uid: result.uid
-    //     });
-    //   }).catch((err: any) => {
-    //     response.json({ mensaje: "Ha ocurrido algun error: " + err.message })
-    //   });
-
-    // } catch (error) {
-    //   response.json({ mensaje: "Ha ocurrido algun error: " + error.message })
-    // }
   }
+
+
+
+
 }

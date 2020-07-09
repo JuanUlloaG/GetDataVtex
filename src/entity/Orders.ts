@@ -42,10 +42,10 @@ export interface OrderInterface extends Document {
  */
 
 const OrderSchema: Schema = new Schema({
-    uid: { type: Schema.Types.ObjectId, required: true, ref: "Companies" },
+    uid: { type: Schema.Types.ObjectId, required: true, ref: "Company" },
     orderNumber: { type: String, required: true },
-    shopId: { type: Schema.Types.ObjectId, required: false, ref: "Shops", default: null },
-    pickerId: { type: Schema.Types.ObjectId, required: false, ref: "Users", default: null },
+    shopId: { type: Schema.Types.ObjectId, required: false, ref: "Shop", default: null },
+    pickerId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
     products: [{
         id: { type: String, required: true },
         barcode: { type: String, required: true },
@@ -56,6 +56,7 @@ const OrderSchema: Schema = new Schema({
         unitsBroken: { type: Number, required: true },
         unitsReplaced: { type: Number, required: true },
         description: { type: String, required: true },
+        image: { type: String, required: true },
         location: { type: Number, required: true },
     }],
     client: {
@@ -76,5 +77,5 @@ const OrderSchema: Schema = new Schema({
     pickerWorkShift: { type: String, required: true }
 });
 
-const Order = mongoose.model<OrderInterface>("Order", OrderSchema);
+const Order = mongoose.model<OrderInterface>("Order", OrderSchema, "orders");
 export default Order;

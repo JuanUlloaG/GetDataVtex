@@ -21,5 +21,5 @@ const CompanySchema: Schema = new Schema({
     phone: { type: String, required: true }
 });
 
-const Company = mongoose.model<CompanyInterface>("Company", CompanySchema);
+const Company = mongoose.model<CompanyInterface>("Company", CompanySchema, "companies");
 export default Company;

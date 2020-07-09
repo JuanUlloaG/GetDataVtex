@@ -3,6 +3,10 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const config = require('./config/config');
 import { Request, Response, NextFunction } from "express";
+import Company from "./entity/Company";
+import User from "./entity/User";
+import Orders from "./entity/Orders";
+import OrderBags from "./entity/OrderBags";
 import { Routes } from "./routes";
 const validation = require("./middleware/middleware")
 const { initDB, insertDB } = require("./config/db")
@@ -16,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 function checkUser(req: Request, res: Response, next: NextFunction) {
-    if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save") {
+    if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/") {
         next();
     } else {
         const token = (<any>req).headers['access-token'];
@@ -57,7 +61,7 @@ Routes.forEach(route => {
 initDB().then((result: any) => {
     app.listen(3000, () => {
         console.log(result)
-        console.log("Picking server on! happy hacking")
+        console.log("Picking server on! happy hacking 👨🏾‍💻")
     })
 }).catch((err: Error) => {
     console.log(err)

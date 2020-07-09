@@ -19,8 +19,8 @@ const ShopSchema: Schema = new Schema({
     number: { type: String, required: false },
     address: { type: String, required: true },
     phone: { type: String, required: false },
-    company: { type: Schema.Types.ObjectId, required: true, ref: "Companies" }
+    company: { type: Schema.Types.ObjectId, required: true, ref: "Company" }
 });
 
-const Shop = mongoose.model<ShopInterface>("Shop", ShopSchema);
+const Shop = mongoose.model<ShopInterface>("Shop", ShopSchema, "shops");
 export default Shop;

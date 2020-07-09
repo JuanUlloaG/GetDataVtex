@@ -2,8 +2,16 @@ import { UserController } from "./controller/UserController";
 import { OrdersController } from "./controller/OrdersController";
 import { CompanyControllers } from "./controller/CompanyController";
 import { ShopController } from "./controller/ShopController";
+import { HomeController } from "./controller/HomeController";
+import { OrderBagsController } from "./controller/OrderBagsController";
 
 export const Routes = [
+    {
+        method: "get",
+        route: "/",
+        controller: HomeController,
+        action: "index"
+    },
     {
         method: "get",
         route: "/users",
@@ -35,7 +43,7 @@ export const Routes = [
         action: "auth"
     },
     {
-        method: "get",
+        method: "post",
         route: "/orders",
         controller: OrdersController,
         action: "orders"
@@ -63,5 +71,29 @@ export const Routes = [
         route: "/shop/save",
         controller: ShopController,
         action: "save"
+    },
+    {
+        method: "post",
+        route: "/shop/user",
+        controller: ShopController,
+        action: "localByUser"
+    },
+    {
+        method: "post",
+        route: "/orderBags/save",
+        controller: OrderBagsController,
+        action: "save"
+    },
+    {
+        method: "post",
+        route: "/orderBags/list",
+        controller: OrderBagsController,
+        action: "listBags"
+    },
+    {
+        method: "post",
+        route: "/orderBags/update",
+        controller: OrderBagsController,
+        action: "updateBag"
     },
 ];
