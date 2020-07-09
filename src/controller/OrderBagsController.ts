@@ -26,7 +26,7 @@ export class OrderBagsController {
                 "shopId": shopId
             }
             if (shopId) {
-                findDocuments(OrderBags, query, "", {}, 'orderNumber', 'client', 0, null, null).then((result: any) => {
+                findDocuments(OrderBags, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result: any) => {
                     response.json({
                         message: 'Listado de bolsas a despachar',
                         data: result,
@@ -57,7 +57,7 @@ export class OrderBagsController {
         try {
             const { id, deliveryId } = request.body
             let query = { "_id": mongoose.Types.ObjectId(id) }
-            let update = { "devliveryId": mongoose.Types.ObjectId(deliveryId) }
+            let update = { "devliveryId": mongoose.Types.ObjectId(deliveryId), "readyforDelivery": true }
             if (id && deliveryId) {
                 findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: any) => {
                     if (update) {
