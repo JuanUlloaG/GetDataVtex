@@ -30,7 +30,7 @@ exports.schemaBags = {
     pickerId: { type: "string", required: "false" },
     devliveryId: { type: "string", required: "false" },
     readyforDelivery: { type: "boolean", required: "false" },
-    received: { type: "boolean", required: "false" },
+    received: { type: "string", required: "false" },
     delivery: { type: "boolean", required: "false" },
     comment: { type: "string", required: "false" },
     bags: [
@@ -61,7 +61,7 @@ const OrderBagsSchema = new mongoose_1.Schema({
     devliveryId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
     readyforDelivery: { type: Boolean, required: false, default: false },
     delivery: { type: Boolean, required: false, default: false },
-    received: { type: Boolean, required: false, default: false },
+    received: { type: String, required: false, default: "" },
     comment: { type: String, required: false, default: "" },
     bags: [
         {

@@ -97,9 +97,9 @@ class OrderBagsController {
         try {
             console.log("id");
             const { id, comment, received } = request.body;
-            let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
-            let update = { "comment": comment, "delivery": true, "received": received };
             if (id) {
+                let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
+                let update = { "comment": comment, "delivery": true, "received": received };
                 findOneAndUpdateDB(OrderBags_1.default, query, update, null, null).then((update) => {
                     if (update) {
                         response.json({
@@ -130,7 +130,7 @@ class OrderBagsController {
         }
         catch (error) {
             response.json({
-                message: error,
+                message: error.message,
                 success: false
             });
         }
