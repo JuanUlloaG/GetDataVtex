@@ -10,7 +10,10 @@ export interface OrderBagsInterface extends Document {
     shopId: ShopInterface['_id'],
     pickerId?: UserInterface['_id'],
     devliveryId?: UserInterface['_id'],
-    readyforDelivery: boolean
+    readyforDelivery: boolean,
+    delivery?: boolean,
+    received?: string,
+    comment?: string,
     bags: [
         {
             bagNumber: string,
@@ -43,6 +46,9 @@ export const schemaBags = {
     pickerId: { type: "string", required: "false" },
     devliveryId: { type: "string", required: "false" },
     readyforDelivery: { type: "boolean", required: "false" },
+    received: { type: "string", required: "false" },
+    delivery: { type: "boolean", required: "false" },
+    comment: { type: "string", required: "false" },
     bags: [
         {
             bagNumber: { type: "string" },
@@ -71,6 +77,9 @@ const OrderBagsSchema: Schema = new Schema({
     pickerId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
     devliveryId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
     readyforDelivery: { type: Boolean, required: false, default: false },
+    delivery: { type: Boolean, required: false, default: false },
+    received: { type: String, required: false, default: "" },
+    comment: { type: String, required: false, default: "" },
     bags: [
         {
             bagNumber: { type: String, required: true },

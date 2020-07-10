@@ -19,7 +19,6 @@ class ShopController {
     async localByUser(request, response, next, app) {
         try {
             const userCompany = request.body.userCompany;
-            console.log(userCompany);
             let query = {};
             if (userCompany) {
                 query = {

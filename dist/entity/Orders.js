@@ -45,6 +45,8 @@ const OrderSchema = new mongoose_1.Schema({
         rut: { type: String, required: true },
         name: { type: String, required: true },
         address: { type: String, required: true },
+        third: { type: String, required: false, default: "" },
+        comment: { type: String, required: false, default: "" },
         comuna: { type: String, required: true },
         ciudad: { type: String, required: true },
         long: { type: String, required: true },

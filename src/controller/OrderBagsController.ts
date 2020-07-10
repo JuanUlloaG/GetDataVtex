@@ -92,6 +92,46 @@ export class OrderBagsController {
         }
     }
 
+    async updateBagReceived(request: Request, response: Response, next: NextFunction, app: any) {
+        try {
+            console.log("id")
+            const { id, comment, received } = request.body
+            if (id) {
+                let query = { "_id": mongoose.Types.ObjectId(id) }
+                let update = { "comment": comment, "delivery": true, "received": received }
+                findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: any) => {
+                    if (update) {
+                        response.json({
+                            message: 'Bulto actualizado exitosamente',
+                            data: update,
+                            success: true
+                        });
+                    } else {
+                        response.json({
+                            message: "Error al actualizar Bulto",
+                            success: false
+                        });
+                    }
+                }).catch((err: Error) => {
+                    response.json({
+                        message: err,
+                        success: false
+                    });
+                });
+            } else {
+                response.json({
+                    message: "Debe proporcionar el id del bulto",
+                    success: false
+                });
+            }
+        } catch (error) {
+            response.json({
+                message: error.message,
+                success: false
+            });
+        }
+    }
+
     /*
       Metodo que recibe un array de bolsas para guardarlas en la base de datos
    */

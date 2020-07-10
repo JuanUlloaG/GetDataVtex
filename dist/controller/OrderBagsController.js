@@ -25,7 +25,7 @@ class OrderBagsController {
                 "shopId": shopId
             };
             if (shopId) {
-                findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', 'client', 0, null, null).then((result) => {
+                findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result) => {
                     response.json({
                         message: 'Listado de bolsas a despachar',
                         data: result,
@@ -56,7 +56,7 @@ class OrderBagsController {
         try {
             const { id, deliveryId } = request.body;
             let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
-            let update = { "devliveryId": mongoose_1.default.Types.ObjectId(deliveryId) };
+            let update = { "devliveryId": mongoose_1.default.Types.ObjectId(deliveryId), "readyforDelivery": true };
             if (id && deliveryId) {
                 findOneAndUpdateDB(OrderBags_1.default, query, update, null, null).then((update) => {
                     if (update) {
@@ -82,6 +82,48 @@ class OrderBagsController {
             else {
                 response.json({
                     message: "Parametros Faltantes",
+                    success: false
+                });
+            }
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
+    async updateBagReceived(request, response, next, app) {
+        try {
+            console.log("id");
+            const { id, comment, received } = request.body;
+            let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
+            let update = { "comment": comment, "delivery": true, "received": received };
+            if (id) {
+                findOneAndUpdateDB(OrderBags_1.default, query, update, null, null).then((update) => {
+                    if (update) {
+                        response.json({
+                            message: 'Bulto actualizado exitosamente',
+                            data: update,
+                            success: true
+                        });
+                    }
+                    else {
+                        response.json({
+                            message: "Error al actualizar Bulto",
+                            success: false
+                        });
+                    }
+                }).catch((err) => {
+                    response.json({
+                        message: err,
+                        success: false
+                    });
+                });
+            }
+            else {
+                response.json({
+                    message: "Debe proporcionar el id del bulto",
                     success: false
                 });
             }

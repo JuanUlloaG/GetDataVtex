@@ -98,4 +98,10 @@ exports.Routes = [
         controller: OrderBagsController_1.OrderBagsController,
         action: "updateBag"
     },
+    {
+        method: "post",
+        route: "/orderBags/update/received",
+        controller: OrderBagsController_1.OrderBagsController,
+        action: "updateBagReceived"
+    },
 ];

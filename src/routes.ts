@@ -96,4 +96,10 @@ export const Routes = [
         controller: OrderBagsController,
         action: "updateBag"
     },
+    {
+        method: "post",
+        route: "/orderBags/update/received",
+        controller: OrderBagsController,
+        action: "updateBagReceived"
+    },
 ];
