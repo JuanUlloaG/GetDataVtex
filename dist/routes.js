@@ -57,6 +57,18 @@ exports.Routes = [
         action: "save"
     },
     {
+        method: "post",
+        route: "/orders/take",
+        controller: OrdersController_1.OrdersController,
+        action: "picked"
+    },
+    {
+        method: "post",
+        route: "/orders/leave",
+        controller: OrdersController_1.OrdersController,
+        action: "leave"
+    },
+    {
         method: "get",
         route: "/orders/delivery",
         controller: OrdersController_1.OrdersController,
@@ -91,6 +103,12 @@ exports.Routes = [
         route: "/orderBags/list",
         controller: OrderBagsController_1.OrderBagsController,
         action: "listBags"
+    },
+    {
+        method: "post",
+        route: "/orderBags/listTake",
+        controller: OrderBagsController_1.OrderBagsController,
+        action: "listBagsforTake"
     },
     {
         method: "post",

@@ -19,10 +19,48 @@ class OrderBagsController {
     }
     async listBags(request, response, next, app) {
         try {
+            const { shopId, deliveryId } = request.body;
+            let query;
+            query = {
+                "shopId": mongoose_1.default.Types.ObjectId(shopId),
+                "deliveryId": mongoose_1.default.Types.ObjectId(deliveryId),
+                "delivery": false
+            };
+            if (shopId) {
+                findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result) => {
+                    response.json({
+                        message: 'Listado de bolsas a despachar',
+                        data: result,
+                        success: true
+                    });
+                }).catch((err) => {
+                    response.json({
+                        message: err,
+                        success: false
+                    });
+                });
+            }
+            else {
+                response.json({
+                    message: "Listado de bolsas necesita una tienda (Shop ID)",
+                    success: false
+                });
+            }
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
+    async listBagsforTake(request, response, next, app) {
+        try {
             const { shopId } = request.body;
             let query;
             query = {
-                "shopId": shopId
+                "shopId": shopId,
+                "deliveryId": null
             };
             if (shopId) {
                 findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result) => {
@@ -61,7 +99,7 @@ class OrderBagsController {
                 findOneAndUpdateDB(OrderBags_1.default, query, update, null, null).then((update) => {
                     if (update) {
                         response.json({
-                            message: 'Bulto actualizado exitosamente',
+                            message: 'Orden actualizada exitosamente',
                             data: update,
                             success: true
                         });
@@ -95,7 +133,6 @@ class OrderBagsController {
     }
     async updateBagReceived(request, response, next, app) {
         try {
-            console.log("id");
             const { id, comment, received } = request.body;
             if (id) {
                 let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
@@ -103,7 +140,7 @@ class OrderBagsController {
                 findOneAndUpdateDB(OrderBags_1.default, query, update, null, null).then((update) => {
                     if (update) {
                         response.json({
-                            message: 'Bulto actualizado exitosamente',
+                            message: 'Orden actualizada exitosamente',
                             data: update,
                             success: true
                         });
@@ -155,7 +192,7 @@ class OrderBagsController {
                         findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
                             insertDB(OrderBags_1.default, bag).then((result) => {
                                 response.json({
-                                    message: 'Bulto(s) guardado(s) exitosamente',
+                                    message: 'Orden guardada exitosamente',
                                     data: result,
                                     success: true
                                 });
