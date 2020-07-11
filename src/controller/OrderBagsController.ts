@@ -24,7 +24,8 @@ export class OrderBagsController {
             let query: object;
             query = {
                 "shopId": mongoose.Types.ObjectId(shopId),
-                "deliveryId": mongoose.Types.ObjectId(deliveryId)
+                "deliveryId": mongoose.Types.ObjectId(deliveryId),
+                "delivery": false
             }
             if (shopId) {
                 findDocuments(OrderBags, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result: any) => {
