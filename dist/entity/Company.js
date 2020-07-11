@@ -20,11 +20,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-/*
-    Los perfiles que actualmente manejamos son
-    2: Picker
-    4: Moto o Delivery
- */
 const CompanySchema = new mongoose_1.Schema({
     rut: { type: String, required: true },
     name: { type: String, required: true },

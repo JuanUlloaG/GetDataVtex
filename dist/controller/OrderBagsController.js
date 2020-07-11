@@ -56,7 +56,7 @@ class OrderBagsController {
         try {
             const { id, deliveryId } = request.body;
             let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
-            let update = { "devliveryId": mongoose_1.default.Types.ObjectId(deliveryId), "readyforDelivery": true };
+            let update = { "deliveryId": mongoose_1.default.Types.ObjectId(deliveryId), "readyforDelivery": true };
             if (id && deliveryId) {
                 findOneAndUpdateDB(OrderBags_1.default, query, update, null, null).then((update) => {
                     if (update) {

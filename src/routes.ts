@@ -55,6 +55,18 @@ export const Routes = [
         action: "save"
     },
     {
+        method: "post",
+        route: "/orders/take",
+        controller: OrdersController,
+        action: "picked"
+    },
+    {
+        method: "post",
+        route: "/orders/leave",
+        controller: OrdersController,
+        action: "leave"
+    },
+    {
         method: "get",
         route: "/orders/delivery",
         controller: OrdersController,
@@ -89,6 +101,12 @@ export const Routes = [
         route: "/orderBags/list",
         controller: OrderBagsController,
         action: "listBags"
+    },
+    {
+        method: "post",
+        route: "/orderBags/listTake",
+        controller: OrderBagsController,
+        action: "listBagsforTake"
     },
     {
         method: "post",

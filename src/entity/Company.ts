@@ -7,13 +7,6 @@ export interface CompanyInterface extends Document {
     phone: string
 }
 
-
-/*
-    Los perfiles que actualmente manejamos son 
-    2: Picker
-    4: Moto o Delivery
- */
-
 const CompanySchema: Schema = new Schema({
     rut: { type: String, required: true },
     name: { type: String, required: true },

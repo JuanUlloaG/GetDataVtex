@@ -20,10 +20,46 @@ export class OrderBagsController {
 
     async listBags(request: Request, response: Response, next: NextFunction, app: any) {
         try {
+            const { shopId, deliveryId } = request.body
+            let query: object;
+            query = {
+                "shopId": mongoose.Types.ObjectId(shopId),
+                "deliveryId": mongoose.Types.ObjectId(deliveryId)
+            }
+            if (shopId) {
+                findDocuments(OrderBags, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result: any) => {
+                    response.json({
+                        message: 'Listado de bolsas a despachar',
+                        data: result,
+                        success: true
+                    });
+                }).catch((err: Error) => {
+                    response.json({
+                        message: err,
+                        success: false
+                    });
+                });
+            } else {
+                response.json({
+                    message: "Listado de bolsas necesita una tienda (Shop ID)",
+                    success: false
+                });
+            }
+        } catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
+
+    async listBagsforTake(request: Request, response: Response, next: NextFunction, app: any) {
+        try {
             const { shopId } = request.body
             let query: object;
             query = {
-                "shopId": shopId
+                "shopId": shopId,
+                "deliveryId": null
             }
             if (shopId) {
                 findDocuments(OrderBags, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result: any) => {
@@ -57,12 +93,12 @@ export class OrderBagsController {
         try {
             const { id, deliveryId } = request.body
             let query = { "_id": mongoose.Types.ObjectId(id) }
-            let update = { "devliveryId": mongoose.Types.ObjectId(deliveryId), "readyforDelivery": true }
+            let update = { "deliveryId": mongoose.Types.ObjectId(deliveryId), "readyforDelivery": true }
             if (id && deliveryId) {
                 findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: any) => {
                     if (update) {
                         response.json({
-                            message: 'Bulto actualizado exitosamente',
+                            message: 'Orden actualizada exitosamente',
                             data: update,
                             success: true
                         });
@@ -94,7 +130,6 @@ export class OrderBagsController {
 
     async updateBagReceived(request: Request, response: Response, next: NextFunction, app: any) {
         try {
-            console.log("id")
             const { id, comment, received } = request.body
             if (id) {
                 let query = { "_id": mongoose.Types.ObjectId(id) }
@@ -102,7 +137,7 @@ export class OrderBagsController {
                 findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: any) => {
                     if (update) {
                         response.json({
-                            message: 'Bulto actualizado exitosamente',
+                            message: 'Orden actualizada exitosamente',
                             data: update,
                             success: true
                         });
@@ -153,7 +188,7 @@ export class OrderBagsController {
                         findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {
                             insertDB(OrderBags, bag).then((result: any) => {
                                 response.json({
-                                    message: 'Bulto(s) guardado(s) exitosamente',
+                                    message: 'Orden guardada exitosamente',
                                     data: result,
                                     success: true
                                 });

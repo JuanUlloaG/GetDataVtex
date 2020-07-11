@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 const jwt = require('jsonwebtoken');
 import Orders from "../entity/Orders";
-const { initDB, insertDB, insertManyDB, findDocuments } = require("../config/db")
+const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB } = require("../config/db")
 
 
 export class OrdersController {
@@ -53,8 +53,100 @@ export class OrdersController {
 
   }
 
-  async one(request: Request, response: Response, next: NextFunction, app: any) {
-    return null
+  async leave(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { id } = request.body
+      if (id) {
+        let query = { "_id": mongoose.Types.ObjectId(id) }
+        let update = { "pickerId": null }
+        findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {
+          if (update) {
+            response.json({
+              message: 'Orden Tomada',
+              data: update,
+              success: true
+            });
+          } else {
+            response.json({
+              message: "Error al actualizar orden",
+              success: false
+            });
+          }
+        }).catch((err: Error) => {
+          response.json({
+            message: err,
+            success: false
+          });
+        });
+      } else {
+        response.json({
+          message: "Debe proporcionar el id de la orden",
+          success: false
+        });
+      }
+    } catch (error) {
+      response.json({
+        message: error.message,
+        success: false
+      });
+    }
+  }
+
+  async picked(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { id, pickerId } = request.body
+      if (id) {
+        let query = { "_id": mongoose.Types.ObjectId(id) }
+        let update = { "pickerId": pickerId }
+        let queryFind = { "_id": mongoose.Types.ObjectId(id) }
+        findDocuments(Orders, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
+          if (findResult.length) {
+            if (findResult[0].pickerId)
+              response.json({
+                message: 'Orden Tomada',
+                data: findResult[0],
+                success: true
+              });
+            return
+          }
+          findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {
+            if (update) {
+              response.json({
+                message: 'Orden Tomada',
+                data: update,
+                success: true
+              });
+            } else {
+              response.json({
+                message: "Error al actualizar orden",
+                success: false
+              });
+            }
+          }).catch((err: Error) => {
+            response.json({
+              message: err,
+              success: false
+            });
+          });
+        }).catch((err: Error) => {
+          response.json({
+            message: err,
+            success: false
+          });
+        });
+
+      } else {
+        response.json({
+          message: "Debe proporcionar el id de la orden",
+          success: false
+        });
+      }
+    } catch (error) {
+      response.json({
+        message: error.message,
+        success: false
+      });
+    }
   }
 
   /*
