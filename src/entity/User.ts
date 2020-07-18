@@ -7,7 +7,8 @@ export interface UserInterface extends Document {
     password: string;
     email: string,
     phone: string,
-    profile: string,
+    profile: { key: string, description: string },
+    state: boolean,
     company?: CompanyInterface['_id']
 }
 
@@ -24,8 +25,9 @@ const UserSchema: Schema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
-    profile: { type: String, required: true },
-    company: { type: Schema.Types.ObjectId, required: false, ref: "Companies" }
+    profile: { key: { type: String, required: true }, description: { type: String, required: true } },
+    state: { type: Boolean, required: true },
+    company: { type: Schema.Types.ObjectId, required: false, ref: "Company" }
 });
 
 const User = mongoose.model<UserInterface>("User", UserSchema, "users");

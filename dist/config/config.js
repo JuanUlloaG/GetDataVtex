@@ -2,9 +2,9 @@
 module.exports = {
     key: "miclaveultrasecreta123*",
     mongo: {
-        conectionString: "mongodb://app-picking-dev:X7smPf4t5mSeoQS7QI6M4UCMOad0USJRpHGADmN7WUXIKv3UTZ7NYws6rRZbGxsihhxWLfxEC0gpB8F9S8HY3w==@app-picking-dev.mongo.cosmos.azure.com:10255/picking-dev?ssl=true&appName=@app-picking-dev@",
-        user: "app-picking-dev",
-        pass: "X7smPf4t5mSeoQS7QI6M4UCMOad0USJRpHGADmN7WUXIKv3UTZ7NYws6rRZbGxsihhxWLfxEC0gpB8F9S8HY3w",
-        dbname: "picking-dev"
+        conectionString: "mongodb://app-picking-dev2:NoyyhjzfxK7kXFbZ0Ca0VWbnA6FbHvpggpE9hRDRVkBBn58bglXM6xx81si6wffSDW9rDYmrVQg5fTQ7hffoEg==@app-picking-dev2.mongo.cosmos.azure.com:10255/picking-dev?ssl=true&appName=@app-picking-dev2@",
+        user: "app-picking-dev2",
+        pass: "NoyyhjzfxK7kXFbZ0Ca0VWbnA6FbHvpggpE9hRDRVkBBn58bglXM6xx81si6wffSDW9rDYmrVQg5fTQ7hffoEg==",
+        dbname: "picking-dev2"
     }
 };

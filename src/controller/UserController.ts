@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 const jwt = require('jsonwebtoken');
 import mongoose from "mongoose";
-const { initDB, insertDB, findOneDB, findDocuments } = require("../config/db");
+const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB } = require("../config/db");
 import User from "../entity/User";
 import bcrypt from "bcryptjs";
 
@@ -43,11 +43,9 @@ export class UserController {
         bcrypt.hash(password, salt, function (err, hash) {
           hashedPassword = hash
           let _user;
-          if (company) {
-            _user = { name, rut, email, password: hashedPassword, phone, profile, company: mongoose.Types.ObjectId(company) }
-          } else {
-            _user = { name, rut, email, password: hashedPassword, phone, profile }
-          }
+          _user = { name, rut, email, password: hashedPassword, phone, profile, company: mongoose.Types.ObjectId(company), state: false }
+
+
           insertDB(User, _user).then((result: any) => {
             response.json({
               mensaje: 'Creacion de Usuario',
@@ -55,7 +53,12 @@ export class UserController {
               success: true
             });
           }).catch((err: Error) => {
-            console.log(err.message)
+            response.json({
+              mensaje: 'Error Creacion de Usuario',
+              data: err,
+              success: false
+            });
+            console.log(err)
           });
         });
       });
@@ -72,7 +75,33 @@ export class UserController {
 
   }
 
-  async remove(request: Request, response: Response, next: NextFunction, app: any) {
+  async active(request: Request, response: Response, next: NextFunction, app: any) {
+    const { id, state } = request.body
+    let query = { "_id": mongoose.Types.ObjectId(id) }
+    let update = { "state": state }
+    findOneAndUpdateDB(User, query, update, null, null).then((update: any) => {
+      if (update) {
+        response.json({
+          message: 'Actualización de estado exitosa',
+          state: update.state,
+          success: true
+        });
+      } else {
+        response.json({
+          message: "Error al actualizar estado",
+          success: false
+        });
+      }
+    }).catch((err: Error) => {
+      response.json({
+        message: err,
+        success: false
+      });
+    });
+
+  }
+
+  async inactive(request: Request, response: Response, next: NextFunction, app: any) {
 
   }
 
@@ -83,28 +112,53 @@ export class UserController {
         check: true
       };
 
-      findDocuments(User, query, "", {}, '', '', 0, null, null).then((result: any) => {
+      findDocuments(User, query, "", {}, 'company', '', 0, null, null).then((result: any) => {
         if (result.length > 0) {
           let pass = result[0].password
           bcrypt.compare(request.body.password, pass, (err, match) => {
             if (err) {
               response.json({
-                message: 'Error',
+                message: err,
                 success: false,
                 code: err
               });
             }
             if (match) {
-              const token = jwt.sign(payload, app.get('key'), {});
+              let query = { "_id": mongoose.Types.ObjectId(result[0]._id) }
+              let update = { "state": true }
+              findOneAndUpdateDB(User, query, update, null, null).then((update: any) => {
+                if (update) {
+                  const token = jwt.sign(payload, app.get('key'), {});
+                  let company = { id: result[0].company._id, name: result[0].company.name }
+                  response.json({
+                    message: 'Autentication successfull',
+                    token: token,
+                    profile: update.profile,
+                    company: company,
+                    name: update.name,
+                    email: update.email,
+                    id: update._id,
+                    state: update.state,
+                    success: true
+                  });
+                } else {
+                  response.json({
+                    message: "Error al iniciar sesión",
+                    success: false
+                  });
+                }
+              }).catch((err: Error) => {
+                response.json({
+                  message: "error: " + err,
+                  success: false
+                });
+              });
+
+            } else {
               response.json({
-                message: 'Autentication successfull',
-                token: token,
-                profile: result[0].profile,
-                company: result[0].company,
-                name: result[0].name,
-                email: result[0].email,
-                id: result[0]._id,
-                success: true
+                message: "Usuario o contraseña incorrecta",
+                success: false,
+                code: err
               });
             }
           })
@@ -114,6 +168,11 @@ export class UserController {
             success: false
           });
         }
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false
+        });
       })
     } catch (error) {
       response.json({

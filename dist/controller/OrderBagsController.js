@@ -8,6 +8,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const jwt = require('jsonwebtoken');
 const OrderBags_1 = __importDefault(require("../entity/OrderBags"));
 const Orders_1 = __importDefault(require("../entity/Orders"));
+const Bagnumber_1 = __importDefault(require("../entity/Bagnumber"));
 const OrderBags_2 = require("../entity/OrderBags");
 const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB } = require("../config/db");
 const ajv_1 = __importDefault(require("ajv"));
@@ -16,6 +17,59 @@ var validate = ajv.compile(OrderBags_2.schemaBags);
 class OrderBagsController {
     // private userRepository = getRepository(User);
     async index(request, response, next, app) {
+    }
+    async getNumber(request, response, next, app) {
+        try {
+            findDocuments(Bagnumber_1.default, {}, "", {}, '', '', 0, null, null).then((result) => {
+                console.log(result.length);
+                if (result.length) {
+                    console.log("dsd", result[0].number);
+                    let query = { "_id": mongoose_1.default.Types.ObjectId(result[0]._id) };
+                    let update = { "number": result[0].number + 1 };
+                    console.log(result[0].number + 1);
+                    // findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: any) => {
+                    //     if (update) {
+                    //         response.json({
+                    //             message: 'Orden actualizada exitosamente',
+                    //             data: update,
+                    //             success: true
+                    //         });
+                    //     } else {
+                    //         response.json({
+                    //             message: "Error al actualizar Bulto",
+                    //             success: false
+                    //         });
+                    //     }
+                    // }).catch((err: Error) => {
+                    //     response.json({
+                    //         message: err,
+                    //         success: false
+                    //     });
+                    // });
+                }
+                else {
+                    insertDB(Bagnumber_1.default, { number: '000000001' }).then((result) => {
+                        response.json({
+                            message: 'Number',
+                            data: result,
+                            success: true
+                        });
+                    }).catch((err) => {
+                        response.json({
+                            message: err,
+                            success: false
+                        });
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+        }
     }
     async listBags(request, response, next, app) {
         try {

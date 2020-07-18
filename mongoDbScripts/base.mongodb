@@ -10,6 +10,8 @@ use('picking-dev');
 // Make sure you run it against proper database and collection.
 db.orders.drop();
 db.orderbags.drop();
+// db.users.drop();
+// db.shops.drop();
 
 // Insert a few documents into the sales collection.
 // db.sales.insertMany([

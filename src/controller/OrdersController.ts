@@ -17,6 +17,43 @@ export class OrdersController {
     });
 
   }
+
+  async updateState(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { id, state } = request.body
+      let queryOrder = { "_id": mongoose.Types.ObjectId(id) }
+      let updateOrder = { state: state }
+      findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
+        if (updateOrder) {
+          response.json({
+            message: 'Orden actualizada exitosamente',
+            data: updateOrder,
+            success: true
+          });
+        } else {
+          response.json({
+            message: "Error al actualizar orden: " + updateOrder,
+            success: false
+          });
+        }
+
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false
+        });
+      });
+
+    } catch (error) {
+      response.json({
+        message: error.message,
+        success: false
+      });
+    }
+
+
+  }
+
   async orders(request: Request, response: Response, next: NextFunction, app: any) {
 
     try {
@@ -157,6 +194,7 @@ export class OrdersController {
       let orders: Array<any>;
       orders = request.body.orders
       let _orders: Array<any> = []
+      let state = { key: "0", description: "En espera" }
       orders.map((order, index) => {
         let _order = {
           uid: mongoose.Types.ObjectId(request.body.uid),
@@ -165,6 +203,7 @@ export class OrdersController {
           products: order.products,
           client: order.client,
           date: order.date,
+          state: state,
           startPickingDate: new Date(),
           endPickingDate: new Date(),
           starDeliveryDate: new Date(),

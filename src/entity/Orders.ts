@@ -37,7 +37,8 @@ export interface OrderInterface extends Document {
     starDeliveryDate: Date,
     endDeliveryDate: Date,
     realdatedelivery: Date,
-    pickerWorkShift: string
+    pickerWorkShift: string,
+    state: { key: string, description: string }
 }
 /*
     
@@ -78,7 +79,8 @@ const OrderSchema: Schema = new Schema({
     starDeliveryDate: { type: Date, required: true },
     endDeliveryDate: { type: Date, required: true },
     realdatedelivery: { type: Date, required: true },
-    pickerWorkShift: { type: String, required: true }
+    pickerWorkShift: { type: String, required: true },
+    state: { type: { key: String, description: String }, required: true },
 });
 
 const Order = mongoose.model<OrderInterface>("Order", OrderSchema, "orders");

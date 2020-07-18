@@ -75,7 +75,7 @@ module.exports = {
                 .sort(sort)
                 .select(select)
                 .limit(limit)
-                .populate(populate, fields)
+                .populate(populate)
                 .exec(function (err: Error, documents: Document) {
                     if (err) reject(err.message)
                     else {

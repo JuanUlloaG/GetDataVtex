@@ -33,6 +33,12 @@ exports.Routes = [
         action: "save"
     },
     {
+        method: "post",
+        route: "/users/updateState",
+        controller: UserController_1.UserController,
+        action: "active"
+    },
+    {
         method: "delete",
         route: "/users/:id",
         controller: UserController_1.UserController,
@@ -121,5 +127,11 @@ exports.Routes = [
         route: "/orderBags/update/received",
         controller: OrderBagsController_1.OrderBagsController,
         action: "updateBagReceived"
+    },
+    {
+        method: "post",
+        route: "/bagNumber",
+        controller: OrderBagsController_1.OrderBagsController,
+        action: "getNumber"
     },
 ];

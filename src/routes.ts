@@ -31,6 +31,12 @@ export const Routes = [
         action: "save"
     },
     {
+        method: "post",
+        route: "/users/updateState",
+        controller: UserController,
+        action: "active"
+    },
+    {
         method: "delete",
         route: "/users/:id",
         controller: UserController,
@@ -65,6 +71,12 @@ export const Routes = [
         route: "/orders/leave",
         controller: OrdersController,
         action: "leave"
+    },
+    {
+        method: "post",
+        route: "/order/update/state",
+        controller: OrdersController,
+        action: "updateState"
     },
     {
         method: "get",
@@ -104,6 +116,12 @@ export const Routes = [
     },
     {
         method: "post",
+        route: "/orderBags/list/all",
+        controller: OrderBagsController,
+        action: "listAllBags"
+    },
+    {
+        method: "post",
         route: "/orderBags/listTake",
         controller: OrderBagsController,
         action: "listBagsforTake"
@@ -119,5 +137,11 @@ export const Routes = [
         route: "/orderBags/update/received",
         controller: OrderBagsController,
         action: "updateBagReceived"
+    },
+    {
+        method: "post",
+        route: "/bagNumber",
+        controller: OrderBagsController,
+        action: "getNumber"
     },
 ];
