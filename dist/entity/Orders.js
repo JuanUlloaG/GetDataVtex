@@ -58,7 +58,8 @@ const OrderSchema = new mongoose_1.Schema({
     starDeliveryDate: { type: Date, required: true },
     endDeliveryDate: { type: Date, required: true },
     realdatedelivery: { type: Date, required: true },
-    pickerWorkShift: { type: String, required: true }
+    pickerWorkShift: { type: String, required: true },
+    state: { type: { key: String, description: String }, required: true },
 });
 const Order = mongoose_1.default.model("Order", OrderSchema, "orders");
 exports.default = Order;

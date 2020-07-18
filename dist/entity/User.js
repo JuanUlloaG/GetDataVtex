@@ -33,7 +33,7 @@ const UserSchema = new mongoose_1.Schema({
     phone: { type: String, required: true },
     profile: { key: { type: String, required: true }, description: { type: String, required: true } },
     state: { type: Boolean, required: true },
-    company: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Companies" }
+    company: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Company" }
 });
 const User = mongoose_1.default.model("User", UserSchema, "users");
 exports.default = User;

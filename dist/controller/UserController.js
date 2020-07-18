@@ -95,7 +95,7 @@ class UserController {
             const payload = {
                 check: true
             };
-            findDocuments(User_1.default, query, "", {}, '', '', 0, null, null).then((result) => {
+            findDocuments(User_1.default, query, "", {}, 'company', '', 0, null, null).then((result) => {
                 if (result.length > 0) {
                     let pass = result[0].password;
                     bcryptjs_1.default.compare(request.body.password, pass, (err, match) => {
@@ -112,11 +112,12 @@ class UserController {
                             findOneAndUpdateDB(User_1.default, query, update, null, null).then((update) => {
                                 if (update) {
                                     const token = jwt.sign(payload, app.get('key'), {});
+                                    let company = { id: result[0].company._id, name: result[0].company.name };
                                     response.json({
                                         message: 'Autentication successfull',
                                         token: token,
                                         profile: update.profile,
-                                        company: update.company,
+                                        company: company,
                                         name: update.name,
                                         email: update.email,
                                         id: update._id,
@@ -132,7 +133,7 @@ class UserController {
                                 }
                             }).catch((err) => {
                                 response.json({
-                                    message: err,
+                                    message: "error: " + err,
                                     success: false
                                 });
                             });
@@ -152,6 +153,11 @@ class UserController {
                         success: false
                     });
                 }
+            }).catch((err) => {
+                response.json({
+                    message: err,
+                    success: false
+                });
             });
         }
         catch (error) {

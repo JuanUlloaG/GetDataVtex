@@ -17,6 +17,39 @@ class OrdersController {
             success: true
         });
     }
+    async updateState(request, response, next, app) {
+        try {
+            const { id, state } = request.body;
+            let queryOrder = { "_id": mongoose_1.default.Types.ObjectId(id) };
+            let updateOrder = { state: state };
+            findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
+                if (updateOrder) {
+                    response.json({
+                        message: 'Orden actualizada exitosamente',
+                        data: updateOrder,
+                        success: true
+                    });
+                }
+                else {
+                    response.json({
+                        message: "Error al actualizar orden: " + updateOrder,
+                        success: false
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error.message,
+                success: false
+            });
+        }
+    }
     async orders(request, response, next, app) {
         try {
             const { company, profile } = request.body;
@@ -157,6 +190,7 @@ class OrdersController {
             let orders;
             orders = request.body.orders;
             let _orders = [];
+            let state = { key: "0", description: "En espera" };
             orders.map((order, index) => {
                 let _order = {
                     uid: mongoose_1.default.Types.ObjectId(request.body.uid),
@@ -165,6 +199,7 @@ class OrdersController {
                     products: order.products,
                     client: order.client,
                     date: order.date,
+                    state: state,
                     startPickingDate: new Date(),
                     endPickingDate: new Date(),
                     starDeliveryDate: new Date(),
