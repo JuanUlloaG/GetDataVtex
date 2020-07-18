@@ -255,6 +255,7 @@ export class OrderBagsController {
         }
     }
 
+    
     async updateBagReceived(request: Request, response: Response, next: NextFunction, app: any) {
         try {
             const { id, comment, received, orderId } = request.body
