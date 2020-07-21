@@ -192,7 +192,7 @@ class OrderBagsController {
             const { id, deliveryId, orderId } = request.body;
             let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
             let queryOrder = { "_id": mongoose_1.default.Types.ObjectId(orderId) };
-            let updateOrder = { state: { key: "2", description: "Orden Recepcionada" } };
+            let updateOrder = { state: { key: "2", description: "Orden Recepcionada" }, starDeliveryDate: new Date() };
             let updateBag = { "deliveryId": mongoose_1.default.Types.ObjectId(deliveryId), "readyforDelivery": true };
             if (id && deliveryId) {
                 findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
@@ -251,7 +251,7 @@ class OrderBagsController {
             const { id, comment, received, orderId } = request.body;
             if (id) {
                 let queryOrder = { "_id": mongoose_1.default.Types.ObjectId(orderId) };
-                let updateOrder = { state: { key: "4", description: "Orden Despachada" } };
+                let updateOrder = { state: { key: "4", description: "Orden Despachada" }, endDeliveryDate: new Date() };
                 let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
                 let update = { "comment": comment, "delivery": true, "received": received };
                 findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
@@ -320,7 +320,7 @@ class OrderBagsController {
                 bag.pickerId = mongoose_1.default.Types.ObjectId(pickerId);
                 let query = { "_id": mongoose_1.default.Types.ObjectId(orderNumber) };
                 let queryFind = { "orderNumber": mongoose_1.default.Types.ObjectId(orderNumber) };
-                let update = { "pickerId": mongoose_1.default.Types.ObjectId(pickerId), state: { key: "1", description: "Orden Pickeada" } };
+                let update = { "pickerId": mongoose_1.default.Types.ObjectId(pickerId), state: { key: "1", description: "Orden Pickeada" }, endPickingDate: new Date() };
                 findDocuments(OrderBags_1.default, queryFind, "", {}, '', '', 0, null, null).then((findResult) => {
                     if (!findResult.length) {
                         findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {

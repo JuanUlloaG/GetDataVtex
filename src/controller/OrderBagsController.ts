@@ -200,7 +200,7 @@ export class OrderBagsController {
             const { id, deliveryId, orderId } = request.body
             let query = { "_id": mongoose.Types.ObjectId(id) }
             let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
-            let updateOrder = { state: { key: "2", description: "Orden Recepcionada" } }
+            let updateOrder = { state: { key: "2", description: "Orden Recepcionada" }, starDeliveryDate: new Date() }
             let updateBag = { "deliveryId": mongoose.Types.ObjectId(deliveryId), "readyforDelivery": true }
             if (id && deliveryId) {
                 findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
@@ -255,13 +255,13 @@ export class OrderBagsController {
         }
     }
 
-    
+
     async updateBagReceived(request: Request, response: Response, next: NextFunction, app: any) {
         try {
             const { id, comment, received, orderId } = request.body
             if (id) {
                 let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
-                let updateOrder = { state: { key: "4", description: "Orden Despachada" } }
+                let updateOrder = { state: { key: "4", description: "Orden Despachada" }, endDeliveryDate: new Date() }
                 let query = { "_id": mongoose.Types.ObjectId(id) }
                 let update = { "comment": comment, "delivery": true, "received": received }
 
@@ -332,7 +332,7 @@ export class OrderBagsController {
 
                 let query = { "_id": mongoose.Types.ObjectId(orderNumber) }
                 let queryFind = { "orderNumber": mongoose.Types.ObjectId(orderNumber) }
-                let update = { "pickerId": mongoose.Types.ObjectId(pickerId), state: { key: "1", description: "Orden Pickeada" } }
+                let update = { "pickerId": mongoose.Types.ObjectId(pickerId), state: { key: "1", description: "Orden Pickeada" }, endPickingDate: new Date() }
                 findDocuments(OrderBags, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
                     if (!findResult.length) {
                         findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {

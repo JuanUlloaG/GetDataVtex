@@ -53,11 +53,11 @@ const OrderSchema = new mongoose_1.Schema({
         lat: { type: String, required: true }
     },
     date: { type: Date, required: true },
-    startPickingDate: { type: Date, required: true },
-    endPickingDate: { type: Date, required: true },
-    starDeliveryDate: { type: Date, required: true },
-    endDeliveryDate: { type: Date, required: true },
-    realdatedelivery: { type: Date, required: true },
+    startPickingDate: { type: Date, required: false, default: null },
+    endPickingDate: { type: Date, required: false, default: null },
+    starDeliveryDate: { type: Date, required: false, default: null },
+    endDeliveryDate: { type: Date, required: false, default: null },
+    realdatedelivery: { type: Date, required: false, default: null },
     pickerWorkShift: { type: String, required: true },
     state: { type: { key: String, description: String }, required: true },
 });

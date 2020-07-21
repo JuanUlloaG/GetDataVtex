@@ -88,8 +88,9 @@ class OrdersController {
             const { id } = request.body;
             if (id) {
                 let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
-                let update = { "pickerId": null };
+                let update = { "pickerId": null, startPickingDate: null };
                 findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
+                    console.log("Leave: ", update);
                     if (update) {
                         response.json({
                             message: 'Orden Tomada',
@@ -129,38 +130,46 @@ class OrdersController {
             const { id, pickerId } = request.body;
             if (id) {
                 let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
-                let update = { "pickerId": pickerId };
+                let update = { "pickerId": pickerId, startPickingDate: new Date() };
                 let queryFind = { "_id": mongoose_1.default.Types.ObjectId(id) };
                 findDocuments(Orders_1.default, queryFind, "", {}, '', '', 0, null, null).then((findResult) => {
-                    if (findResult.length) {
-                        if (findResult[0].pickerId)
+                    if (findResult.length > 0) {
+                        if (findResult[0].pickerId) {
                             response.json({
                                 message: 'Orden Tomada',
                                 data: findResult[0],
                                 success: true
                             });
-                        return;
-                    }
-                    findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
-                        if (update) {
-                            response.json({
-                                message: 'Orden Tomada',
-                                data: update,
-                                success: true
-                            });
                         }
                         else {
-                            response.json({
-                                message: "Error al actualizar orden",
-                                success: false
+                            findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
+                                if (update) {
+                                    response.json({
+                                        message: 'Orden Tomada',
+                                        data: update,
+                                        success: true
+                                    });
+                                }
+                                else {
+                                    response.json({
+                                        message: "Error al actualizar orden",
+                                        success: false
+                                    });
+                                }
+                            }).catch((err) => {
+                                response.json({
+                                    message: err,
+                                    success: false
+                                });
                             });
                         }
-                    }).catch((err) => {
+                    }
+                    else {
                         response.json({
-                            message: err,
+                            message: "Error al actualizar orden",
                             success: false
                         });
-                    });
+                    }
                 }).catch((err) => {
                     response.json({
                         message: err,
