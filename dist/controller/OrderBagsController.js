@@ -320,22 +320,31 @@ class OrderBagsController {
                 bag.pickerId = mongoose_1.default.Types.ObjectId(pickerId);
                 let query = { "_id": mongoose_1.default.Types.ObjectId(orderNumber) };
                 let queryFind = { "orderNumber": mongoose_1.default.Types.ObjectId(orderNumber) };
-                let update = { "pickerId": mongoose_1.default.Types.ObjectId(pickerId), state: { key: "1", description: "Orden Pickeada" }, endPickingDate: new Date() };
+                let update = { "pickerId": mongoose_1.default.Types.ObjectId(pickerId), bag: mongoose_1.default.Types.ObjectId(pickerId), "state": { key: "1", description: "Orden Pickeada" }, endPickingDate: new Date() };
                 findDocuments(OrderBags_1.default, queryFind, "", {}, '', '', 0, null, null).then((findResult) => {
                     if (!findResult.length) {
-                        findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
-                            insertDB(OrderBags_1.default, bag).then((result) => {
-                                response.json({
-                                    message: 'Orden guardada exitosamente',
-                                    data: result,
-                                    success: true
+                        insertDB(OrderBags_1.default, bag).then((result) => {
+                            if (result) {
+                                update['bag'] = mongoose_1.default.Types.ObjectId(result._id);
+                                findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
+                                    response.json({
+                                        message: 'Orden guardada exitosamente',
+                                        data: result,
+                                        success: true
+                                    });
+                                }).catch((err) => {
+                                    response.json({
+                                        message: err,
+                                        success: false
+                                    });
                                 });
-                            }).catch((err) => {
+                            }
+                            else {
                                 response.json({
-                                    message: err,
+                                    message: "Ha ocurrido un error al actualizar la orden",
                                     success: false
                                 });
-                            });
+                            }
                         }).catch((err) => {
                             response.json({
                                 message: err,

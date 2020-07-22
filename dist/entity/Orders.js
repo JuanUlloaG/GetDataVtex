@@ -28,6 +28,7 @@ const OrderSchema = new mongoose_1.Schema({
     orderNumber: { type: String, required: true },
     shopId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Shop", default: null },
     pickerId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
+    bag: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null },
     products: [{
             id: { type: String, required: true },
             barcode: { type: String, required: true },

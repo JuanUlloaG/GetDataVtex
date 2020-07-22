@@ -54,6 +54,7 @@ class OrdersController {
         try {
             const { company, profile } = request.body;
             let query;
+            let populate = '';
             if (profile == 2) {
                 query = {
                     "uid": company,
@@ -63,7 +64,11 @@ class OrdersController {
             else {
                 query = {};
             }
-            findDocuments(Orders_1.default, query, "", {}, '', '', 0, null, null).then((result) => {
+            console.log(profile);
+            if (profile == 4)
+                populate = 'bag';
+            console.log(populate);
+            findDocuments(Orders_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
                 response.json({
                     message: 'Listado de ordenes',
                     data: result,
