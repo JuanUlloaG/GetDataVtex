@@ -8,7 +8,7 @@ use('picking-dev');
 
 // The drop() command destroys all data from a collection.
 // Make sure you run it against proper database and collection.
-db.orders.drop();
+// db.orders.drop();
 db.orderbags.drop();
 // db.users.drop();
 // db.shops.drop();

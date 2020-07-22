@@ -61,7 +61,7 @@ routes_1.Routes.forEach(route => {
     });
 });
 initDB().then((result) => {
-    app.listen(3000, () => {
+    app.listen(3001, () => {
         console.log(result);
         console.log("Picking server on! happy hacking 👨🏾‍💻");
     });

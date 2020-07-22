@@ -7,6 +7,7 @@ import BagNumber from "../entity/Bagnumber";
 import { schemaBags } from "../entity/OrderBags";
 const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB } = require("../config/db")
 import Ajv from 'ajv';
+import { ObjectId } from "mongodb";
 var ajv = new Ajv({ allErrors: true });
 
 var validate = ajv.compile(schemaBags)
@@ -332,22 +333,30 @@ export class OrderBagsController {
 
                 let query = { "_id": mongoose.Types.ObjectId(orderNumber) }
                 let queryFind = { "orderNumber": mongoose.Types.ObjectId(orderNumber) }
-                let update = { "pickerId": mongoose.Types.ObjectId(pickerId), state: { key: "1", description: "Orden Pickeada" }, endPickingDate: new Date() }
+                let update = { "pickerId": mongoose.Types.ObjectId(pickerId), bag: mongoose.Types.ObjectId(pickerId), "state": { key: "1", description: "Orden Pickeada" }, endPickingDate: new Date() }
                 findDocuments(OrderBags, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
                     if (!findResult.length) {
-                        findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {
-                            insertDB(OrderBags, bag).then((result: any) => {
-                                response.json({
-                                    message: 'Orden guardada exitosamente',
-                                    data: result,
-                                    success: true
+                        insertDB(OrderBags, bag).then((result: any) => {
+                            if (result) {
+                                update['bag'] = mongoose.Types.ObjectId(result._id)
+                                findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {
+                                    response.json({
+                                        message: 'Orden guardada exitosamente',
+                                        data: result,
+                                        success: true
+                                    });
+                                }).catch((err: Error) => {
+                                    response.json({
+                                        message: err,
+                                        success: false
+                                    });
                                 });
-                            }).catch((err: Error) => {
+                            } else {
                                 response.json({
-                                    message: err,
+                                    message: "Ha ocurrido un error al actualizar la orden",
                                     success: false
                                 });
-                            });
+                            }
                         }).catch((err: Error) => {
                             response.json({
                                 message: err,

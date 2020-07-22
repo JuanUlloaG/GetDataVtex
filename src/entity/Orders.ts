@@ -2,11 +2,14 @@ import mongoose, { Schema, Document } from "mongoose";
 import { UserInterface } from "./User";
 import { CompanyInterface } from "./Company";
 import { ShopInterface } from "./Shop"
+import { OrderBagsInterface } from "./OrderBags"
+
 export interface OrderInterface extends Document {
     uid: CompanyInterface['_id'],
     orderNumber: number,
     shopId?: ShopInterface['_id'],
     pickerId: UserInterface['_id'],
+    bag: OrderBagsInterface['_id'],
     products: [{
         id: number,
         barcode: number,
@@ -49,6 +52,7 @@ const OrderSchema: Schema = new Schema({
     orderNumber: { type: String, required: true },
     shopId: { type: Schema.Types.ObjectId, required: false, ref: "Shop", default: null },
     pickerId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
+    bag: { type: Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null },
     products: [{
         id: { type: String, required: true },
         barcode: { type: String, required: true },
