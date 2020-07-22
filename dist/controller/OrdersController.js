@@ -64,10 +64,8 @@ class OrdersController {
             else {
                 query = {};
             }
-            console.log(profile);
             if (profile == 4)
                 populate = 'bag';
-            console.log(populate);
             findDocuments(Orders_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
                 response.json({
                     message: 'Listado de ordenes',

@@ -69,10 +69,8 @@ export class OrdersController {
       } else {
         query = {}
       }
-      console.log(profile)
-      if (profile == 4) populate = 'bag'
 
-      console.log(populate)
+      if (profile == 4) populate = 'bag'
 
       findDocuments(Orders, query, "", {}, populate, '', 0, null, null).then((result: any) => {
         response.json({
