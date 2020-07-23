@@ -10,7 +10,7 @@ const config = require('./config/config');
 const routes_1 = require("./routes");
 const validation = require("./middleware/middleware");
 const { initDB, insertDB } = require("./config/db");
-const cors = require('cors');
+// const cors = require('cors')
 let app = express_1.default();
 // 1
 app.set('key', config.key);

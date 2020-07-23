@@ -10,7 +10,7 @@ import OrderBags from "./entity/OrderBags";
 import { Routes } from "./routes";
 const validation = require("./middleware/middleware")
 const { initDB, insertDB } = require("./config/db")
-const cors = require('cors')
+// const cors = require('cors')
 
 let app = express();
 // 1
