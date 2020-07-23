@@ -1,5 +1,11 @@
 FROM node:10
 
+RUN apk add --no-cache tzdata
+
+ENV TZ=America/Santiago
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 WORKDIR /usr/src/app
 
 COPY package*.json ./
