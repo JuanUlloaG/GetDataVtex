@@ -10,6 +10,7 @@ const config = require('./config/config');
 const routes_1 = require("./routes");
 const validation = require("./middleware/middleware");
 const { initDB, insertDB } = require("./config/db");
+const cors = require('cors');
 let app = express_1.default();
 // 1
 app.set('key', config.key);
@@ -21,6 +22,7 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json,Authorization');
     next();
 });
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 // 3
 app.use(bodyParser.json());

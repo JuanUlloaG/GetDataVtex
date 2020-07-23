@@ -10,6 +10,7 @@ import OrderBags from "./entity/OrderBags";
 import { Routes } from "./routes";
 const validation = require("./middleware/middleware")
 const { initDB, insertDB } = require("./config/db")
+const cors = require('cors')
 
 let app = express();
 // 1
@@ -23,6 +24,7 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json,Authorization');
     next();
 });
+app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
 // 3
 app.use(bodyParser.json());
