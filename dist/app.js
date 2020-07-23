@@ -22,7 +22,6 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json,Authorization');
     next();
 });
-app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 // 3
 app.use(bodyParser.json());
