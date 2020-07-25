@@ -20,15 +20,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-/*
-    
- */
 const OrderSchema = new mongoose_1.Schema({
     uid: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Company" },
     orderNumber: { type: String, required: true },
     shopId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Shop", default: null },
     pickerId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
+    deliveryId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
     bag: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null },
+    state: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "State" },
     products: [{
             id: { type: String, required: true },
             barcode: { type: String, required: true },
@@ -45,6 +44,8 @@ const OrderSchema = new mongoose_1.Schema({
     client: {
         rut: { type: String, required: true },
         name: { type: String, required: true },
+        email: { type: String, required: true },
+        cellphone: { type: String, required: true },
         address: { type: String, required: true },
         third: { type: String, required: false, default: "" },
         comment: { type: String, required: false, default: "" },
@@ -60,7 +61,8 @@ const OrderSchema = new mongoose_1.Schema({
     endDeliveryDate: { type: Date, required: false, default: null },
     realdatedelivery: { type: Date, required: false, default: null },
     pickerWorkShift: { type: String, required: true },
-    state: { type: { key: String, description: String }, required: true },
+    isInShop: { type: Boolean, required: true, default: false },
+    restocked: { type: Boolean, required: true, default: false }
 });
 const Order = mongoose_1.default.model("Order", OrderSchema, "orders");
 exports.default = Order;

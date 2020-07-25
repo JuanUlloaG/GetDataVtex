@@ -65,7 +65,7 @@ class OrdersController {
                 query = {};
             }
             if (profile == 4)
-                populate = 'bag';
+                populate = 'bag bag.deliveryId pickerId';
             findDocuments(Orders_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
                 response.json({
                     message: 'Listado de ordenes',

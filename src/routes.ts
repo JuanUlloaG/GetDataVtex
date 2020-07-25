@@ -4,6 +4,8 @@ import { CompanyControllers } from "./controller/CompanyController";
 import { ShopController } from "./controller/ShopController";
 import { HomeController } from "./controller/HomeController";
 import { OrderBagsController } from "./controller/OrderBagsController";
+import { StateControllers } from "./controller/StateController";
+import { ServiceControllers } from "./controller/ServicesController";
 
 export const Routes = [
     {
@@ -143,5 +145,17 @@ export const Routes = [
         route: "/bagNumber",
         controller: OrderBagsController,
         action: "getNumber"
+    },
+    {
+        method: "post",
+        route: "/state/save",
+        controller: StateControllers,
+        action: "save"
+    },
+    {
+        method: "post",
+        route: "/services/save",
+        controller: ServiceControllers,
+        action: "save"
     },
 ];

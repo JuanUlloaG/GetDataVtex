@@ -38,7 +38,6 @@ class CompanyControllers {
     async save(request, response, next, app) {
         const { name, phone, email, rut } = request.body;
         let _company = { name, rut, email, phone, };
-        console.log("holas");
         insertDB(Company_1.default, _company).then((result) => {
             response.json({
                 mensaje: 'Creacion de compañia exitosa',

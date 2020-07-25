@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 import OrderBags from "../entity/OrderBags";
 import Orders from "../entity/Orders";
 import BagNumber from "../entity/Bagnumber";
+import State from "../entity/State";
 import { schemaBags } from "../entity/OrderBags";
 const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB } = require("../config/db")
 import Ajv from 'ajv';
@@ -198,56 +199,73 @@ export class OrderBagsController {
     async updateBag(request: Request, response: Response, next: NextFunction, app: any) {
 
         try {
-            const { id, deliveryId, orderId } = request.body
-            let query = { "_id": mongoose.Types.ObjectId(id) }
-            let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
-            let updateOrder = { state: { key: "2", description: "Orden Recepcionada" }, starDeliveryDate: new Date() }
-            let updateBag = { "deliveryId": mongoose.Types.ObjectId(deliveryId), "readyforDelivery": true }
-            if (id && deliveryId) {
-                findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
-                    if (updateOrder) {
-                        findOneAndUpdateDB(OrderBags, query, updateBag, null, null).then((update: any) => {
-                            console.log(update)
-                            if (update) {
-                                response.json({
-                                    message: 'Orden actualizada exitosamente',
-                                    data: update,
-                                    success: true
+            let queryState = { "key": 4 }
+            findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
+                if (findResultState.length > 0) {
+                    let stateId = findResultState[0]._id;
+                    const { id, deliveryId, orderId } = request.body
+                    let query = { "_id": mongoose.Types.ObjectId(id) }
+                    let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
+                    let updateOrder = { state: mongoose.Types.ObjectId(stateId), starDeliveryDate: new Date() }
+                    let updateBag = { "deliveryId": mongoose.Types.ObjectId(deliveryId), "readyforDelivery": true }
+                    if (id && deliveryId) {
+                        findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
+                            if (updateOrder) {
+                                findOneAndUpdateDB(OrderBags, query, updateBag, null, null).then((update: any) => {
+                                    console.log(update)
+                                    if (update) {
+                                        response.json({
+                                            message: 'Orden actualizada exitosamente',
+                                            data: update,
+                                            success: true
+                                        });
+                                    } else {
+                                        response.json({
+                                            message: "Error al actualizar Bulto: " + update,
+                                            success: false
+                                        });
+                                    }
+                                }).catch((err: Error) => {
+                                    response.json({
+                                        message: err,
+                                        success: false
+                                    });
                                 });
                             } else {
                                 response.json({
-                                    message: "Error al actualizar Bulto: " + update,
+                                    message: "Error al actualizar Bulto: " + updateOrder,
                                     success: false
                                 });
                             }
+
                         }).catch((err: Error) => {
                             response.json({
                                 message: err,
                                 success: false
                             });
                         });
+
+
+
                     } else {
                         response.json({
-                            message: "Error al actualizar Bulto: " + updateOrder,
+                            message: "Parametros Faltantes",
                             success: false
                         });
                     }
-
-                }).catch((err: Error) => {
+                } else {
                     response.json({
-                        message: err,
+                        message: "Error al tomar la orden, no se ha encontrado un estado valido",
                         success: false
                     });
-                });
-
-
-
-            } else {
+                }
+            }).catch((err: Error) => {
                 response.json({
-                    message: "Parametros Faltantes",
+                    message: err,
                     success: false
                 });
-            }
+            });
+
         } catch (error) {
             response.json({
                 message: error,
@@ -259,57 +277,73 @@ export class OrderBagsController {
 
     async updateBagReceived(request: Request, response: Response, next: NextFunction, app: any) {
         try {
-            const { id, comment, received, orderId } = request.body
-            if (id) {
-                let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
-                let updateOrder = { state: { key: "4", description: "Orden Despachada" }, endDeliveryDate: new Date() }
-                let query = { "_id": mongoose.Types.ObjectId(id) }
-                let update = { "comment": comment, "delivery": true, "received": received }
+            let query = { "key": 5 }
+            findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
+                if (findResultState.length > 0) {
+                    let stateId = findResultState[0]._id;
+                    const { id, comment, received, orderId } = request.body
+                    if (id) {
+                        let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
+                        let updateOrder = { state: mongoose.Types.ObjectId(stateId), endDeliveryDate: new Date() }
+                        let query = { "_id": mongoose.Types.ObjectId(id) }
+                        let update = { "comment": comment, "delivery": true, "received": received }
 
-                findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
-                    if (updateOrder) {
-                        findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: any) => {
-                            if (update) {
-                                response.json({
-                                    message: 'Orden Actualizada correctamente',
-                                    data: update,
-                                    success: true
+                        findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
+                            if (updateOrder) {
+                                findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: any) => {
+                                    if (update) {
+                                        response.json({
+                                            message: 'Orden Actualizada correctamente',
+                                            data: update,
+                                            success: true
+                                        });
+                                    } else {
+                                        console.log(update)
+                                        response.json({
+                                            message: "Error al actualizar Bulto",
+                                            success: false
+                                        });
+                                    }
+                                }).catch((err: Error) => {
+                                    console.log(err)
+                                    response.json({
+                                        message: err,
+                                        success: false
+                                    });
                                 });
                             } else {
-                                console.log(update)
                                 response.json({
-                                    message: "Error al actualizar Bulto",
+                                    message: "Error al actualizar Bulto: " + updateOrder,
                                     success: false
                                 });
                             }
+
                         }).catch((err: Error) => {
-                            console.log(err)
                             response.json({
                                 message: err,
                                 success: false
                             });
                         });
+
+
                     } else {
                         response.json({
-                            message: "Error al actualizar Bulto: " + updateOrder,
+                            message: "Debe proporcionar el id del bulto",
                             success: false
                         });
                     }
-
-                }).catch((err: Error) => {
+                } else {
                     response.json({
-                        message: err,
+                        message: "Error al tomar la orden, no se ha encontrado un estado valido",
                         success: false
                     });
-                });
-
-
-            } else {
+                }
+            }).catch((err: Error) => {
                 response.json({
-                    message: "Debe proporcionar el id del bulto",
+                    message: err,
                     success: false
                 });
-            }
+            });
         } catch (error) {
             response.json({
                 message: error.message,
@@ -323,28 +357,44 @@ export class OrderBagsController {
    */
     async save(request: Request, response: Response, next: NextFunction, app: any) {
         try {
-            const { orderNumber, bags, shopId, pickerId } = request.body
-            let bag = { orderNumber, bags, shopId, pickerId }
-            let valid = validate(bag)
-            if (valid) {
-                bag.orderNumber = mongoose.Types.ObjectId(orderNumber)
-                bag.shopId = mongoose.Types.ObjectId(shopId)
-                bag.pickerId = mongoose.Types.ObjectId(pickerId)
+            let query = { "key": 3 }
+            findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
+                if (findResultState.length > 0) {
+                    let stateId = findResultState[0]._id;
+                    const { orderNumber, bags, shopId, pickerId } = request.body
+                    let bag = { orderNumber, bags, shopId, pickerId }
+                    let valid = validate(bag)
+                    if (valid) {
+                        bag.orderNumber = mongoose.Types.ObjectId(orderNumber)
+                        bag.shopId = mongoose.Types.ObjectId(shopId)
+                        bag.pickerId = mongoose.Types.ObjectId(pickerId)
 
-                let query = { "_id": mongoose.Types.ObjectId(orderNumber) }
-                let queryFind = { "orderNumber": mongoose.Types.ObjectId(orderNumber) }
-                let update = { "pickerId": mongoose.Types.ObjectId(pickerId), bag: mongoose.Types.ObjectId(pickerId), "state": { key: "1", description: "Orden Pickeada" }, endPickingDate: new Date() }
-                findDocuments(OrderBags, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
-                    if (!findResult.length) {
-                        insertDB(OrderBags, bag).then((result: any) => {
-                            if (result) {
-                                update['bag'] = mongoose.Types.ObjectId(result._id)
-                                findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {
-                                    response.json({
-                                        message: 'Orden guardada exitosamente',
-                                        data: result,
-                                        success: true
-                                    });
+                        let query = { "_id": mongoose.Types.ObjectId(orderNumber) }
+                        let queryFind = { "orderNumber": mongoose.Types.ObjectId(orderNumber) }
+                        let update = { "pickerId": mongoose.Types.ObjectId(pickerId), bag: mongoose.Types.ObjectId(pickerId), "state": mongoose.Types.ObjectId(stateId), endPickingDate: new Date() }
+                        findDocuments(OrderBags, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
+                            if (!findResult.length) {
+                                insertDB(OrderBags, bag).then((result: any) => {
+                                    if (result) {
+                                        update['bag'] = mongoose.Types.ObjectId(result._id)
+                                        findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {
+                                            response.json({
+                                                message: 'Orden guardada exitosamente',
+                                                data: result,
+                                                success: true
+                                            });
+                                        }).catch((err: Error) => {
+                                            response.json({
+                                                message: err,
+                                                success: false
+                                            });
+                                        });
+                                    } else {
+                                        response.json({
+                                            message: "Ha ocurrido un error al actualizar la orden",
+                                            success: false
+                                        });
+                                    }
                                 }).catch((err: Error) => {
                                     response.json({
                                         message: err,
@@ -353,36 +403,38 @@ export class OrderBagsController {
                                 });
                             } else {
                                 response.json({
-                                    message: "Ha ocurrido un error al actualizar la orden",
+                                    message: "No se puede agregar bolsa, orden ya tiene bulto(s) asignado(s)",
                                     success: false
                                 });
                             }
+
                         }).catch((err: Error) => {
                             response.json({
                                 message: err,
                                 success: false
                             });
                         });
+
                     } else {
                         response.json({
-                            message: "No se puede agregar bolsa, orden ya tiene bulto(s) asignado(s)",
+                            message: ajv.errorsText(validate.errors),
                             success: false
                         });
                     }
-
-                }).catch((err: Error) => {
+                } else {
                     response.json({
-                        message: err,
+                        message: "Error al tomar la orden, no se ha encontrado un estado valido",
                         success: false
                     });
-                });
+                }
 
-            } else {
+            }).catch((err: Error) => {
                 response.json({
-                    message: ajv.errorsText(validate.errors),
+                    message: err,
                     success: false
                 });
-            }
+            });
+
         } catch (error) {
             console.log(error)
             response.json({

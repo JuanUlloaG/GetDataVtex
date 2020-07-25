@@ -7,6 +7,7 @@ const CompanyController_1 = require("./controller/CompanyController");
 const ShopController_1 = require("./controller/ShopController");
 const HomeController_1 = require("./controller/HomeController");
 const OrderBagsController_1 = require("./controller/OrderBagsController");
+const StateController_1 = require("./controller/StateController");
 exports.Routes = [
     {
         method: "get",
@@ -145,5 +146,11 @@ exports.Routes = [
         route: "/bagNumber",
         controller: OrderBagsController_1.OrderBagsController,
         action: "getNumber"
+    },
+    {
+        method: "post",
+        route: "/state/save",
+        controller: StateController_1.StateControllers,
+        action: "save"
     },
 ];

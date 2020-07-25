@@ -113,7 +113,6 @@ export class UserController {
       };
 
       findDocuments(User, query, "", {}, 'company', '', 0, null, null).then((result: any) => {
-        console.log("object")
         if (result.length > 0) {
           let pass = result[0].password
           bcrypt.compare(request.body.password, pass, (err, match) => {

@@ -3,13 +3,18 @@ import { UserInterface } from "./User";
 import { CompanyInterface } from "./Company";
 import { ShopInterface } from "./Shop"
 import { OrderBagsInterface } from "./OrderBags"
+import { StateInterface } from "./State"
+import { ServicesInterface } from "./Services"
 
 export interface OrderInterface extends Document {
     uid: CompanyInterface['_id'],
     orderNumber: number,
     shopId?: ShopInterface['_id'],
-    pickerId: UserInterface['_id'],
+    pickerId?: UserInterface['_id'],
+    deliveryId?: UserInterface['_id'],
     bag: OrderBagsInterface['_id'],
+    state: StateInterface['_id'],
+    service: ServicesInterface['_id'],
     products: [{
         id: number,
         barcode: number,
@@ -26,6 +31,8 @@ export interface OrderInterface extends Document {
     client: {
         rut: string,
         name: string,
+        cellphone: string,
+        email: string,
         address: string,
         comuna: string,
         comment: string,
@@ -34,6 +41,7 @@ export interface OrderInterface extends Document {
         long: number,
         lat: number
     },
+    channel: { key: string, description: string },
     date: Date,
     startPickingDate?: Date,
     endPickingDate?: Date,
@@ -41,19 +49,20 @@ export interface OrderInterface extends Document {
     endDeliveryDate?: Date,
     realdatedelivery?: Date,
     pickerWorkShift: string,
-    state: { key: string, description: string }
+    isInShop: Boolean,
+    restocked: Boolean,
 }
-
-/*
-    
- */
 
 const OrderSchema: Schema = new Schema({
     uid: { type: Schema.Types.ObjectId, required: true, ref: "Company" },
-    orderNumber: { type: String, required: true },
     shopId: { type: Schema.Types.ObjectId, required: false, ref: "Shop", default: null },
     pickerId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
+    deliveryId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
     bag: { type: Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null },
+    state: { type: Schema.Types.ObjectId, required: true, ref: "State" },
+    orderNumber: { type: String, required: true },
+    channel: { type: String, required: true },
+    service: { type: Schema.Types.ObjectId, required: true, ref: "Service" },
     products: [{
         id: { type: String, required: true },
         barcode: { type: String, required: true },
@@ -70,6 +79,8 @@ const OrderSchema: Schema = new Schema({
     client: {
         rut: { type: String, required: true },
         name: { type: String, required: true },
+        email: { type: String, required: true },
+        cellphone: { type: String, required: true },
         address: { type: String, required: true },
         third: { type: String, required: false, default: "" },
         comment: { type: String, required: false, default: "" },
@@ -85,7 +96,8 @@ const OrderSchema: Schema = new Schema({
     endDeliveryDate: { type: Date, required: false, default: null },
     realdatedelivery: { type: Date, required: false, default: null },
     pickerWorkShift: { type: String, required: true },
-    state: { type: { key: String, description: String }, required: true },
+    isInShop: { type: Boolean, required: false, default: false },
+    restocked: { type: Boolean, required: false, default: false }
 });
 
 const Order = mongoose.model<OrderInterface>("Order", OrderSchema, "orders");
