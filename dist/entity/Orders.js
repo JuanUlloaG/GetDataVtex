@@ -22,12 +22,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const OrderSchema = new mongoose_1.Schema({
     uid: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Company" },
-    orderNumber: { type: String, required: true },
     shopId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Shop", default: null },
     pickerId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
     deliveryId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
     bag: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null },
     state: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "State" },
+    orderNumber: { type: String, required: true },
+    channel: { type: String, required: true },
+    service: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Service" },
     products: [{
             id: { type: String, required: true },
             barcode: { type: String, required: true },
@@ -61,8 +63,8 @@ const OrderSchema = new mongoose_1.Schema({
     endDeliveryDate: { type: Date, required: false, default: null },
     realdatedelivery: { type: Date, required: false, default: null },
     pickerWorkShift: { type: String, required: true },
-    isInShop: { type: Boolean, required: true, default: false },
-    restocked: { type: Boolean, required: true, default: false }
+    isInShop: { type: Boolean, required: false, default: false },
+    restocked: { type: Boolean, required: false, default: false }
 });
 const Order = mongoose_1.default.model("Order", OrderSchema, "orders");
 exports.default = Order;
