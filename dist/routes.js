@@ -60,6 +60,18 @@ exports.Routes = [
     },
     {
         method: "post",
+        route: "/orders/list",
+        controller: OrdersController_1.OrdersController,
+        action: "ordersForOms"
+    },
+    {
+        method: "post",
+        route: "/orders/detail",
+        controller: OrdersController_1.OrdersController,
+        action: "getOrderDetailById"
+    },
+    {
+        method: "post",
         route: "/orders/save",
         controller: OrdersController_1.OrdersController,
         action: "save"

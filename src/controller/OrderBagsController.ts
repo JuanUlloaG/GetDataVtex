@@ -206,7 +206,7 @@ export class OrderBagsController {
                     const { id, deliveryId, orderId } = request.body
                     let query = { "_id": mongoose.Types.ObjectId(id) }
                     let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
-                    let updateOrder = { state: mongoose.Types.ObjectId(stateId), starDeliveryDate: new Date() }
+                    let updateOrder = { state: mongoose.Types.ObjectId(stateId), "deliveryId": mongoose.Types.ObjectId(deliveryId), starDeliveryDate: new Date() }
                     let updateBag = { "deliveryId": mongoose.Types.ObjectId(deliveryId), "readyforDelivery": true }
                     if (id && deliveryId) {
                         findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
@@ -284,9 +284,9 @@ export class OrderBagsController {
                     const { id, comment, received, orderId } = request.body
                     if (id) {
                         let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
-                        let updateOrder = { state: mongoose.Types.ObjectId(stateId), endDeliveryDate: new Date() }
+                        let updateOrder = { state: mongoose.Types.ObjectId(stateId), endDeliveryDate: new Date(), received: received, comment: comment }
                         let query = { "_id": mongoose.Types.ObjectId(id) }
-                        let update = { "comment": comment, "delivery": true, "received": received }
+                        let update = { comment: comment, "delivery": true, received: received }
 
                         findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
                             if (updateOrder) {
@@ -371,9 +371,11 @@ export class OrderBagsController {
 
                         let query = { "_id": mongoose.Types.ObjectId(orderNumber) }
                         let queryFind = { "orderNumber": mongoose.Types.ObjectId(orderNumber) }
-                        let update = { "pickerId": mongoose.Types.ObjectId(pickerId), bag: mongoose.Types.ObjectId(pickerId), "state": mongoose.Types.ObjectId(stateId), endPickingDate: new Date() }
+                        let update = { "pickerId": mongoose.Types.ObjectId(pickerId), bag: mongoose.Types.ObjectId(pickerId), shopId: mongoose.Types.ObjectId(shopId), "state": mongoose.Types.ObjectId(stateId), endPickingDate: new Date() }
+                        console.log(pickerId)
                         findDocuments(OrderBags, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
-                            if (!findResult.length) {
+                            if (true) {
+                                // if (!findResult.length) {
                                 insertDB(OrderBags, bag).then((result: any) => {
                                     if (result) {
                                         update['bag'] = mongoose.Types.ObjectId(result._id)
@@ -407,7 +409,6 @@ export class OrderBagsController {
                                     success: false
                                 });
                             }
-
                         }).catch((err: Error) => {
                             response.json({
                                 message: err,

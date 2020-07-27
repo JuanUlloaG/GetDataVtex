@@ -2,10 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 const jwt = require('jsonwebtoken');
 import Orders from "../entity/Orders";
+import { OrderInterface } from "../entity/Orders";
 import State from "../entity/State";
 import Service from "../entity/Services";
-const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB } = require("../config/db")
-
+const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB, findOneDB } = require("../config/db")
+import moment from 'moment'
 
 export class OrdersController {
 
@@ -72,10 +73,9 @@ export class OrdersController {
         query = {}
       }
 
-      if (profile == 4) populate = 'bag bag.deliveryId pickerId state service'
+      if (profile == 4) populate = 'bag deliveryId pickerId state service'
 
       findDocuments(Orders, query, "", {}, populate, '', 0, null, null).then((result: any) => {
-        console.log(result)
         response.json({
           message: 'Listado de ordenes',
           data: result,
@@ -84,6 +84,188 @@ export class OrdersController {
       }).catch((err: Error) => {
         response.json({
           message: err,
+          success: false
+        });
+      });
+
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+
+
+  }
+
+  async getOrderDetailById(request: Request, response: Response, next: NextFunction, app: any) {
+
+    try {
+      const { id } = request.body
+      let query: object;
+      let populate: string = '';
+
+      query = { "_id": mongoose.Types.ObjectId(id) }
+      populate = 'bag pickerId deliveryId state service'
+
+      findOneDB(Orders, query, "", {}, populate, null, null).then((result: OrderInterface) => {
+        if (Object.keys(result).length > 0) {
+          if (!result.client.comment) result.set('client.comment', "Sin Comentarios", { strict: false })
+          let pickername = ""
+          let deliveryname = ""
+          let pickingDate: any = ""
+          let delilveryDateStart: any = ""
+          let delilveryDateEnd: any = ""
+          if (result.pickerId) pickername = result.pickerId.name
+          if (result.deliveryId) deliveryname = result.deliveryId.name
+          if (result.endPickingDate) pickingDate = result.endPickingDate
+          if (result.starDeliveryDate) delilveryDateStart = result.starDeliveryDate
+          if (result.endDeliveryDate) delilveryDateEnd = result.endDeliveryDate
+          const rows = [
+            this.createData('DateRange', result.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+            this.createData('AccessTime', result.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+            this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+          ];
+          if (!result.client.comment) result.set('client.comment', "Sin Comentarios", { strict: false })
+          result.set('timeLine', [...rows], { strict: false })
+          response.json({
+            message: 'Detalle de la orden',
+            data: result,
+            success: true
+          });
+        } else {
+          response.json({
+            message: 'No se encontro detalle de la orden',
+            data: result,
+            success: false
+          });
+        }
+
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false
+        });
+      });
+
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+
+
+  }
+
+  createData(name: string, compra: any, picking: any, delivery: any, reception: any, type: number) {
+
+    if (type == 0) {
+      if (compra) {
+        let _compra: Date = new Date(compra)
+        let date = moment(compra, "YYYY-MM-DDTHH:MM:ss")
+        compra = date.date() + '/' + (date.month() + 1) + '/' + date.year()
+      }
+      if (picking) {
+        let _picking: Date = new Date(picking)
+        let date = moment(picking, "YYYY-MM-DDTHH:MM:ss")
+        picking = date.date() + '/' + (date.month() + 1) + '/' + date.year()
+      }
+      if (delivery) {
+        let _delivery: Date = new Date(delivery);
+        let date = moment(delivery, "YYYY-MM-DDTHH:MM:ss");
+        delivery = date.date() + '/' + (date.month() + 1) + '/' + date.year()
+      }
+      if (reception) {
+        let _reception: Date = new Date(reception)
+        let date = moment(reception, "YYYY-MM-DDTHH:MM:ss")
+        reception = date.date() + '/' + (date.month() + 1) + '/' + date.year()
+      }
+    }
+    if (type == 1) {
+      if (compra) {
+        let date = moment(compra, "YYYY-MM-DDTHH:MM:ss")
+        let _compra: Date = new Date(compra)
+        compra = date.hours() + ':' + date.minutes()
+      }
+      if (picking) {
+        let date = moment(picking, "YYYY-MM-DDTHH:MM:ss")
+        let _picking: Date = new Date(picking)
+        picking = date.hours() + ':' + date.minutes()
+      }
+      if (delivery) {
+        let date = moment(delivery, "YYYY-MM-DDTHH:MM:ss")
+        let _delivery: Date = new Date(delivery)
+        delivery = date.hours() + ':' + date.minutes()
+      }
+      if (reception) {
+        let date = moment(reception, "YYYY-MM-DDTHH:MM:ss")
+        let _reception: Date = new Date(reception)
+        reception = date.hours() + ':' + date.minutes()
+      }
+    }
+
+    return { name, compra, picking, delivery, reception };
+  }
+
+
+  async ordersForOms(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { company, profile } = request.body
+      let query: object;
+      let populate: string = '';
+
+      if (profile == 2) {
+        query = {
+          "uid": company,
+          "pickerId": { "$eq": null }
+        }
+      } else {
+        query = {}
+      }
+
+      if (profile == 4) populate = 'bag bag.deliveryId pickerId deliveryId state service'
+
+      findDocuments(Orders, query, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+        // console.log(result.length)
+        if (result.length) {
+          let newOrders = result.map((order, index) => {
+            let pickername = ""
+            let deliveryname = ""
+            let pickingDate: any = ""
+            let delilveryDateStart: any = ""
+            let delilveryDateEnd: any = ""
+            if (order.pickerId) pickername = order.pickerId.name
+            if (order.deliveryId) deliveryname = order.deliveryId.name
+            if (order.endPickingDate) pickingDate = order.endPickingDate
+            if (order.starDeliveryDate) delilveryDateStart = order.starDeliveryDate
+            if (order.endDeliveryDate) delilveryDateEnd = order.endDeliveryDate
+            const rows = [
+              this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+              this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+              this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+            ];
+            if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
+            order.set('timeLine', [...rows], { strict: false })
+            return order
+          })
+          response.json({
+            message: 'Listado de ordenes',
+            data: newOrders,
+            success: true
+          });
+        } else {
+          response.json({
+            message: 'Listado de ordenes',
+            data: result,
+            success: true
+          });
+        }
+
+
+      }).catch((err: Error) => {
+        response.json({
+          message: err.message,
           success: false
         });
       });
@@ -236,7 +418,7 @@ export class OrdersController {
 
   /*
     Metodo que recibe un array de ordenes para guardarlas en la base de datos
- */
+  */
   async save(request: Request, response: Response, next: NextFunction, app: any) {
     try {
       findDocuments(Service, {}, "", {}, '', '', 0, null, null).then((ServicesResult: Array<{ key: string, desc: string, typeDelivery: string }>) => {
@@ -266,11 +448,13 @@ export class OrdersController {
                   channel: order.channel,
                   client: order.client,
                   date: new Date(order.date),
-                  realdatedelivery: new Date(deliveryDate),
+                  realdatedelivery: deliveryDate,
                   pickerWorkShift: "Mañana"
                 }
                 _orders.push(_order)
               })
+
+              console.log(_orders)
 
               insertManyDB(Orders, _orders).then((result: any) => {
                 response.json({

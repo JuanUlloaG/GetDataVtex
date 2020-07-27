@@ -15,6 +15,8 @@ export interface OrderInterface extends Document {
     bag: OrderBagsInterface['_id'],
     state: StateInterface['_id'],
     service: ServicesInterface['_id'],
+    received?: string,
+    comment?: string,
     products: [{
         id: number,
         barcode: number,
@@ -51,6 +53,7 @@ export interface OrderInterface extends Document {
     pickerWorkShift: string,
     isInShop: Boolean,
     restocked: Boolean,
+    timeLine?: Array<any>,
 }
 
 const OrderSchema: Schema = new Schema({
@@ -60,9 +63,11 @@ const OrderSchema: Schema = new Schema({
     deliveryId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
     bag: { type: Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null },
     state: { type: Schema.Types.ObjectId, required: true, ref: "State" },
+    service: { type: Schema.Types.ObjectId, required: true, ref: "Service" },
     orderNumber: { type: String, required: true },
     channel: { type: String, required: true },
-    service: { type: Schema.Types.ObjectId, required: true, ref: "Service" },
+    received: { type: String, required: false, default: "" },
+    comment: { type: String, required: false, default: "" },
     products: [{
         id: { type: String, required: true },
         barcode: { type: String, required: true },

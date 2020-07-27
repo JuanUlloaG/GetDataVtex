@@ -9,7 +9,8 @@ const jwt = require('jsonwebtoken');
 const Orders_1 = __importDefault(require("../entity/Orders"));
 const State_1 = __importDefault(require("../entity/State"));
 const Services_1 = __importDefault(require("../entity/Services"));
-const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB } = require("../config/db");
+const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB, findOneDB } = require("../config/db");
+const moment_1 = __importDefault(require("moment"));
 class OrdersController {
     // private userRepository = getRepository(User);
     async all(request, response, next, app) {
@@ -67,9 +68,8 @@ class OrdersController {
                 query = {};
             }
             if (profile == 4)
-                populate = 'bag bag.deliveryId pickerId state service';
+                populate = 'bag deliveryId pickerId state service';
             findDocuments(Orders_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
-                console.log(result);
                 response.json({
                     message: 'Listado de ordenes',
                     data: result,
@@ -78,6 +78,186 @@ class OrdersController {
             }).catch((err) => {
                 response.json({
                     message: err,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
+    async getOrderDetailById(request, response, next, app) {
+        try {
+            const { id } = request.body;
+            let query;
+            let populate = '';
+            query = { "_id": mongoose_1.default.Types.ObjectId(id) };
+            populate = 'bag pickerId deliveryId state service';
+            findOneDB(Orders_1.default, query, "", {}, populate, null, null).then((result) => {
+                if (Object.keys(result).length > 0) {
+                    if (!result.client.comment)
+                        result.set('client.comment', "Sin Comentarios", { strict: false });
+                    let pickername = "";
+                    let deliveryname = "";
+                    let pickingDate = "";
+                    let delilveryDateStart = "";
+                    let delilveryDateEnd = "";
+                    if (result.pickerId)
+                        pickername = result.pickerId.name;
+                    if (result.deliveryId)
+                        deliveryname = result.deliveryId.name;
+                    if (result.endPickingDate)
+                        pickingDate = result.endPickingDate;
+                    if (result.starDeliveryDate)
+                        delilveryDateStart = result.starDeliveryDate;
+                    if (result.endDeliveryDate)
+                        delilveryDateEnd = result.endDeliveryDate;
+                    const rows = [
+                        this.createData('DateRange', result.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                        this.createData('AccessTime', result.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                        this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                    ];
+                    if (!result.client.comment)
+                        result.set('client.comment', "Sin Comentarios", { strict: false });
+                    result.set('timeLine', [...rows], { strict: false });
+                    response.json({
+                        message: 'Detalle de la orden',
+                        data: result,
+                        success: true
+                    });
+                }
+                else {
+                    response.json({
+                        message: 'No se encontro detalle de la orden',
+                        data: result,
+                        success: false
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
+    createData(name, compra, picking, delivery, reception, type) {
+        if (type == 0) {
+            if (compra) {
+                let _compra = new Date(compra);
+                let date = moment_1.default(compra, "YYYY-MM-DDTHH:MM:ss");
+                compra = date.date() + '/' + (date.month() + 1) + '/' + date.year();
+            }
+            if (picking) {
+                let _picking = new Date(picking);
+                let date = moment_1.default(picking, "YYYY-MM-DDTHH:MM:ss");
+                picking = date.date() + '/' + (date.month() + 1) + '/' + date.year();
+            }
+            if (delivery) {
+                let _delivery = new Date(delivery);
+                let date = moment_1.default(delivery, "YYYY-MM-DDTHH:MM:ss");
+                delivery = date.date() + '/' + (date.month() + 1) + '/' + date.year();
+            }
+            if (reception) {
+                let _reception = new Date(reception);
+                let date = moment_1.default(reception, "YYYY-MM-DDTHH:MM:ss");
+                reception = date.date() + '/' + (date.month() + 1) + '/' + date.year();
+            }
+        }
+        if (type == 1) {
+            if (compra) {
+                let date = moment_1.default(compra, "YYYY-MM-DDTHH:MM:ss");
+                let _compra = new Date(compra);
+                compra = date.hours() + ':' + date.minutes();
+            }
+            if (picking) {
+                let date = moment_1.default(picking, "YYYY-MM-DDTHH:MM:ss");
+                let _picking = new Date(picking);
+                picking = date.hours() + ':' + date.minutes();
+            }
+            if (delivery) {
+                let date = moment_1.default(delivery, "YYYY-MM-DDTHH:MM:ss");
+                let _delivery = new Date(delivery);
+                delivery = date.hours() + ':' + date.minutes();
+            }
+            if (reception) {
+                let date = moment_1.default(reception, "YYYY-MM-DDTHH:MM:ss");
+                let _reception = new Date(reception);
+                reception = date.hours() + ':' + date.minutes();
+            }
+        }
+        return { name, compra, picking, delivery, reception };
+    }
+    async ordersForOms(request, response, next, app) {
+        try {
+            const { company, profile } = request.body;
+            let query;
+            let populate = '';
+            if (profile == 2) {
+                query = {
+                    "uid": company,
+                    "pickerId": { "$eq": null }
+                };
+            }
+            else {
+                query = {};
+            }
+            if (profile == 4)
+                populate = 'bag bag.deliveryId pickerId deliveryId state service';
+            findDocuments(Orders_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
+                // console.log(result.length)
+                if (result.length) {
+                    let newOrders = result.map((order, index) => {
+                        let pickername = "";
+                        let deliveryname = "";
+                        let pickingDate = "";
+                        let delilveryDateStart = "";
+                        let delilveryDateEnd = "";
+                        if (order.pickerId)
+                            pickername = order.pickerId.name;
+                        if (order.deliveryId)
+                            deliveryname = order.deliveryId.name;
+                        if (order.endPickingDate)
+                            pickingDate = order.endPickingDate;
+                        if (order.starDeliveryDate)
+                            delilveryDateStart = order.starDeliveryDate;
+                        if (order.endDeliveryDate)
+                            delilveryDateEnd = order.endDeliveryDate;
+                        const rows = [
+                            this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                            this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                            this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                        ];
+                        if (!order.client.comment)
+                            order.set('client.comment', "Sin Comentarios", { strict: false });
+                        order.set('timeLine', [...rows], { strict: false });
+                        return order;
+                    });
+                    response.json({
+                        message: 'Listado de ordenes',
+                        data: newOrders,
+                        success: true
+                    });
+                }
+                else {
+                    response.json({
+                        message: 'Listado de ordenes',
+                        data: result,
+                        success: true
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err.message,
                     success: false
                 });
             });
@@ -232,7 +412,7 @@ class OrdersController {
     }
     /*
       Metodo que recibe un array de ordenes para guardarlas en la base de datos
-   */
+    */
     async save(request, response, next, app) {
         try {
             findDocuments(Services_1.default, {}, "", {}, '', '', 0, null, null).then((ServicesResult) => {
@@ -263,11 +443,12 @@ class OrdersController {
                                     channel: order.channel,
                                     client: order.client,
                                     date: new Date(order.date),
-                                    realdatedelivery: new Date(deliveryDate),
+                                    realdatedelivery: deliveryDate,
                                     pickerWorkShift: "Mañana"
                                 };
                                 _orders.push(_order);
                             });
+                            console.log(_orders);
                             insertManyDB(Orders_1.default, _orders).then((result) => {
                                 response.json({
                                     mensaje: 'orden(es) creada(s) exitosamente',

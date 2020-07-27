@@ -27,9 +27,11 @@ const OrderSchema = new mongoose_1.Schema({
     deliveryId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
     bag: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null },
     state: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "State" },
+    service: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Service" },
     orderNumber: { type: String, required: true },
     channel: { type: String, required: true },
-    service: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Service" },
+    received: { type: String, required: false, default: "" },
+    comment: { type: String, required: false, default: "" },
     products: [{
             id: { type: String, required: true },
             barcode: { type: String, required: true },
