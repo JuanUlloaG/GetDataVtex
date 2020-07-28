@@ -12,12 +12,33 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 class UserController {
     // private userRepository = getRepository(User);
     async all(request, response, next, app) {
-        // console.log(data)
-        response.json({
-            mensaje: 'Listado de ordenes',
-            data: [],
-            success: true
-        });
+        try {
+            const { company } = request.body;
+            let query;
+            let populate = '';
+            query = {
+                "company": mongoose_1.default.Types.ObjectId(company)
+            };
+            populate = 'profile company';
+            findDocuments(User_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
+                response.json({
+                    message: 'Listado de usuarios',
+                    data: result,
+                    success: true
+                });
+            }).catch((err) => {
+                response.json({
+                    message: err,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
     }
     async one(request, response, next, app) {
         return null;
@@ -36,7 +57,7 @@ class UserController {
                 bcryptjs_1.default.hash(password, salt, function (err, hash) {
                     hashedPassword = hash;
                     let _user;
-                    _user = { name, rut, email, password: hashedPassword, phone, profile, company: mongoose_1.default.Types.ObjectId(company), state: false };
+                    _user = { name, rut, email, password: hashedPassword, phone, profile: mongoose_1.default.Types.ObjectId(profile), company: mongoose_1.default.Types.ObjectId(company), state: false };
                     insertDB(User_1.default, _user).then((result) => {
                         response.json({
                             mensaje: 'Creacion de Usuario',

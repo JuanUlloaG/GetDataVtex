@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { CompanyInterface } from "./Company";
+import { ProfileInterface } from "./Profile";
 
 export interface UserInterface extends Document {
     name: string;
@@ -7,7 +8,7 @@ export interface UserInterface extends Document {
     password: string;
     email: string,
     phone: string,
-    profile: { key: string, description: string },
+    profile: ProfileInterface['_id'],
     state: boolean,
     company?: CompanyInterface['_id']
 }
@@ -25,7 +26,7 @@ const UserSchema: Schema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
-    profile: { key: { type: String, required: true }, description: { type: String, required: true } },
+    profile: { type: Schema.Types.ObjectId, required: false, ref: "Profile" },
     state: { type: Boolean, required: true },
     company: { type: Schema.Types.ObjectId, required: false, ref: "Company" }
 });

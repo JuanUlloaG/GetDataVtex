@@ -19,21 +19,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.schemaProfile = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-/*
-    Los perfiles que actualmente manejamos son
-    2: Picker
-    4: Moto o Delivery
- */
-const UserSchema = new mongoose_1.Schema({
-    password: { type: String, required: true },
-    rut: { type: String, required: true },
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
-    profile: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Profile" },
-    state: { type: Boolean, required: true },
-    company: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Company" }
+exports.schemaProfile = {
+    key: { type: "string", required: "false" },
+    description: { type: "string", required: "false" }
+};
+const CompanySchema = new mongoose_1.Schema({
+    key: { type: String, required: true },
+    description: { type: String, required: true }
 });
-const User = mongoose_1.default.model("User", UserSchema, "users");
-exports.default = User;
+const Profile = mongoose_1.default.model("Profile", CompanySchema, "profiles");
+exports.default = Profile;

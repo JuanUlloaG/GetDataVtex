@@ -6,6 +6,7 @@ import { HomeController } from "./controller/HomeController";
 import { OrderBagsController } from "./controller/OrderBagsController";
 import { StateControllers } from "./controller/StateController";
 import { ServiceControllers } from "./controller/ServicesController";
+import { ProfilesController } from "./controller/ProfileController";
 
 export const Routes = [
     {
@@ -31,6 +32,12 @@ export const Routes = [
         route: "/users",
         controller: UserController,
         action: "save"
+    },
+    {
+        method: "post",
+        route: "/users/list",
+        controller: UserController,
+        action: "all"
     },
     {
         method: "post",
@@ -163,6 +170,18 @@ export const Routes = [
         route: "/state/save",
         controller: StateControllers,
         action: "save"
+    },
+    {
+        method: "post",
+        route: "/profiles/save",
+        controller: ProfilesController,
+        action: "save"
+    },
+    {
+        method: "post",
+        route: "/profiles/list",
+        controller: ProfilesController,
+        action: "all"
     },
     {
         method: "post",

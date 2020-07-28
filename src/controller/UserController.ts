@@ -14,12 +14,35 @@ export class UserController {
   // private userRepository = getRepository(User);
 
   async all(request: Request, response: Response, next: NextFunction, app: any) {
-    // console.log(data)
-    response.json({
-      mensaje: 'Listado de ordenes',
-      data: [],
-      success: true
-    });
+    try {
+      const { company } = request.body
+      let query: object;
+      let populate: string = '';
+
+      query = {
+        "company": mongoose.Types.ObjectId(company)
+      }
+      populate = 'profile company'
+
+      findDocuments(User, query, "", {}, populate, '', 0, null, null).then((result: any) => {
+        response.json({
+          message: 'Listado de usuarios',
+          data: result,
+          success: true
+        });
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false
+        });
+      });
+
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
   }
 
 
@@ -43,7 +66,7 @@ export class UserController {
         bcrypt.hash(password, salt, function (err, hash) {
           hashedPassword = hash
           let _user;
-          _user = { name, rut, email, password: hashedPassword, phone, profile, company: mongoose.Types.ObjectId(company), state: false }
+          _user = { name, rut, email, password: hashedPassword, phone, profile: mongoose.Types.ObjectId(profile), company: mongoose.Types.ObjectId(company), state: false }
 
 
           insertDB(User, _user).then((result: any) => {

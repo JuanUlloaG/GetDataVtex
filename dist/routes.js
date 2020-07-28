@@ -9,6 +9,7 @@ const HomeController_1 = require("./controller/HomeController");
 const OrderBagsController_1 = require("./controller/OrderBagsController");
 const StateController_1 = require("./controller/StateController");
 const ServicesController_1 = require("./controller/ServicesController");
+const ProfileController_1 = require("./controller/ProfileController");
 exports.Routes = [
     {
         method: "get",
@@ -33,6 +34,12 @@ exports.Routes = [
         route: "/users",
         controller: UserController_1.UserController,
         action: "save"
+    },
+    {
+        method: "post",
+        route: "/users/list",
+        controller: UserController_1.UserController,
+        action: "all"
     },
     {
         method: "post",
@@ -165,6 +172,18 @@ exports.Routes = [
         route: "/state/save",
         controller: StateController_1.StateControllers,
         action: "save"
+    },
+    {
+        method: "post",
+        route: "/profiles/save",
+        controller: ProfileController_1.ProfilesController,
+        action: "save"
+    },
+    {
+        method: "post",
+        route: "/profiles/list",
+        controller: ProfileController_1.ProfilesController,
+        action: "all"
     },
     {
         method: "post",
