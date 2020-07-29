@@ -9,6 +9,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB } = require("../config/db");
 const User_1 = __importDefault(require("../entity/User"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const State_1 = __importDefault(require("../entity/State"));
 class UserController {
     // private userRepository = getRepository(User);
     async all(request, response, next, app) {
@@ -16,16 +17,115 @@ class UserController {
             const { company } = request.body;
             let query;
             let populate = '';
-            query = {
-                "company": mongoose_1.default.Types.ObjectId(company)
-            };
-            populate = 'profile company';
-            findDocuments(User_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
+            let queryState = { "key": 10 };
+            findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
+                if (findResult.length > 0) {
+                    let stateId = findResult[0]._id;
+                    query = {
+                        "company": mongoose_1.default.Types.ObjectId(company),
+                        "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) }
+                    };
+                    populate = 'profile company condition';
+                    findDocuments(User_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
+                        response.json({
+                            message: 'Listado de usuarios',
+                            data: result,
+                            success: true
+                        });
+                    }).catch((err) => {
+                        response.json({
+                            message: err,
+                            success: false
+                        });
+                    });
+                }
+                else {
+                    response.json({
+                        message: "Error al traer lista de usuaruios",
+                        success: false
+                    });
+                }
+            }).catch((err) => {
                 response.json({
-                    message: 'Listado de usuarios',
-                    data: result,
-                    success: true
+                    message: err.message,
+                    success: false
                 });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
+    async deleteUser(request, response, next, app) {
+        try {
+            const { id } = request.body;
+            let query;
+            query = { '_id': mongoose_1.default.Types.ObjectId(id) };
+            let queryState = { "key": 10 };
+            findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
+                if (findResult.length > 0) {
+                    let stateId = findResult[0]._id;
+                    let update = { 'condition': mongoose_1.default.Types.ObjectId(stateId) };
+                    findOneAndUpdateDB(User_1.default, query, update, null, null).then((result) => {
+                        if (result) {
+                            response.json({
+                                message: 'Usuario Actualizado correctamente',
+                                data: result,
+                                success: true
+                            });
+                        }
+                        else {
+                            response.json({
+                                message: "Error al actualizar usuario",
+                                success: false
+                            });
+                        }
+                    }).catch((err) => {
+                        response.json({
+                            message: err,
+                            success: false
+                        });
+                    });
+                }
+                else {
+                    response.json({
+                        message: "Error al ingresar las ordenes, no se ha encontrado un estado valido",
+                        success: false
+                    });
+                }
+            }).catch((err) => {
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
+    async update(request, response, next, app) {
+        try {
+            const { id, name, email, phone, profile } = request.body;
+            let update = { name, email, phone, profile };
+            let query;
+            query = { '_id': mongoose_1.default.Types.ObjectId(id) };
+            findOneAndUpdateDB(User_1.default, query, update, null, null).then((result) => {
+                if (result) {
+                    response.json({
+                        message: 'Usuario Actualizado correctamente',
+                        data: result,
+                        success: true
+                    });
+                }
+                else {
+                    response.json({
+                        message: "Error al actualizar usuario",
+                        success: false
+                    });
+                }
             }).catch((err) => {
                 response.json({
                     message: err,
@@ -46,7 +146,6 @@ class UserController {
     async save(request, response, next, app) {
         try {
             const { name, phone, email, profile, rut, password, company } = request.body;
-            let hashedPassword;
             if (!name || !phone || !email || !profile || !rut || !password) {
                 response.json({
                     mensaje: 'Error! al crear usuario',
@@ -55,22 +154,41 @@ class UserController {
             }
             bcryptjs_1.default.genSalt(10, function (err, salt) {
                 bcryptjs_1.default.hash(password, salt, function (err, hash) {
+                    let hashedPassword;
                     hashedPassword = hash;
-                    let _user;
-                    _user = { name, rut, email, password: hashedPassword, phone, profile: mongoose_1.default.Types.ObjectId(profile), company: mongoose_1.default.Types.ObjectId(company), state: false };
-                    insertDB(User_1.default, _user).then((result) => {
-                        response.json({
-                            mensaje: 'Creacion de Usuario',
-                            data: result,
-                            success: true
-                        });
+                    let queryState = { "key": 9 };
+                    findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
+                        let _user;
+                        if (findResult.length > 0) {
+                            let stateId = findResult[0]._id;
+                            _user = { name, rut, email, password: hashedPassword, phone, profile: mongoose_1.default.Types.ObjectId(profile), company: mongoose_1.default.Types.ObjectId(company), condition: mongoose_1.default.Types.ObjectId(stateId), state: false };
+                            insertDB(User_1.default, _user).then((result) => {
+                                response.json({
+                                    mensaje: 'Creacion de Usuario',
+                                    data: result,
+                                    success: true
+                                });
+                            }).catch((err) => {
+                                response.json({
+                                    mensaje: err.message,
+                                    data: err,
+                                    success: false
+                                });
+                                console.log(err);
+                            });
+                        }
+                        else {
+                            response.json({
+                                mensaje: 'Error Creacion de Usuario',
+                                success: false
+                            });
+                        }
                     }).catch((err) => {
                         response.json({
-                            mensaje: 'Error Creacion de Usuario',
+                            mensaje: err.message,
                             data: err,
                             success: false
                         });
-                        console.log(err);
                     });
                 });
             });

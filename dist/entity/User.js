@@ -32,6 +32,7 @@ const UserSchema = new mongoose_1.Schema({
     email: { type: String, required: true },
     phone: { type: String, required: true },
     profile: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Profile" },
+    condition: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "State" },
     state: { type: Boolean, required: true },
     company: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Company" }
 });

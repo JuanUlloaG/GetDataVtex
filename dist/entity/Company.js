@@ -24,7 +24,9 @@ const CompanySchema = new mongoose_1.Schema({
     rut: { type: String, required: true },
     name: { type: String, required: true },
     email: { type: String, required: true },
-    phone: { type: String, required: true }
+    phone: { type: String, required: true },
+    address: { type: String, required: false, default: '' },
+    condition: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "State" },
 });
 const Company = mongoose_1.default.model("Company", CompanySchema, "companies");
 exports.default = Company;

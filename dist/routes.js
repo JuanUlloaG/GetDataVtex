@@ -43,6 +43,18 @@ exports.Routes = [
     },
     {
         method: "post",
+        route: "/users/update",
+        controller: UserController_1.UserController,
+        action: "update"
+    },
+    {
+        method: "post",
+        route: "/users/delete",
+        controller: UserController_1.UserController,
+        action: "deleteUser"
+    },
+    {
+        method: "post",
         route: "/users/updateState",
         controller: UserController_1.UserController,
         action: "active"
@@ -109,15 +121,51 @@ exports.Routes = [
     },
     {
         method: "post",
-        route: "/company",
+        route: "/account",
         controller: CompanyController_1.CompanyControllers,
         action: "save"
     },
     {
         method: "post",
-        route: "/shop/save",
+        route: "/account/list",
+        controller: CompanyController_1.CompanyControllers,
+        action: "all"
+    },
+    {
+        method: "post",
+        route: "/account/update",
+        controller: CompanyController_1.CompanyControllers,
+        action: "update"
+    },
+    {
+        method: "post",
+        route: "/account/delete",
+        controller: CompanyController_1.CompanyControllers,
+        action: "deleteAccount"
+    },
+    {
+        method: "post",
+        route: "/shop/list",
+        controller: ShopController_1.ShopController,
+        action: "all"
+    },
+    {
+        method: "post",
+        route: "/shop",
         controller: ShopController_1.ShopController,
         action: "save"
+    },
+    {
+        method: "post",
+        route: "/shop/update",
+        controller: ShopController_1.ShopController,
+        action: "shopUpdate"
+    },
+    {
+        method: "post",
+        route: "/shop/delete",
+        controller: ShopController_1.ShopController,
+        action: "shopDelete"
     },
     {
         method: "post",

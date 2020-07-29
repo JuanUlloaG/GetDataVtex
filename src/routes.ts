@@ -41,6 +41,18 @@ export const Routes = [
     },
     {
         method: "post",
+        route: "/users/update",
+        controller: UserController,
+        action: "update"
+    },
+    {
+        method: "post",
+        route: "/users/delete",
+        controller: UserController,
+        action: "deleteUser"
+    },
+    {
+        method: "post",
         route: "/users/updateState",
         controller: UserController,
         action: "active"
@@ -107,15 +119,51 @@ export const Routes = [
     },
     {
         method: "post",
-        route: "/company",
+        route: "/account",
         controller: CompanyControllers,
         action: "save"
     },
     {
         method: "post",
-        route: "/shop/save",
+        route: "/account/list",
+        controller: CompanyControllers,
+        action: "all"
+    },
+    {
+        method: "post",
+        route: "/account/update",
+        controller: CompanyControllers,
+        action: "update"
+    },
+    {
+        method: "post",
+        route: "/account/delete",
+        controller: CompanyControllers,
+        action: "deleteAccount"
+    },
+    {
+        method: "post",
+        route: "/shop/list",
+        controller: ShopController,
+        action: "all"
+    },
+    {
+        method: "post",
+        route: "/shop",
         controller: ShopController,
         action: "save"
+    },
+    {
+        method: "post",
+        route: "/shop/update",
+        controller: ShopController,
+        action: "shopUpdate"
+    },
+    {
+        method: "post",
+        route: "/shop/delete",
+        controller: ShopController,
+        action: "shopDelete"
     },
     {
         method: "post",

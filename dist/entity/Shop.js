@@ -29,7 +29,8 @@ const ShopSchema = new mongoose_1.Schema({
     number: { type: String, required: false },
     address: { type: String, required: true },
     phone: { type: String, required: false },
-    company: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Company" }
+    company: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Company" },
+    condition: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "State" },
 });
 const Shop = mongoose_1.default.model("Shop", ShopSchema, "shops");
 exports.default = Shop;

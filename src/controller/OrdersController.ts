@@ -454,8 +454,6 @@ export class OrdersController {
                 _orders.push(_order)
               })
 
-              console.log(_orders)
-
               insertManyDB(Orders, _orders).then((result: any) => {
                 response.json({
                   mensaje: 'orden(es) creada(s) exitosamente',
