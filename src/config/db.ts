@@ -105,5 +105,21 @@ module.exports = {
             }
         })
     },
+    updateManyDB: async function (form: any, query: any, update: any, req: any, res: any) {
+        return new Promise(function (resolve, reject) {
+            form
+                .updateMany(
+                    query,
+                    { $set: update },
+                    { multi: true }
+                )
+                .exec(function (err: Error, documents: any) {
+                    if (err) reject(err.message)
+                    else {
+                        resolve(documents)
+                    }
+                })
+        })
+    },
 }
 

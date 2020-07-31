@@ -109,4 +109,17 @@ module.exports = {
             }
         });
     },
+    updateManyDB: async function (form, query, update, req, res) {
+        return new Promise(function (resolve, reject) {
+            form
+                .updateMany(query, { $set: update }, { multi: true })
+                .exec(function (err, documents) {
+                if (err)
+                    reject(err.message);
+                else {
+                    resolve(documents);
+                }
+            });
+        });
+    },
 };
