@@ -12,14 +12,18 @@ export class ShopController {
 
     async all(request: Request, response: Response, next: NextFunction, app: any) {
         try {
-            let query: object;
+            let query: any;
             let populate: string = '';
             let queryState = { "key": 10 }
+            let { company } = request.body
             findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
                     query = {
                         "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
+                    }
+                    if (company) {
+                        query["company"] = { "$eq": mongoose.Types.ObjectId(company) }
                     }
                     populate = 'condition company'
                     findDocuments(Shop, query, "", {}, populate, '', 0, null, null).then((result: any) => {
@@ -92,6 +96,57 @@ export class ShopController {
             });
         }
 
+    }
+
+
+    async shopDelete(request: Request, response: Response, next: NextFunction, app: any) {
+        try {
+            const { id } = request.body
+            let query: object;
+            query = { '_id': mongoose.Types.ObjectId(id) }
+            let queryState = { "key": 10 }
+            findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+                if (findResult.length > 0) {
+                    let stateId = findResult[0]._id;
+                    let update = { 'condition': mongoose.Types.ObjectId(stateId) }
+                    findOneAndUpdateDB(Shop, query, update, null, null).then((result: any) => {
+                        if (result) {
+                            response.json({
+                                message: 'TIenda Actualizada correctamente',
+                                data: result,
+                                success: true
+                            });
+                        } else {
+                            response.json({
+                                message: "Error al actualizar tienda",
+                                success: false
+                            });
+                        }
+
+                    }).catch((err: Error) => {
+                        response.json({
+                            message: err,
+                            success: false
+                        });
+                    });
+                } else {
+                    response.json({
+                        message: "Error al eliminar las ordenes, no se ha encontrado un estado valido",
+                        success: false
+                    });
+                }
+            }).catch((err: Error) => {
+                response.json({
+                    message: err.message,
+                    success: false
+                });
+            })
+        } catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
     }
 
 
