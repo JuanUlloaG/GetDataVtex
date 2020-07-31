@@ -8,8 +8,62 @@ use('picking-dev');
 
 // The drop() command destroys all data from a collection.
 // Make sure you run it against proper database and collection.
-db.orders.drop();
-db.orderbags.drop();
+// db.orders.drop();
+// db.orderbags.drop();
+
+// db.orders.find({shopId:mongoose.Types.ObjectId('5f20b835b3f7fb7f8f175d35')})
+// db.orders.find({"shopId" : ObjectId("5f20b835b3f7fb7f8f175d35")})
+// db.orders.find({
+//       $and: [
+//           {"shopId": ObjectId("5f20b835b3f7fb7f8f175d35") },
+//           {"client.name": "Rosa Pulido"}
+//       ]
+//   })
+
+
+// db.orders.find({
+//     $or: [
+//         {state: ObjectId("5f1c70b28126df435e1a2f12") },
+//         {state: ObjectId("5f1c70b28126df435e1a2f13") }
+//     ]
+// })
+
+// db.orders.find({})
+
+db.states.find({
+    $or:[
+        { key: '8' },
+        { key: '7' }
+    ]
+})
+
+db.orders.find({ 
+    '$or': [ 
+        { state: ObjectId("5f1c70b28126df435e1a2f0d") }, 
+        { date: { '$gte': new Date("Fri, 31 Jul 2020 03:32:02 GMT"), '$lt': new Date("Fri, 31 Jul 2020 03:32:02 GMT") } }, 
+        { endDeliveryDate: { '$gte': new Date("Fri, 31 Jul 2020 03:32:02 GMT"), '$lt': new Date("Fri, 31 Jul 2020 03:32:02 GMT") } }, 
+        { 'pickerId.name': 'carlos' }, 
+        { orderNumber: '1321321' }, 
+        { shopId: ObjectId("5f20c7e3b1ee8084388495b4") }, 
+        { service: ObjectId("5f1c9682a813965038086227") } 
+    ], 
+    '$and': [ 
+        { uid: ObjectId("5f2396276cb00d314872b502") } 
+        ]
+    }, 
+    { limit: 0, projection: {} 
+})
+
+// db.orders.find({ 
+//     $and: 
+//         [ 
+//             { "shopId": ObjectId("5f21d9439b219db3be457810") }, 
+//             { "uid": ObjectId("5f20a778c55b9178ab6aa9b3") } 
+//         ]
+//     }
+
+// db.orders.find({'shopId': ObjectId("5f21d9439b219db3be457810")})
+
 // db.users.drop();
 // db.shops.drop();
 
