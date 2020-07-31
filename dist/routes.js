@@ -85,9 +85,33 @@ exports.Routes = [
     },
     {
         method: "post",
+        route: "/orders/list/incident",
+        controller: OrdersController_1.OrdersController,
+        action: "ordersForOmsFindIncident"
+    },
+    {
+        method: "post",
+        route: "/orders/list/reassign",
+        controller: OrdersController_1.OrdersController,
+        action: "ordersForOmsFindReassing"
+    },
+    {
+        method: "post",
+        route: "/orders/list/reset",
+        controller: OrdersController_1.OrdersController,
+        action: "ordersForOmsFindReset"
+    },
+    {
+        method: "post",
         route: "/orders/detail",
         controller: OrdersController_1.OrdersController,
         action: "getOrderDetailById"
+    },
+    {
+        method: "post",
+        route: "/orders/detail/number",
+        controller: OrdersController_1.OrdersController,
+        action: "getOrderDetailBynumber"
     },
     {
         method: "post",
@@ -112,6 +136,18 @@ exports.Routes = [
         route: "/order/update/state",
         controller: OrdersController_1.OrdersController,
         action: "updateState"
+    },
+    {
+        method: "post",
+        route: "/order/update/logistic",
+        controller: OrdersController_1.OrdersController,
+        action: "updateLogistic"
+    },
+    {
+        method: "post",
+        route: "/order/update/shop",
+        controller: OrdersController_1.OrdersController,
+        action: "updateReassignShop"
     },
     {
         method: "get",
@@ -223,6 +259,12 @@ exports.Routes = [
     },
     {
         method: "post",
+        route: "/state/find",
+        controller: StateController_1.StateControllers,
+        action: "findBy"
+    },
+    {
+        method: "post",
         route: "/profiles/save",
         controller: ProfileController_1.ProfilesController,
         action: "save"
@@ -239,4 +281,10 @@ exports.Routes = [
         controller: ServicesController_1.ServiceControllers,
         action: "save"
     },
+    {
+        method: "post",
+        route: "/services/list",
+        controller: ServicesController_1.ServiceControllers,
+        action: "all"
+    }
 ];

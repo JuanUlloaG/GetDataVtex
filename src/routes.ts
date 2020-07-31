@@ -83,9 +83,33 @@ export const Routes = [
     },
     {
         method: "post",
+        route: "/orders/list/incident",
+        controller: OrdersController,
+        action: "ordersForOmsFindIncident"
+    },
+    {
+        method: "post",
+        route: "/orders/list/reassign",
+        controller: OrdersController,
+        action: "ordersForOmsFindReassing"
+    },
+    {
+        method: "post",
+        route: "/orders/list/reset",
+        controller: OrdersController,
+        action: "ordersForOmsFindReset"
+    },
+    {
+        method: "post",
         route: "/orders/detail",
         controller: OrdersController,
         action: "getOrderDetailById"
+    },
+    {
+        method: "post",
+        route: "/orders/detail/number",
+        controller: OrdersController,
+        action: "getOrderDetailBynumber"
     },
     {
         method: "post",
@@ -110,6 +134,18 @@ export const Routes = [
         route: "/order/update/state",
         controller: OrdersController,
         action: "updateState"
+    },
+    {
+        method: "post",
+        route: "/order/update/logistic",
+        controller: OrdersController,
+        action: "updateLogistic"
+    },
+    {
+        method: "post",
+        route: "/order/update/shop",
+        controller: OrdersController,
+        action: "updateReassignShop"
     },
     {
         method: "get",
@@ -221,6 +257,12 @@ export const Routes = [
     },
     {
         method: "post",
+        route: "/state/find",
+        controller: StateControllers,
+        action: "findBy"
+    },
+    {
+        method: "post",
         route: "/profiles/save",
         controller: ProfilesController,
         action: "save"
@@ -237,4 +279,10 @@ export const Routes = [
         controller: ServiceControllers,
         action: "save"
     },
+    {
+        method: "post",
+        route: "/services/list",
+        controller: ServiceControllers,
+        action: "all"
+    }
 ];
