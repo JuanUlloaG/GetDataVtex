@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServiceControllers = void 0;
 const jwt = require('jsonwebtoken');
-const { insertDB, insertManyDB } = require("../config/db");
+const { insertDB, insertManyDB, findDocuments } = require("../config/db");
 const Services_1 = __importDefault(require("../entity/Services"));
 const Services_2 = require("../entity/Services");
 const ajv_1 = __importDefault(require("ajv"));
@@ -19,10 +19,17 @@ catch (error) {
 class ServiceControllers {
     // private userRepository = getRepository(User);
     async all(request, response, next, app) {
-        response.json({
-            mensaje: 'List of services',
-            data: [],
-            success: true
+        findDocuments(Services_1.default, {}, "", {}, '', '', 0, null, null).then((findResult) => {
+            response.json({
+                data: findResult,
+                mensaje: "Listado de Servicios",
+                success: true
+            });
+        }).catch((err) => {
+            response.json({
+                mensaje: err.message,
+                success: false
+            });
         });
     }
     async one(request, response, next, app) {

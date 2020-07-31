@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 const jwt = require('jsonwebtoken');
-const { insertDB, insertManyDB } = require("../config/db")
-import State from "../entity/Services";
+const { insertDB, insertManyDB, findDocuments } = require("../config/db")
+import Service from "../entity/Services";
 import { schemaState } from "../entity/Services";
 import Ajv from 'ajv';
 import { ObjectId } from "mongodb";
@@ -19,10 +19,17 @@ export class ServiceControllers {
     // private userRepository = getRepository(User);
 
     async all(request: Request, response: Response, next: NextFunction, app: any) {
-        response.json({
-            mensaje: 'List of services',
-            data: [],
-            success: true
+        findDocuments(Service, {}, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+            response.json({
+                data: findResult,
+                mensaje: "Listado de Servicios",
+                success: true
+            });
+        }).catch((err: Error) => {
+            response.json({
+                mensaje: err.message,
+                success: false
+            });
         });
 
     }
@@ -46,7 +53,7 @@ export class ServiceControllers {
         })
 
         if (servicesToSave.length > 0) {
-            insertManyDB(State, servicesToSave).then((result: any) => {
+            insertManyDB(Service, servicesToSave).then((result: any) => {
                 response.json({
                     mensaje: 'Se crearon los servicios de forma exitosa',
                     data: result,
