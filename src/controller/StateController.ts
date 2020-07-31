@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 const jwt = require('jsonwebtoken');
-const { insertDB, insertManyDB } = require("../config/db")
+const { insertDB, insertManyDB, findDocuments } = require("../config/db")
 import State from "../entity/State";
 import { schemaState } from "../entity/State";
 import Ajv from 'ajv';
@@ -18,11 +18,19 @@ export class StateControllers {
 
     // private userRepository = getRepository(User);
 
-    async all(request: Request, response: Response, next: NextFunction, app: any) {
-        response.json({
-            mensaje: 'List of states',
-            data: [],
-            success: true
+    async findBy(request: Request, response: Response, next: NextFunction, app: any) {
+        let queryState = { $or: [{ "key": 0 }, { "key": 2 }] }
+        findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+            console.log(findResult)
+            response.json({
+                mensaje: findResult,
+                success: false
+            });
+        }).catch((err: Error) => {
+            response.json({
+                mensaje: err.message,
+                success: false
+            });
         });
 
     }

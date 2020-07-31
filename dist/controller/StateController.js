@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StateControllers = void 0;
 const jwt = require('jsonwebtoken');
-const { insertDB, insertManyDB } = require("../config/db");
+const { insertDB, insertManyDB, findDocuments } = require("../config/db");
 const State_1 = __importDefault(require("../entity/State"));
 const State_2 = require("../entity/State");
 const ajv_1 = __importDefault(require("ajv"));
@@ -18,11 +18,19 @@ catch (error) {
 }
 class StateControllers {
     // private userRepository = getRepository(User);
-    async all(request, response, next, app) {
-        response.json({
-            mensaje: 'List of states',
-            data: [],
-            success: true
+    async findBy(request, response, next, app) {
+        let queryState = { $or: [{ "key": 0 }, { "key": 2 }] };
+        findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
+            console.log(findResult);
+            response.json({
+                mensaje: findResult,
+                success: false
+            });
+        }).catch((err) => {
+            response.json({
+                mensaje: err.message,
+                success: false
+            });
         });
     }
     async one(request, response, next, app) {
