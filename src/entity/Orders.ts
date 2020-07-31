@@ -28,7 +28,8 @@ export interface OrderInterface extends Document {
         unitsReplaced: number,
         description: string,
         image: string,
-        location: number
+        location: number,
+        reception: Boolean,
     }],
     client: {
         rut: string,
@@ -51,6 +52,7 @@ export interface OrderInterface extends Document {
     endDeliveryDate?: Date,
     realdatedelivery?: Date,
     pickerWorkShift: string,
+    cancellDate?: Date,
     isInShop: Boolean,
     restocked: Boolean,
     timeLine?: Array<any>,
@@ -80,6 +82,7 @@ const OrderSchema: Schema = new Schema({
         description: { type: String, required: true },
         image: { type: String, required: true },
         location: { type: Number, required: true },
+        reception: { type: Boolean, required: false, default: false },
     }],
     client: {
         rut: { type: String, required: true },
@@ -99,6 +102,7 @@ const OrderSchema: Schema = new Schema({
     endPickingDate: { type: Date, required: false, default: null },
     starDeliveryDate: { type: Date, required: false, default: null },
     endDeliveryDate: { type: Date, required: false, default: null },
+    cancellDate: { type: Date, required: false, default: null },
     realdatedelivery: { type: Date, required: false, default: null },
     pickerWorkShift: { type: String, required: true },
     isInShop: { type: Boolean, required: false, default: false },
