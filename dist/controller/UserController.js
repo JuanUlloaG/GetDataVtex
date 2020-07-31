@@ -234,7 +234,8 @@ class UserController {
             const payload = {
                 check: true
             };
-            findDocuments(User_1.default, query, "", {}, 'company', '', 0, null, null).then((result) => {
+            findDocuments(User_1.default, query, "", {}, 'company profile', '', 0, null, null).then((result) => {
+                console.log(result);
                 if (result.length > 0) {
                     let pass = result[0].password;
                     bcryptjs_1.default.compare(request.body.password, pass, (err, match) => {
@@ -255,7 +256,7 @@ class UserController {
                                     response.json({
                                         message: 'Autentication successfull',
                                         token: token,
-                                        profile: update.profile,
+                                        profile: result[0].profile,
                                         company: company,
                                         name: update.name,
                                         email: update.email,
