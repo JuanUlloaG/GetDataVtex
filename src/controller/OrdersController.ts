@@ -5,9 +5,9 @@ import Orders from "../entity/Orders";
 import { OrderInterface } from "../entity/Orders";
 import State from "../entity/State";
 import Service from "../entity/Services";
-const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB, findOneDB } = require("../config/db")
+const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB, findOneDB, updateManyDB } = require("../config/db")
 import moment from 'moment'
-
+mongoose.set('debug', true);
 export class OrdersController {
 
   // private userRepository = getRepository(User);
@@ -23,23 +23,48 @@ export class OrdersController {
 
   async updateState(request: Request, response: Response, next: NextFunction, app: any) {
     try {
-      const { id, state } = request.body
-      let queryOrder = { "_id": mongoose.Types.ObjectId(id) }
-      let updateOrder = { state: state }
-      findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
-        if (updateOrder) {
-          response.json({
-            message: 'Orden actualizada exitosamente',
-            data: updateOrder,
-            success: true
+      const { id, state, date } = request.body
+      let queryOrder: any = { "_id": mongoose.Types.ObjectId(id) }
+
+      let query = { "key": state }
+      findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
+        if (findResultState.length > 0) {
+          let stateId = findResultState[0]._id;
+          let updateOrder: any = { state: mongoose.Types.ObjectId(stateId) }
+          if (state == 8) {
+            updateOrder['cancellDate'] = new Date()
+          }
+          if (date) {
+            updateOrder['realdatedelivery'] = new Date(date)
+            updateOrder['restocked'] = true
+          }
+          findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
+            if (updateOrder) {
+              response.json({
+                message: 'Orden actualizada exitosamente',
+                data: updateOrder,
+                success: true
+              });
+            } else {
+              response.json({
+                message: "Error al actualizar orden: " + updateOrder,
+                success: false
+              });
+            }
+
+          }).catch((err: Error) => {
+            response.json({
+              message: err,
+              success: false
+            });
           });
+
         } else {
           response.json({
-            message: "Error al actualizar orden: " + updateOrder,
+            message: "Error al actualizar orden: " + findResultState,
             success: false
           });
         }
-
       }).catch((err: Error) => {
         response.json({
           message: err,
@@ -53,8 +78,97 @@ export class OrdersController {
         success: false
       });
     }
+  }
 
+  async updateReassignShop(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { ids, shopId } = request.body
+      let arrayIds: any = []
+      ids.map((id: string) => {
+        arrayIds.push({ "_id": mongoose.Types.ObjectId(id) })
+      })
+      let queryOrder = { '_id': { '$in': ids } }
+      let updateOrder: any = {}
+      updateOrder['shopId'] = mongoose.Types.ObjectId(shopId)
+      updateManyDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
+        if (updateOrder) {
+          response.json({
+            message: 'Ordenes actualizada exitosamente',
+            data: updateOrder,
+            success: true
+          });
+        } else {
+          response.json({
+            message: "Error al actualizar orden: " + updateOrder,
+            success: false
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false
+        });
+      });
+    } catch (error) {
+      response.json({
+        message: error.message,
+        success: false
+      });
+    }
+  }
 
+  async updateLogistic(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { id, products } = request.body
+      let queryOrder: any = { "_id": mongoose.Types.ObjectId(id) }
+
+      let query = { "key": 0 }
+      findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
+        if (findResultState.length > 0) {
+          let stateId = findResultState[0]._id;
+          // let updateOrder: any = { state: mongoose.Types.ObjectId(stateId) }
+          let updateOrder: any = { products: products }
+          updateOrder['isInShop'] = true
+          findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
+            if (updateOrder) {
+              response.json({
+                message: 'Orden actualizada exitosamente',
+                data: updateOrder,
+                success: true
+              });
+            } else {
+              response.json({
+                message: "Error al actualizar orden: " + updateOrder,
+                success: false
+              });
+            }
+
+          }).catch((err: Error) => {
+            response.json({
+              message: err,
+              success: false
+            });
+          });
+
+        } else {
+          response.json({
+            message: "Error al actualizar orden: " + findResultState,
+            success: false
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false
+        });
+      });
+
+    } catch (error) {
+      response.json({
+        message: error.message,
+        success: false
+      });
+    }
   }
 
   async orders(request: Request, response: Response, next: NextFunction, app: any) {
@@ -76,6 +190,7 @@ export class OrdersController {
       if (profile == 4) populate = 'bag deliveryId pickerId state service'
 
       findDocuments(Orders, query, "", {}, populate, '', 0, null, null).then((result: any) => {
+        console.log(result)
         response.json({
           message: 'Listado de ordenes',
           data: result,
@@ -154,8 +269,93 @@ export class OrdersController {
         success: false
       });
     }
+  }
+
+  async getOrderDetailBynumber(request: Request, response: Response, next: NextFunction, app: any) {
+
+    try {
+      const { orderNumber } = request.body
+      let query: object;
+      let query_: any = {};
+      let populate: string = '';
+
+      query = { "orderNumber": orderNumber }
+      populate = 'bag pickerId deliveryId state service'
+
+      let queryState = { $or: [{ "key": 0 }, { "key": 1 }] }
+      findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+        let arrayQuery: Array<any> = []
+        if (findResult.length > 0) {
+          findResult.map((stat) => {
+            let stateId = stat._id;
+            arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+          })
+          query_['$or'] = [...arrayQuery]
+          query_['$and'] = [{ 'orderNumber': orderNumber }]
+
+          findDocuments(Orders, query_, "", {}, populate, '', 1, null, null).then((result: Array<OrderInterface>) => {
+            if (result.length > 0) {
+              let newOrders = result.map((order, index) => {
+                if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
+                let pickername = ""
+                let deliveryname = ""
+                let pickingDate: any = ""
+                let delilveryDateStart: any = ""
+                let delilveryDateEnd: any = ""
+                if (order.pickerId) pickername = order.pickerId.name
+                if (order.deliveryId) deliveryname = order.deliveryId.name
+                if (order.endPickingDate) pickingDate = order.endPickingDate
+                if (order.starDeliveryDate) delilveryDateStart = order.starDeliveryDate
+                if (order.endDeliveryDate) delilveryDateEnd = order.endDeliveryDate
+                const rows = [
+                  this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                  this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                  this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                ];
+                if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
+                order.set('timeLine', [...rows], { strict: false })
+                return order
+              })
+              response.json({
+                message: 'Detalle de la orden',
+                data: newOrders[0],
+                success: true
+              });
+            } else {
+              response.json({
+                message: 'No se encontro detalle de la orden',
+                data: result,
+                success: false
+              });
+            }
+
+          }).catch((err: Error) => {
+            response.json({
+              message: err.message,
+              success: false
+            });
+          });
+        } else {
+          response.json({
+            message: 'No se encontraron estados',
+            data: {},
+            success: false
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err.message,
+          success: false
+        });
+      });
 
 
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
   }
 
   createData(name: string, compra: any, picking: any, delivery: any, reception: any, type: number) {
@@ -211,64 +411,378 @@ export class OrdersController {
 
   async ordersForOms(request: Request, response: Response, next: NextFunction, app: any) {
     try {
-      const { company, profile } = request.body
-      let query: object;
-      let populate: string = '';
+      const { company, profile, state, query } = request.body
+      let _query;
+      let query_: any = {}
+      let populate: string = 'bag pickerId deliveryId state service shopId';
+      // if (Object.keys(query).length > 0) {
+      //   if (query.shop) query_['shopId'] = mongoose.Types.ObjectId(query.shopId)
+      //   if (query.name) query_['client.name'] = query.name
+      //   if (query.address) query_['client.address'] = query.address
+      //   query_['uid'] = mongoose.Types.ObjectId(company)
+      // } else {
+      //   query_ = {}
+      // }
 
-      if (profile == 2) {
-        query = {
-          "uid": company,
-          "pickerId": { "$eq": null }
-        }
-      } else {
-        query = {}
+
+
+      if (profile == 4) populate = 'bag pickerId deliveryId state service shopId'
+
+      let queryState: any
+      if (state) {
+        // if (state == 30) {
+        //   queryState = { $or: [{ "key": 0 }, { "key": 2 }] }
+        // }
+        queryState = { "key": state }
       }
+      queryState = { "key": 0 }
 
-      if (profile == 4) populate = 'bag bag.deliveryId pickerId deliveryId state service'
+      findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+        if (findResult.length > 0) {
+          let stateId = findResult[0]._id;
+          if (state) {
+            query_['state'] = mongoose.Types.ObjectId(stateId)
+          }
+          findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+            if (result.length) {
+              let newOrders = result.map((order, index) => {
+                let pickername = ""
+                let deliveryname = ""
+                let pickingDate: any = ""
+                let delilveryDateStart: any = ""
+                let delilveryDateEnd: any = ""
+                if (order.pickerId) pickername = order.pickerId.name
+                if (order.deliveryId) deliveryname = order.deliveryId.name
+                if (order.endPickingDate) pickingDate = order.endPickingDate
+                if (order.starDeliveryDate) delilveryDateStart = order.starDeliveryDate
+                if (order.endDeliveryDate) delilveryDateEnd = order.endDeliveryDate
+                const rows = [
+                  this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                  this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                  this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                ];
+                if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
+                order.set('timeLine', [...rows], { strict: false })
+                return order
+              })
+              response.json({
+                message: 'Listado de ordenes',
+                data: newOrders,
+                success: true
+              });
+            } else {
+              response.json({
+                message: 'Listado de ordenes',
+                data: result,
+                success: true
+              });
+            }
 
-      findDocuments(Orders, query, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
-        // console.log(result.length)
-        if (result.length) {
-          let newOrders = result.map((order, index) => {
-            let pickername = ""
-            let deliveryname = ""
-            let pickingDate: any = ""
-            let delilveryDateStart: any = ""
-            let delilveryDateEnd: any = ""
-            if (order.pickerId) pickername = order.pickerId.name
-            if (order.deliveryId) deliveryname = order.deliveryId.name
-            if (order.endPickingDate) pickingDate = order.endPickingDate
-            if (order.starDeliveryDate) delilveryDateStart = order.starDeliveryDate
-            if (order.endDeliveryDate) delilveryDateEnd = order.endDeliveryDate
-            const rows = [
-              this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
-              this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
-              this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
-            ];
-            if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
-            order.set('timeLine', [...rows], { strict: false })
-            return order
-          })
-          response.json({
-            message: 'Listado de ordenes',
-            data: newOrders,
-            success: true
+
+          }).catch((err: Error) => {
+            response.json({
+              message: err.message,
+              success: false
+            });
           });
         } else {
           response.json({
-            message: 'Listado de ordenes',
-            data: result,
-            success: true
+            message: 'Error al listar ordernes',
+            success: false
           });
         }
-
-
       }).catch((err: Error) => {
         response.json({
           message: err.message,
           success: false
         });
       });
+
+
+
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+
+
+  }
+
+
+  async ordersForOmsFindIncident(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { company, shopId } = request.body
+      let _query;
+      let query_: any = {}
+      let populate: string = 'bag pickerId deliveryId state service shopId';
+      let queryState: any
+
+      queryState = { $or: [{ "key": 6 }, { "key": 7 }] }
+      findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+        let arrayQuery: Array<any> = []
+        if (findResult.length > 0) {
+          findResult.map((stat) => {
+            let stateId = stat._id;
+            arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+          })
+          query_['$or'] = [...arrayQuery]
+          query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
+          if (shopId) query_['$and'] = [{ 'shopId': mongoose.Types.ObjectId(shopId) }]
+          findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+            if (result.length) {
+              let newOrders = result.map((order, index) => {
+                let pickername = ""
+                let deliveryname = ""
+                let pickingDate: any = ""
+                let delilveryDateStart: any = ""
+                let delilveryDateEnd: any = ""
+                if (order.pickerId) pickername = order.pickerId.name
+                if (order.deliveryId) deliveryname = order.deliveryId.name
+                if (order.endPickingDate) pickingDate = order.endPickingDate
+                if (order.starDeliveryDate) delilveryDateStart = order.starDeliveryDate
+                if (order.endDeliveryDate) delilveryDateEnd = order.endDeliveryDate
+                const rows = [
+                  this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                  this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                  this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                ];
+                if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
+                order.set('timeLine', [...rows], { strict: false })
+                return order
+              })
+              response.json({
+                message: 'Listado de ordenes',
+                data: newOrders,
+                success: true
+              });
+            } else {
+              response.json({
+                message: 'Listado de ordenes',
+                data: result,
+                success: true
+              });
+            }
+          }).catch((err: Error) => {
+            response.json({
+              message: err.message,
+              success: false
+            });
+          });
+        } else {
+          response.json({
+            message: 'Error al listar ordernes',
+            success: false
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err.message,
+          success: false
+        });
+      });
+
+
+
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+
+
+  }
+
+  async ordersForOmsFindReset(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { company, shopId } = request.body
+      let _query;
+      let query_: any = {}
+      let populate: string = 'bag pickerId deliveryId state service shopId';
+      let queryState: any
+
+      queryState = { $or: [{ "key": 2 }] }
+      findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+        let arrayQuery: Array<any> = []
+        if (findResult.length > 0) {
+          findResult.map((stat) => {
+            let stateId = stat._id;
+            arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+          })
+          query_['$or'] = [...arrayQuery]
+          query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
+          if (shopId) query_['$and'] = [{ 'shopId': mongoose.Types.ObjectId(shopId) }]
+          findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+            if (result.length) {
+              let newOrders = result.map((order, index) => {
+                let pickername = ""
+                let deliveryname = ""
+                let pickingDate: any = ""
+                let delilveryDateStart: any = ""
+                let delilveryDateEnd: any = ""
+                if (order.pickerId) pickername = order.pickerId.name
+                if (order.deliveryId) deliveryname = order.deliveryId.name
+                if (order.endPickingDate) pickingDate = order.endPickingDate
+                if (order.starDeliveryDate) delilveryDateStart = order.starDeliveryDate
+                if (order.endDeliveryDate) delilveryDateEnd = order.endDeliveryDate
+                const rows = [
+                  this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                  this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                  this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                ];
+                if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
+                order.set('timeLine', [...rows], { strict: false })
+                return order
+              })
+              response.json({
+                message: 'Listado de ordenes para resetear',
+                data: newOrders,
+                success: true
+              });
+            } else {
+              response.json({
+                message: 'Listado de ordenes para resetear',
+                data: result,
+                success: true
+              });
+            }
+          }).catch((err: Error) => {
+            response.json({
+              message: err.message,
+              success: false
+            });
+          });
+        } else {
+          response.json({
+            message: 'Error al listar ordernes',
+            success: false
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err.message,
+          success: false
+        });
+      });
+
+
+
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+
+
+  }
+
+  async ordersForOmsFindReassing(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { company, shopId, query } = request.body
+      let _query;
+      let query_: any = {}
+      let populate: string = 'bag pickerId deliveryId state service shopId';
+      let queryState: any
+      queryState = { $or: [{ "key": 1 }] }
+      findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+        let arrayQuery: Array<any> = []
+        if (findResult.length > 0) {
+          findResult.map((stat) => {
+            let stateId = stat._id;
+            arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+          })
+          if (Object.keys(query).length > 0) {
+            if (query.buyFromDate && query.buyToDate) {
+              arrayQuery.push({
+                'date': {
+                  $gte: query.buyFromDate,
+                  $lt: query.buyToDate
+                }
+              })
+            }
+
+            if (query.deliveryFromDate && query.deliveryToDate) {
+              arrayQuery.push({
+                'endDeliveryDate': {
+                  $gte: query.deliveryFromDate,
+                  $lt: query.deliveryToDate
+                }
+              })
+            }
+            if (query.name) {
+              arrayQuery.push({ 'pickerId.name': query.name })
+            }
+            if (query.number) {
+              arrayQuery.push({ 'orderNumber': query.number })
+            }
+            if (query.shop) {
+              arrayQuery.push({ 'shopId': query.shop })
+            }
+            if (query.service) {
+              arrayQuery.push({ 'service': query.service })
+            }
+          }
+          // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
+          query_['uid'] =  mongoose.Types.ObjectId(company) 
+          query_['$and'] = [...arrayQuery]
+          if (shopId) query_['$and'] = [{ 'shopId': mongoose.Types.ObjectId(shopId) }]
+          findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+            if (result.length) {
+              let newOrders = result.map((order, index) => {
+                let pickername = ""
+                let deliveryname = ""
+                let pickingDate: any = ""
+                let delilveryDateStart: any = ""
+                let delilveryDateEnd: any = ""
+                if (order.pickerId) pickername = order.pickerId.name
+                if (order.deliveryId) deliveryname = order.deliveryId.name
+                if (order.endPickingDate) pickingDate = order.endPickingDate
+                if (order.starDeliveryDate) delilveryDateStart = order.starDeliveryDate
+                if (order.endDeliveryDate) delilveryDateEnd = order.endDeliveryDate
+                const rows = [
+                  this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                  this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                  this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                ];
+                if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
+                order.set('timeLine', [...rows], { strict: false })
+                return order
+              })
+              response.json({
+                message: 'Listado de ordenes para resetear',
+                data: newOrders,
+                success: true
+              });
+            } else {
+              response.json({
+                message: 'Listado de ordenes para resetear',
+                data: result,
+                success: true
+              });
+            }
+          }).catch((err: Error) => {
+            response.json({
+              message: err.message,
+              success: false
+            });
+          });
+        } else {
+          response.json({
+            message: 'Error al listar ordernes',
+            success: false
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err.message,
+          success: false
+        });
+      });
+
+
 
     } catch (error) {
       response.json({
@@ -289,7 +803,7 @@ export class OrdersController {
           const { id } = request.body
           if (id) {
             let query = { "_id": mongoose.Types.ObjectId(id) }
-            let update = { "pickerId": null, startPickingDate: null, state: mongoose.Types.ObjectId(stateId) }
+            let update = { "pickerId": null, startPickingDate: null, state: mongoose.Types.ObjectId(stateId), shopId: null }
             findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {
               if (update) {
                 response.json({
@@ -342,10 +856,11 @@ export class OrdersController {
       findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
         if (findResultState.length > 0) {
           let stateId = findResultState[0]._id;
-          const { id, pickerId } = request.body
+          const { id, pickerId, shopId } = request.body
+          console.log(shopId)
           if (id) {
             let query = { "_id": mongoose.Types.ObjectId(id) }
-            let update = { "pickerId": mongoose.Types.ObjectId(pickerId), startPickingDate: new Date(), state: mongoose.Types.ObjectId(stateId) }
+            let update = { "pickerId": mongoose.Types.ObjectId(pickerId), startPickingDate: new Date(), state: mongoose.Types.ObjectId(stateId), shopId: mongoose.Types.ObjectId(shopId) }
             let queryFind = { "_id": mongoose.Types.ObjectId(id) }
             findDocuments(Orders, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
               if (findResult.length > 0) {
