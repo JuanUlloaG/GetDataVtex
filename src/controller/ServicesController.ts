@@ -22,12 +22,12 @@ export class ServiceControllers {
         findDocuments(Service, {}, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
             response.json({
                 data: findResult,
-                mensaje: "Listado de Servicios",
+                message: "Listado de Servicios",
                 success: true
             });
         }).catch((err: Error) => {
             response.json({
-                mensaje: err.message,
+                message: err.message,
                 success: false
             });
         });
@@ -55,20 +55,20 @@ export class ServiceControllers {
         if (servicesToSave.length > 0) {
             insertManyDB(Service, servicesToSave).then((result: any) => {
                 response.json({
-                    mensaje: 'Se crearon los servicios de forma exitosa',
+                    message: 'Se crearon los servicios de forma exitosa',
                     data: result,
                     stateNotSave: servicesNotSave,
                     success: true
                 });
             }).catch((err: Error) => {
                 response.json({
-                    mensaje: err.message,
+                    message: err.message,
                     success: false
                 });
             });
         } else {
             response.json({
-                mensaje: "Los estados no cumplen con los requisitos",
+                message: "Los estados no cumplen con los requisitos",
                 data: servicesNotSave,
                 success: false
             });

@@ -15,7 +15,7 @@ module.exports = {
             if (token) {
                 jwt.verify(token, app.get('llave'), (err, decoded) => {
                     if (err) {
-                        return res.json({ mensaje: 'Token inválida' });
+                        return res.json({ message: 'Token inválida' });
                     }
                     else {
                         req.decoded = decoded;
@@ -25,7 +25,7 @@ module.exports = {
             }
             else {
                 return res.send({
-                    mensaje: 'Token no proveída.'
+                    message: 'Token no proveída.'
                 });
             }
         }

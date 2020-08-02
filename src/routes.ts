@@ -83,6 +83,24 @@ export const Routes = [
     },
     {
         method: "post",
+        route: "/orders/list/cancelled",
+        controller: OrdersController,
+        action: "ordersForOmsCancelledSearch"
+    },
+    {
+        method: "post",
+        route: "/orders/list/cancelled/export",
+        controller: OrdersController,
+        action: "ordersForOmsCancelledExport"
+    },
+    {
+        method: "post",
+        route: "/orders/list/view",
+        controller: OrdersController,
+        action: "ordersForOmsViewSearch"
+    },
+    {
+        method: "post",
         route: "/orders/list/incident",
         controller: OrdersController,
         action: "ordersForOmsFindIncident"
@@ -98,6 +116,18 @@ export const Routes = [
         route: "/orders/list/reset",
         controller: OrdersController,
         action: "ordersForOmsFindReset"
+    },
+    {
+        method: "post",
+        route: "/orders/list/resetSearch",
+        controller: OrdersController,
+        action: "ordersForOmsFindSearchReset"
+    },
+    {
+        method: "post",
+        route: "/orders/list/homeSearch",
+        controller: OrdersController,
+        action: "ordersForOmsFindSearchHome"
     },
     {
         method: "post",

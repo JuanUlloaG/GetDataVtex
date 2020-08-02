@@ -11,12 +11,12 @@ const State_1 = __importDefault(require("../entity/State"));
 const Services_1 = __importDefault(require("../entity/Services"));
 const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB, findOneDB, updateManyDB } = require("../config/db");
 const moment_1 = __importDefault(require("moment"));
-mongoose_1.default.set('debug', true);
+// mongoose.set('debug', true);
 class OrdersController {
     // private userRepository = getRepository(User);
     async all(request, response, next, app) {
         response.json({
-            mensaje: 'Listado de ordenes',
+            message: 'Listado de ordenes',
             data: [],
             success: true
         });
@@ -170,6 +170,7 @@ class OrdersController {
     }
     async orders(request, response, next, app) {
         try {
+            console.log(request.body);
             const { company, profile } = request.body;
             let query;
             let populate = '';
@@ -274,7 +275,7 @@ class OrdersController {
             let populate = '';
             query = { "orderNumber": orderNumber };
             populate = 'bag pickerId deliveryId state service';
-            let queryState = { $or: [{ "key": 0 }, { "key": 1 }] };
+            let queryState = { $or: [{ "key": 6 }, { "key": 7 }] };
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 let arrayQuery = [];
                 if (findResult.length > 0) {
@@ -408,24 +409,13 @@ class OrdersController {
             let _query;
             let query_ = {};
             let populate = 'bag pickerId deliveryId state service shopId';
-            // if (Object.keys(query).length > 0) {
-            //   if (query.shop) query_['shopId'] = mongoose.Types.ObjectId(query.shopId)
-            //   if (query.name) query_['client.name'] = query.name
-            //   if (query.address) query_['client.address'] = query.address
-            //   query_['uid'] = mongoose.Types.ObjectId(company)
-            // } else {
-            //   query_ = {}
-            // }
             if (profile == 4)
                 populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
+            queryState = { "key": 0 };
             if (state) {
-                // if (state == 30) {
-                //   queryState = { $or: [{ "key": 0 }, { "key": 2 }] }
-                // }
                 queryState = { "key": state };
             }
-            queryState = { "key": 0 };
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
@@ -500,9 +490,168 @@ class OrdersController {
             });
         }
     }
+    async ordersForOmsCancelledSearch(request, response, next, app) {
+        try {
+            const { company, profile, state, query } = request.body;
+            let _query;
+            let query_ = {};
+            let populate = 'bag pickerId deliveryId state service shopId';
+            if (profile == 4)
+                populate = 'bag pickerId deliveryId state service shopId';
+            let queryState;
+            queryState = { "key": 8 };
+            findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
+                if (findResult.length > 0) {
+                    let stateId = findResult[0]._id;
+                    let arrayQuery = [];
+                    if (query && Object.keys(query).length > 0) {
+                        if (query.shopId)
+                            arrayQuery.push({ "shopId": mongoose_1.default.Types.ObjectId(query.shopId) });
+                        if (query.name)
+                            arrayQuery.push({ "client.name": query.name });
+                        if (query.address)
+                            arrayQuery.push({ "client.address": query.address });
+                    }
+                    if (stateId)
+                        arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
+                    query_['$and'] = [...arrayQuery];
+                    findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+                        if (result.length) {
+                            let newOrders = result.map((order, index) => {
+                                let pickername = "";
+                                let deliveryname = "";
+                                let pickingDate = "";
+                                let delilveryDateStart = "";
+                                let delilveryDateEnd = "";
+                                if (order.pickerId)
+                                    pickername = order.pickerId.name;
+                                if (order.deliveryId)
+                                    deliveryname = order.deliveryId.name;
+                                if (order.endPickingDate)
+                                    pickingDate = order.endPickingDate;
+                                if (order.starDeliveryDate)
+                                    delilveryDateStart = order.starDeliveryDate;
+                                if (order.endDeliveryDate)
+                                    delilveryDateEnd = order.endDeliveryDate;
+                                const rows = [
+                                    this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                                    this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                                    this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                                ];
+                                if (!order.client.comment)
+                                    order.set('client.comment', "Sin Comentarios", { strict: false });
+                                order.set('timeLine', [...rows], { strict: false });
+                                return order;
+                            });
+                            response.json({
+                                message: 'Listado de ordenes',
+                                data: newOrders,
+                                success: true
+                            });
+                        }
+                        else {
+                            response.json({
+                                message: 'Listado de ordenes',
+                                data: result,
+                                success: true
+                            });
+                        }
+                    }).catch((err) => {
+                        response.json({
+                            message: err.message,
+                            success: false
+                        });
+                    });
+                }
+                else {
+                    response.json({
+                        message: 'Error al listar ordernes',
+                        success: false
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err.message,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
+    async ordersForOmsViewSearch(request, response, next, app) {
+        try {
+            const { company, profile, state, shopId, query } = request.body;
+            let query_;
+            if (company) {
+                query_ = { "shopId": mongoose_1.default.Types.ObjectId(shopId), "company": mongoose_1.default.Types.ObjectId(company) };
+            }
+            else {
+                query_ = { "shopId": mongoose_1.default.Types.ObjectId(shopId) };
+            }
+            let populate = 'bag pickerId deliveryId state service shopId';
+            findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+                if (result.length) {
+                    let newOrders = result.map((order, index) => {
+                        let pickername = "";
+                        let deliveryname = "";
+                        let pickingDate = "";
+                        let delilveryDateStart = "";
+                        let delilveryDateEnd = "";
+                        if (order.pickerId)
+                            pickername = order.pickerId.name;
+                        if (order.deliveryId)
+                            deliveryname = order.deliveryId.name;
+                        if (order.endPickingDate)
+                            pickingDate = order.endPickingDate;
+                        if (order.starDeliveryDate)
+                            delilveryDateStart = order.starDeliveryDate;
+                        if (order.endDeliveryDate)
+                            delilveryDateEnd = order.endDeliveryDate;
+                        const rows = [
+                            this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                            this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                            this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                        ];
+                        if (!order.client.comment)
+                            order.set('client.comment', "Sin Comentarios", { strict: false });
+                        order.set('timeLine', [...rows], { strict: false });
+                        return order;
+                    });
+                    response.json({
+                        message: 'Listado de ordenes',
+                        data: newOrders,
+                        success: true
+                    });
+                }
+                else {
+                    response.json({
+                        message: 'Listado de ordenes',
+                        data: result,
+                        success: true
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err.message,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
     async ordersForOmsFindIncident(request, response, next, app) {
         try {
-            const { company, shopId } = request.body;
+            const { company, shopId, orderNumber } = request.body;
             let _query;
             let query_ = {};
             let populate = 'bag pickerId deliveryId state service shopId';
@@ -516,9 +665,16 @@ class OrdersController {
                         arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
                     });
                     query_['$or'] = [...arrayQuery];
-                    query_['$and'] = [{ 'uid': mongoose_1.default.Types.ObjectId(company) }];
+                    let queryArr = [];
+                    if (company)
+                        queryArr.push({ 'uid': mongoose_1.default.Types.ObjectId(company) });
                     if (shopId)
-                        query_['$and'] = [{ 'shopId': mongoose_1.default.Types.ObjectId(shopId) }];
+                        queryArr.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
+                    if (orderNumber)
+                        queryArr.push({ 'orderNumber': orderNumber });
+                    if (company || shopId || orderNumber)
+                        query_['$and'] = [...queryArr];
+                    console.log(query_);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -603,9 +759,13 @@ class OrdersController {
                         arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
                     });
                     query_['$or'] = [...arrayQuery];
-                    query_['$and'] = [{ 'uid': mongoose_1.default.Types.ObjectId(company) }];
+                    let queryArr = [];
+                    if (company)
+                        queryArr.push({ 'uid': mongoose_1.default.Types.ObjectId(company) });
                     if (shopId)
-                        query_['$and'] = [{ 'shopId': mongoose_1.default.Types.ObjectId(shopId) }];
+                        queryArr.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
+                    if (shopId || company)
+                        query_['$and'] = [...queryArr];
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -642,9 +802,9 @@ class OrdersController {
                         }
                         else {
                             response.json({
-                                message: 'Listado de ordenes para resetear',
+                                message: 'Listado de ordenes para resetear error',
                                 data: result,
-                                success: true
+                                success: false
                             });
                         }
                     }).catch((err) => {
@@ -720,11 +880,134 @@ class OrdersController {
                         }
                     }
                     // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
-                    query_['uid'] = mongoose_1.default.Types.ObjectId(company);
+                    if (company)
+                        query_['uid'] = mongoose_1.default.Types.ObjectId(company);
                     query_['$and'] = [...arrayQuery];
                     if (shopId)
                         query_['$and'] = [{ 'shopId': mongoose_1.default.Types.ObjectId(shopId) }];
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+                        if (result.length) {
+                            let newOrders = result.map((order, index) => {
+                                let pickername = "";
+                                let deliveryname = "";
+                                let pickingDate = "";
+                                let delilveryDateStart = "";
+                                let delilveryDateEnd = "";
+                                if (order.pickerId)
+                                    pickername = order.pickerId.name;
+                                if (order.deliveryId)
+                                    deliveryname = order.deliveryId.name;
+                                if (order.endPickingDate)
+                                    pickingDate = order.endPickingDate;
+                                if (order.starDeliveryDate)
+                                    delilveryDateStart = order.starDeliveryDate;
+                                if (order.endDeliveryDate)
+                                    delilveryDateEnd = order.endDeliveryDate;
+                                const rows = [
+                                    this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                                    this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                                    this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                                ];
+                                if (!order.client.comment)
+                                    order.set('client.comment', "Sin Comentarios", { strict: false });
+                                order.set('timeLine', [...rows], { strict: false });
+                                return order;
+                            });
+                            response.json({
+                                message: 'Listado de ordenes para resetear',
+                                data: newOrders,
+                                success: true
+                            });
+                        }
+                        else {
+                            response.json({
+                                message: 'Listado de ordenes para resetear',
+                                data: result,
+                                success: true
+                            });
+                        }
+                    }).catch((err) => {
+                        response.json({
+                            message: err.message,
+                            success: false
+                        });
+                    });
+                }
+                else {
+                    response.json({
+                        message: 'Error al listar ordernes',
+                        success: false
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err.message,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
+    async ordersForOmsFindSearchReset(request, response, next, app) {
+        try {
+            const { company, shopId, query } = request.body;
+            console.log(query);
+            let _query;
+            let query_ = {};
+            let populate = 'bag pickerId deliveryId state service shopId';
+            let queryState;
+            queryState = { $or: [{ "key": 2 }] };
+            findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
+                let arrayQuery = [];
+                if (findResult.length > 0) {
+                    findResult.map((stat) => {
+                        let stateId = stat._id;
+                        // arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+                    });
+                    if (Object.keys(query).length > 0) {
+                        if (query.buyFromDate && query.buyToDate) {
+                            arrayQuery.push({
+                                'date': {
+                                    $gte: query.buyFromDate,
+                                    $lt: query.buyToDate
+                                }
+                            });
+                        }
+                        if (query.deliveryFromDate && query.deliveryToDate) {
+                            arrayQuery.push({
+                                'endDeliveryDate': {
+                                    $gte: query.deliveryFromDate,
+                                    $lt: query.deliveryToDate
+                                }
+                            });
+                        }
+                        if (query.name) {
+                            arrayQuery.push({ 'pickerId.name': query.name });
+                        }
+                        if (query.number) {
+                            arrayQuery.push({ 'orderNumber': query.number });
+                        }
+                        if (query.shop) {
+                            arrayQuery.push({ 'shopId': query.shop });
+                        }
+                        if (query.service) {
+                            arrayQuery.push({ 'service': query.service });
+                        }
+                    }
+                    // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
+                    if (company)
+                        query_['uid'] = mongoose_1.default.Types.ObjectId(company);
+                    if (shopId)
+                        arrayQuery.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
+                    query_['$and'] = [...arrayQuery];
+                    console.log(query_);
+                    findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+                        console.log(result);
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
                                 let pickername = "";
@@ -974,7 +1257,7 @@ class OrdersController {
                             });
                             insertManyDB(Orders_1.default, _orders).then((result) => {
                                 response.json({
-                                    mensaje: 'orden(es) creada(s) exitosamente',
+                                    message: 'orden(es) creada(s) exitosamente',
                                     data: result,
                                     success: true
                                 });
@@ -1014,14 +1297,14 @@ class OrdersController {
         catch (error) {
             console.log(error);
             response.json({
-                mensaje: error.message,
+                message: error.message,
                 success: false
             });
         }
     }
     async ordersToDelivery(request, response, next, app) {
         response.json({
-            mensaje: 'Listado de ordenes',
+            message: 'Listado de ordenes',
             data: [],
             success: true
         });

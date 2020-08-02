@@ -26,8 +26,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // 3
 app.use(bodyParser.json());
 function checkUser(req, res, next) {
-    if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/") {
-        // if (true) {
+    // if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/") {
+    if (true) {
         next();
     }
     else {
@@ -35,7 +35,7 @@ function checkUser(req, res, next) {
         if (token) {
             jwt.verify(token, app.get('key'), (err, decoded) => {
                 if (err) {
-                    return res.json({ mensaje: 'Token inválida' });
+                    return res.json({ message: 'Token inválida' });
                 }
                 else {
                     req.decoded = decoded;
@@ -45,7 +45,7 @@ function checkUser(req, res, next) {
         }
         else {
             res.send({
-                mensaje: 'Token no proveída.'
+                message: 'Token no proveída.'
             });
         }
     }

@@ -85,6 +85,18 @@ exports.Routes = [
     },
     {
         method: "post",
+        route: "/orders/list/cancelled",
+        controller: OrdersController_1.OrdersController,
+        action: "ordersForOmsCancelledSearch"
+    },
+    {
+        method: "post",
+        route: "/orders/list/view",
+        controller: OrdersController_1.OrdersController,
+        action: "ordersForOmsViewSearch"
+    },
+    {
+        method: "post",
         route: "/orders/list/incident",
         controller: OrdersController_1.OrdersController,
         action: "ordersForOmsFindIncident"
@@ -100,6 +112,12 @@ exports.Routes = [
         route: "/orders/list/reset",
         controller: OrdersController_1.OrdersController,
         action: "ordersForOmsFindReset"
+    },
+    {
+        method: "post",
+        route: "/orders/list/resetSearch",
+        controller: OrdersController_1.OrdersController,
+        action: "ordersForOmsFindSearchReset"
     },
     {
         method: "post",

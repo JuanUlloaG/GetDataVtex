@@ -16,12 +16,14 @@ export class ProfilesController {
 
     async all(request: Request, response: Response, next: NextFunction, app: any) {
         try {
-            // const { company } = request.body
-            let query: object;
+            const { company } = request.body
+            let query: object = {};
             let populate: string = '';
+            if (company) {
+                query = { 'key': { "$ne": 0 } }
+            }
 
-
-            findDocuments(Profile, {}, "", {}, populate, '', 0, null, null).then((result: any) => {
+            findDocuments(Profile, query, "", {}, populate, '', 0, null, null).then((result: any) => {
                 response.json({
                     message: 'Listado de perfiles',
                     data: result,
@@ -57,20 +59,20 @@ export class ProfilesController {
         if (profilesToSave.length > 0) {
             insertManyDB(Profile, profilesToSave).then((result: any) => {
                 response.json({
-                    mensaje: 'Se crearon los estados de forma exitosa',
+                    message: 'Se crearon los estados de forma exitosa',
                     data: result,
                     profileNotSave: profilesNotSave,
                     success: true
                 });
             }).catch((err: Error) => {
                 response.json({
-                    mensaje: err.message,
+                    message: err.message,
                     success: false
                 });
             });
         } else {
             response.json({
-                mensaje: "Los estados no cumplen con los requisitos",
+                message: "Los estados no cumplen con los requisitos",
                 data: profilesNotSave,
                 success: false
             });

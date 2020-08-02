@@ -13,21 +13,43 @@ class ShopController {
     // private userRepository = getRepository(User);
     async all(request, response, next, app) {
         try {
-            let query;
+            let { profile, company, query } = request.body;
+            let _query;
             let populate = '';
             let queryState = { "key": 10 };
-            let { company } = request.body;
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
-                    query = {
-                        "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) }
-                    };
+                    if (query) {
+                        if (query.company) {
+                            _query = {
+                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
+                                "company": mongoose_1.default.Types.ObjectId(query.company)
+                            };
+                        }
+                        if (query.number) {
+                            _query = {
+                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
+                                "number": query.number
+                            };
+                        }
+                        if (query.company && query.number) {
+                            _query = {
+                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
+                                "$or": [{ "company": mongoose_1.default.Types.ObjectId(query.company) }, { "number": query.number }],
+                            };
+                        }
+                    }
+                    else {
+                        _query = {
+                            "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) }
+                        };
+                    }
                     if (company) {
-                        query["company"] = { "$eq": mongoose_1.default.Types.ObjectId(company) };
+                        _query["company"] = { "$eq": mongoose_1.default.Types.ObjectId(company) };
                     }
                     populate = 'condition company';
-                    findDocuments(Shop_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
+                    findDocuments(Shop_1.default, _query, "", {}, populate, '', 0, null, null).then((result) => {
                         response.json({
                             message: 'Listado de Tiendas',
                             data: result,
@@ -203,7 +225,7 @@ class ShopController {
             }
             else {
                 response.json({
-                    mensaje: "Error Al Crear Cuenta, no se encontro estado valido",
+                    message: "Error Al Crear Cuenta, no se encontro estado valido",
                     success: false
                 });
             }

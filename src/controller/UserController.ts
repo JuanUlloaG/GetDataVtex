@@ -5,7 +5,7 @@ const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB } = requi
 import User from "../entity/User";
 import bcrypt from "bcryptjs";
 import State from "../entity/State";
-
+mongoose.set('debug', true);
 
 
 
@@ -15,20 +15,60 @@ export class UserController {
 
   async all(request: Request, response: Response, next: NextFunction, app: any) {
     try {
-      const { company } = request.body
-      let query: object;
+      const { company, query } = request.body
+      let arrayQuery: Array<any> = []
+      let _query: any;
+      let query_: any = {}
+      if (query) {
+        if (query.profile) {
+          arrayQuery.push({ 'profile': mongoose.Types.ObjectId(query.profile) })
+        }
+        if (query.company) {
+          arrayQuery.push({ 'company': mongoose.Types.ObjectId(query.company) })
+        }
+
+        if (query.profile && query.company) {
+          query_['$or'] = [...arrayQuery]
+        } else {
+          query_['$or'] = [...arrayQuery]
+        }
+      }
+
+
       let populate: string = '';
       let queryState = { "key": 10 }
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
         if (findResult.length > 0) {
           let stateId = findResult[0]._id;
-          query = {
-            "company": mongoose.Types.ObjectId(company),
-            "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
+          if (company) {
+            if (query) {
+              if (query.profile && query.company) {
+                query_['$and'] = [{ "company": mongoose.Types.ObjectId(company) }, { "condition": { "$ne": mongoose.Types.ObjectId(stateId) } }]
+              } else {
+                query_['$and'] = [{ "company": mongoose.Types.ObjectId(company) }, { "condition": { "$ne": mongoose.Types.ObjectId(stateId) } }]
+              }
+
+            } else {
+              query_ = {
+                "company": mongoose.Types.ObjectId(company),
+                "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
+              }
+            }
+          }
+          else {
+            if (query) {
+              query_['$and'] = [{ "condition": { "$ne": mongoose.Types.ObjectId(stateId) } }]
+            } else {
+              query_ = {
+                "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
+              }
+            }
+
           }
           populate = 'profile company condition'
 
-          findDocuments(User, query, "", {}, populate, '', 0, null, null).then((result: any) => {
+
+          findDocuments(User, query_, "", {}, populate, '', 0, null, null).then((result: any) => {
             response.json({
               message: 'Listado de usuarios',
               data: result,
@@ -161,7 +201,7 @@ export class UserController {
       const { name, phone, email, profile, rut, password, company } = request.body
       if (!name || !phone || !email || !profile || !rut || !password) {
         response.json({
-          mensaje: 'Error! al crear usuario',
+          message: 'Error! al crear usuario',
           success: false
         });
       }
@@ -172,19 +212,22 @@ export class UserController {
 
           let queryState = { "key": 9 }
           findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
-            let _user;
+            let _user: any = {};
             if (findResult.length > 0) {
               let stateId = findResult[0]._id;
-              _user = { name, rut, email, password: hashedPassword, phone, profile: mongoose.Types.ObjectId(profile), company: mongoose.Types.ObjectId(company), condition: mongoose.Types.ObjectId(stateId), state: false }
+              _user = { name, rut, email, password: hashedPassword, phone, profile: mongoose.Types.ObjectId(profile), condition: mongoose.Types.ObjectId(stateId), state: false }
+              if (company) {
+                _user['company'] = mongoose.Types.ObjectId(company)
+              }
               insertDB(User, _user).then((result: any) => {
                 response.json({
-                  mensaje: 'Creacion de Usuario',
+                  message: 'Usuario ' + name + ' Creado exitosamente ',
                   data: result,
                   success: true
                 });
               }).catch((err: Error) => {
                 response.json({
-                  mensaje: err.message,
+                  message: err.message,
                   data: err,
                   success: false
                 });
@@ -192,13 +235,13 @@ export class UserController {
               });
             } else {
               response.json({
-                mensaje: 'Error Creacion de Usuario',
+                message: 'Error Creacion de Usuario',
                 success: false
               });
             }
           }).catch((err: Error) => {
             response.json({
-              mensaje: err.message,
+              message: err.message,
               data: err,
               success: false
             });
@@ -210,7 +253,7 @@ export class UserController {
 
     } catch (error) {
       response.json({
-        mensaje: 'Error! al crear usuario',
+        message: 'Error! al crear usuario',
         info: error.message,
         success: false
       });
@@ -274,7 +317,12 @@ export class UserController {
               findOneAndUpdateDB(User, query, update, null, null).then((update: any) => {
                 if (update) {
                   const token = jwt.sign(payload, app.get('key'), {});
-                  let company = { id: result[0].company._id, name: result[0].company.name }
+                  let company: any = {}
+                  if (result[0].company) {
+                    company = { id: result[0].company._id, name: result[0].company.name }
+                  } else {
+                    company = { id: "", name: "N/A" }
+                  }
                   response.json({
                     message: 'Autentication successfull',
                     token: token,

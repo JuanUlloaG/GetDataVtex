@@ -23,12 +23,12 @@ export class StateControllers {
         findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
             console.log(findResult)
             response.json({
-                mensaje: findResult,
+                message: findResult,
                 success: false
             });
         }).catch((err: Error) => {
             response.json({
-                mensaje: err.message,
+                message: err.message,
                 success: false
             });
         });
@@ -56,20 +56,20 @@ export class StateControllers {
         if (statesToSave.length > 0) {
             insertManyDB(State, statesToSave).then((result: any) => {
                 response.json({
-                    mensaje: 'Se crearon los estados de forma exitosa',
+                    message: 'Se crearon los estados de forma exitosa',
                     data: result,
                     stateNotSave: statesNotSave,
                     success: true
                 });
             }).catch((err: Error) => {
                 response.json({
-                    mensaje: err.message,
+                    message: err.message,
                     success: false
                 });
             });
         } else {
             response.json({
-                mensaje: "Los estados no cumplen con los requisitos",
+                message: "Los estados no cumplen con los requisitos",
                 data: statesNotSave,
                 success: false
             });

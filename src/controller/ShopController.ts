@@ -12,21 +12,45 @@ export class ShopController {
 
     async all(request: Request, response: Response, next: NextFunction, app: any) {
         try {
-            let query: any;
+            let { profile, company, query } = request.body
+            let _query: any;
             let populate: string = '';
             let queryState = { "key": 10 }
-            let { company } = request.body
             findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
-                    query = {
-                        "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
+                    if (query) {
+                        if (query.company) {
+                            _query = {
+                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
+                                "company": mongoose.Types.ObjectId(query.company)
+                            }
+                        }
+                        if (query.number) {
+                            _query = {
+                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
+                                "number": query.number
+                            }
+                        }
+                        if (query.company && query.number) {
+                            _query = {
+                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
+                                "$or": [{ "company": mongoose.Types.ObjectId(query.company) }, { "number": query.number }],
+                            }
+                        }
+
+                    } else {
+                        _query = {
+                            "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
+                        }
                     }
+
                     if (company) {
-                        query["company"] = { "$eq": mongoose.Types.ObjectId(company) }
+                        _query["company"] = { "$eq": mongoose.Types.ObjectId(company) }
                     }
                     populate = 'condition company'
-                    findDocuments(Shop, query, "", {}, populate, '', 0, null, null).then((result: any) => {
+                    findDocuments(Shop, _query, "", {}, populate, '', 0, null, null).then((result: any) => {
+                        console.log(result)
                         response.json({
                             message: 'Listado de Tiendas',
                             data: result,
@@ -208,7 +232,7 @@ export class ShopController {
                 });
             } else {
                 response.json({
-                    mensaje: "Error Al Crear Cuenta, no se encontro estado valido",
+                    message: "Error Al Crear Cuenta, no se encontro estado valido",
                     success: false
                 });
             }

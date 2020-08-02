@@ -12,17 +12,42 @@ const Company_1 = __importDefault(require("../entity/Company"));
 class CompanyControllers {
     async all(request, response, next, app) {
         try {
-            let query;
+            let { profile, company, query } = request.body;
+            let _query;
             let populate = '';
             let queryState = { "key": 10 };
+            console.log(query);
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
-                    query = {
-                        "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) }
-                    };
+                    if (query) {
+                        if (query.rut) {
+                            _query = {
+                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
+                                "rut": query.rut,
+                            };
+                        }
+                        if (query.name) {
+                            _query = {
+                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
+                                "name": query.name
+                            };
+                        }
+                        if (query.name && query.name) {
+                            _query = {
+                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
+                                "$or": [{ "rut": query.rut }, { "name": query.name }],
+                            };
+                        }
+                    }
+                    else {
+                        _query = {
+                            "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) }
+                        };
+                    }
+                    console.log(_query);
                     populate = 'condition';
-                    findDocuments(Company_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
+                    findDocuments(Company_1.default, _query, "", {}, populate, '', 0, null, null).then((result) => {
                         response.json({
                             message: 'Listado de usuarios',
                             data: result,
@@ -146,20 +171,20 @@ class CompanyControllers {
                 let _company = { name, rut, email, phone, 'condition': mongoose_1.default.Types.ObjectId(stateId) };
                 insertDB(Company_1.default, _company).then((result) => {
                     response.json({
-                        mensaje: 'Creacion de compañia exitosa',
+                        message: 'Se ha creado la cuenta: ' + name,
                         data: result,
                         success: true
                     });
                 }).catch((err) => {
                     response.json({
-                        mensaje: err.message,
+                        message: err.message,
                         success: false
                     });
                 });
             }
             else {
                 response.json({
-                    mensaje: "Error Al Crear Cuenta, no se encontro estado valido",
+                    message: "Error Al Crear Cuenta, no se encontro estado valido",
                     success: false
                 });
             }
@@ -172,7 +197,7 @@ class CompanyControllers {
     }
     async ordersToDelivery(request, response, next, app) {
         response.json({
-            mensaje: 'Listado de ordenes',
+            message: 'Listado de ordenes',
             data: [],
             success: true
         });

@@ -30,15 +30,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 function checkUser(req: Request, res: Response, next: NextFunction) {
-    if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/") {
-    // if (true) {
+    // if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/") {
+    if (true) {
         next();
     } else {
         const token = (<any>req).headers['access-token'];
         if (token) {
             jwt.verify(token, app.get('key'), (err: any, decoded: any) => {
                 if (err) {
-                    return res.json({ mensaje: 'Token inválida' });
+                    return res.json({ message: 'Token inválida' });
                 } else {
                     (<any>req).decoded = decoded;
                     next();
@@ -46,7 +46,7 @@ function checkUser(req: Request, res: Response, next: NextFunction) {
             });
         } else {
             res.send({
-                mensaje: 'Token no proveída.'
+                message: 'Token no proveída.'
             });
         }
     }

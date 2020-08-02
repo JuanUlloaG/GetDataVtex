@@ -9,17 +9,44 @@ export class CompanyControllers {
 
     async all(request: Request, response: Response, next: NextFunction, app: any) {
         try {
-            let query: object;
+            let { profile, company, query } = request.body
+            let _query: object;
             let populate: string = '';
             let queryState = { "key": 10 }
+            console.log(query)
             findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
-                    query = {
-                        "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
+                    if (query) {
+                        if (query.rut) {
+                            _query = {
+                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
+                                "rut": query.rut,
+
+                            }
+                        }
+                        if (query.name) {
+                            _query = {
+                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
+
+                                "name": query.name
+                            }
+                        }
+                        if (query.name && query.name) {
+                            _query = {
+                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
+                                "$or": [{ "rut": query.rut }, { "name": query.name }],
+                            }
+                        }
+
+                    } else {
+                        _query = {
+                            "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
+                        }
                     }
+                    console.log(_query)
                     populate = 'condition'
-                    findDocuments(Company, query, "", {}, populate, '', 0, null, null).then((result: any) => {
+                    findDocuments(Company, _query, "", {}, populate, '', 0, null, null).then((result: any) => {
                         response.json({
                             message: 'Listado de usuarios',
                             data: result,
@@ -144,19 +171,19 @@ export class CompanyControllers {
                 let _company = { name, rut, email, phone, 'condition': mongoose.Types.ObjectId(stateId) }
                 insertDB(Company, _company).then((result: any) => {
                     response.json({
-                        mensaje: 'Creacion de compañia exitosa',
+                        message: 'Se ha creado la cuenta: ' + name,
                         data: result,
                         success: true
                     });
                 }).catch((err: Error) => {
                     response.json({
-                        mensaje: err.message,
+                        message: err.message,
                         success: false
                     });
                 });
             } else {
                 response.json({
-                    mensaje: "Error Al Crear Cuenta, no se encontro estado valido",
+                    message: "Error Al Crear Cuenta, no se encontro estado valido",
                     success: false
                 });
             }
@@ -170,7 +197,7 @@ export class CompanyControllers {
 
     async ordersToDelivery(request: Request, response: Response, next: NextFunction, app: any) {
         response.json({
-            mensaje: 'Listado de ordenes',
+            message: 'Listado de ordenes',
             data: [],
             success: true
         });
