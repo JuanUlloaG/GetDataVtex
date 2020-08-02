@@ -50,6 +50,7 @@ class ShopController {
                     }
                     populate = 'condition company';
                     findDocuments(Shop_1.default, _query, "", {}, populate, '', 0, null, null).then((result) => {
+                        console.log(result);
                         response.json({
                             message: 'Listado de Tiendas',
                             data: result,

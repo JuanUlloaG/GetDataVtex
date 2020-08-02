@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrdersController = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
+const xlsx_1 = __importDefault(require("xlsx"));
 const jwt = require('jsonwebtoken');
 const Orders_1 = __importDefault(require("../entity/Orders"));
 const State_1 = __importDefault(require("../entity/State"));
@@ -490,6 +491,125 @@ class OrdersController {
             });
         }
     }
+    async ordersForOmsCancelledExport(request, response, next, app) {
+        try {
+            const { company, profile, state, query } = request.body;
+            let _query;
+            let query_ = {};
+            let populate = 'bag pickerId deliveryId state service shopId';
+            if (profile == 4)
+                populate = 'bag pickerId deliveryId state service shopId';
+            let queryState;
+            queryState = { "key": 8 };
+            findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
+                if (findResult.length > 0) {
+                    let stateId = findResult[0]._id;
+                    let arrayQuery = [];
+                    if (query && Object.keys(query).length > 0) {
+                        if (query.shopId)
+                            arrayQuery.push({ "shopId": mongoose_1.default.Types.ObjectId(query.shopId) });
+                        if (query.name)
+                            arrayQuery.push({ "client.name": query.name });
+                        if (query.address)
+                            arrayQuery.push({ "client.address": query.address });
+                    }
+                    if (stateId)
+                        arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
+                    query_['$and'] = [...arrayQuery];
+                    findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+                        if (result.length) {
+                            let newOrders = result.map((order, index) => {
+                                let pickername = "";
+                                let deliveryname = "";
+                                let pickingDate = "";
+                                let delilveryDateStart = "";
+                                let delilveryDateEnd = "";
+                                if (order.pickerId)
+                                    pickername = order.pickerId.name;
+                                if (order.deliveryId)
+                                    deliveryname = order.deliveryId.name;
+                                if (order.endPickingDate)
+                                    pickingDate = order.endPickingDate;
+                                if (order.starDeliveryDate)
+                                    delilveryDateStart = order.starDeliveryDate;
+                                if (order.endDeliveryDate)
+                                    delilveryDateEnd = order.endDeliveryDate;
+                                const rows = [
+                                    this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                                    this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                                    this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                                ];
+                                if (!order.client.comment)
+                                    order.set('client.comment', "Sin Comentarios", { strict: false });
+                                order.set('timeLine', [...rows], { strict: false });
+                                return order;
+                            });
+                            try {
+                                let data = newOrders;
+                                //console.log(data)
+                                let headers = ["Numero de Pedido", "Nombre Cliente", "F. de compra", "F. de compromiso", "Canal", "Servicio", "Estado"];
+                                let reportdata = data.map(field => {
+                                    let file = '{"Numero de Pedido":"' + field.orderNumber + '","Nombre Cliente":"' + field.client.name + '","F. de compra":"' + field.date + '","F. de compromiso":"' +
+                                        field.realdatedelivery +
+                                        '","Canal":"' +
+                                        field.channel +
+                                        '","Servicio":"' +
+                                        field.service.desc +
+                                        '","Estado":"' +
+                                        field.state.desc +
+                                        '"}';
+                                    // console.log()
+                                    return JSON.parse(file);
+                                });
+                                let wb = xlsx_1.default.utils.book_new();
+                                let name = "Reporte_ordenes_canceladas.xlsx";
+                                let xlsData = xlsx_1.default.utils.json_to_sheet(reportdata, {
+                                    header: headers,
+                                });
+                                xlsx_1.default.utils.book_append_sheet(wb, xlsData, "Reporte");
+                                xlsx_1.default.writeFile(wb, name);
+                                response.download(name);
+                            }
+                            catch (err) {
+                                response.json({
+                                    message: err.message,
+                                    success: false
+                                });
+                            }
+                        }
+                        else {
+                            response.json({
+                                message: 'Sin data para exportar',
+                                success: false
+                            });
+                        }
+                    }).catch((err) => {
+                        response.json({
+                            message: err.message,
+                            success: false
+                        });
+                    });
+                }
+                else {
+                    response.json({
+                        message: 'Error al Exportar ordenes',
+                        success: false
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err.message,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
     async ordersForOmsCancelledSearch(request, response, next, app) {
         try {
             const { company, profile, state, query } = request.body;
@@ -674,7 +794,6 @@ class OrdersController {
                         queryArr.push({ 'orderNumber': orderNumber });
                     if (company || shopId || orderNumber)
                         query_['$and'] = [...queryArr];
-                    console.log(query_);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -956,7 +1075,6 @@ class OrdersController {
     async ordersForOmsFindSearchReset(request, response, next, app) {
         try {
             const { company, shopId, query } = request.body;
-            console.log(query);
             let _query;
             let query_ = {};
             let populate = 'bag pickerId deliveryId state service shopId';
@@ -978,11 +1096,27 @@ class OrdersController {
                                 }
                             });
                         }
+                        if (query.buyFromDate && !query.buyToDate) {
+                            arrayQuery.push({
+                                'date': {
+                                    $gte: query.buyFromDate,
+                                    $lt: new Date()
+                                }
+                            });
+                        }
                         if (query.deliveryFromDate && query.deliveryToDate) {
                             arrayQuery.push({
                                 'endDeliveryDate': {
                                     $gte: query.deliveryFromDate,
                                     $lt: query.deliveryToDate
+                                }
+                            });
+                        }
+                        if (query.deliveryFromDate && !query.deliveryToDate) {
+                            arrayQuery.push({
+                                'endDeliveryDate': {
+                                    $gte: query.deliveryFromDate,
+                                    $lt: new Date()
                                 }
                             });
                         }
@@ -1005,9 +1139,7 @@ class OrdersController {
                     if (shopId)
                         arrayQuery.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
                     query_['$and'] = [...arrayQuery];
-                    console.log(query_);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
-                        console.log(result);
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
                                 let pickername = "";
@@ -1067,6 +1199,144 @@ class OrdersController {
                     success: false
                 });
             });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
+    async ordersForOmsFindSearchHome(request, response, next, app) {
+        try {
+            const { company, profile, query } = request.body;
+            let _query;
+            let query_ = {};
+            let populate = 'bag pickerId deliveryId state service shopId';
+            let queryState;
+            queryState = { $or: [{ "key": 2 }] };
+            // findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+            let arrayQuery = [];
+            // if (findResult.length > 0) {
+            // findResult.map((stat) => {
+            //   let stateId = stat._id;
+            //   // arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+            // })
+            if (Object.keys(query).length > 0) {
+                if (query.buyFromDate && query.buyToDate) {
+                    arrayQuery.push({
+                        'date': {
+                            $gte: query.buyFromDate,
+                            $lt: query.buyToDate
+                        }
+                    });
+                }
+                if (query.buyFromDate && !query.buyToDate) {
+                    arrayQuery.push({
+                        'date': {
+                            $gte: query.buyFromDate,
+                            $lt: new Date()
+                        }
+                    });
+                }
+                if (query.deliveryFromDate && query.deliveryToDate) {
+                    arrayQuery.push({
+                        'endDeliveryDate': {
+                            $gte: query.deliveryFromDate,
+                            $lt: query.deliveryToDate
+                        }
+                    });
+                }
+                if (query.deliveryFromDate && !query.deliveryToDate) {
+                    arrayQuery.push({
+                        'endDeliveryDate': {
+                            $gte: query.deliveryFromDate,
+                            $lt: new Date()
+                        }
+                    });
+                }
+                if (query.rut) {
+                    arrayQuery.push({ 'client.rut': query.rut });
+                }
+                if (query.orderNumber) {
+                    arrayQuery.push({ 'orderNumber': query.orderNumber });
+                }
+                if (query.service) {
+                    arrayQuery.push({ 'service': mongoose_1.default.Types.ObjectId(query.service) });
+                }
+                if (query.shopId) {
+                    arrayQuery.push({ 'shopId': mongoose_1.default.Types.ObjectId(query.shopId) });
+                }
+                if (query.pickerName) {
+                    arrayQuery.push({ 'pickerId.name': query.pickerName });
+                }
+                if (query.deliveryName) {
+                    arrayQuery.push({ 'deliveryId.name': query.deliveryName });
+                }
+            }
+            if (company)
+                query_['uid'] = mongoose_1.default.Types.ObjectId(company);
+            // if (shopId) arrayQuery.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
+            query_['$and'] = [...arrayQuery];
+            findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+                if (result.length) {
+                    let newOrders = result.map((order, index) => {
+                        let pickername = "";
+                        let deliveryname = "";
+                        let pickingDate = "";
+                        let delilveryDateStart = "";
+                        let delilveryDateEnd = "";
+                        if (order.pickerId)
+                            pickername = order.pickerId.name;
+                        if (order.deliveryId)
+                            deliveryname = order.deliveryId.name;
+                        if (order.endPickingDate)
+                            pickingDate = order.endPickingDate;
+                        if (order.starDeliveryDate)
+                            delilveryDateStart = order.starDeliveryDate;
+                        if (order.endDeliveryDate)
+                            delilveryDateEnd = order.endDeliveryDate;
+                        const rows = [
+                            this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                            this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                            this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                        ];
+                        if (!order.client.comment)
+                            order.set('client.comment', "Sin Comentarios", { strict: false });
+                        order.set('timeLine', [...rows], { strict: false });
+                        return order;
+                    });
+                    response.json({
+                        message: 'Listado de ordenes para resetear',
+                        data: newOrders,
+                        success: true
+                    });
+                }
+                else {
+                    response.json({
+                        message: 'Listado de ordenes para resetear',
+                        data: result,
+                        success: true
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err.message,
+                    success: false
+                });
+            });
+            // } else {
+            //   response.json({
+            //     message: 'Error al listar ordernes',
+            //     success: false
+            //   });
+            // }
+            // }).catch((err: Error) => {
+            //   response.json({
+            //     message: err.message,
+            //     success: false
+            //   });
+            // });
         }
         catch (error) {
             response.json({

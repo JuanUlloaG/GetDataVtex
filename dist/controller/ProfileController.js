@@ -20,7 +20,6 @@ class ProfilesController {
                 query = { 'key': { "$ne": 0 } };
             }
             findDocuments(Profile_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
-                console.log(result);
                 response.json({
                     message: 'Listado de perfiles',
                     data: result,
