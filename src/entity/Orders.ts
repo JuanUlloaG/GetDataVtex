@@ -75,7 +75,7 @@ const OrderSchema: Schema = new Schema({
         barcode: { type: String, required: true },
         product: { type: String, required: true },
         units: { type: Number, required: true },
-        unitsPicked: { type: Number, required: true },
+        unitsPicked: { type: Number, required: false, default: 0 },
         unitsSubstitutes: { type: Number, required: false, default: 0 },
         unitsBroken: { type: Number, required: false, default: 0 },
         unitsReplaced: { type: Number, required: false, default: 0 },
