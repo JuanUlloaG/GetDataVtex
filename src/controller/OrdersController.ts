@@ -1445,7 +1445,7 @@ export class OrdersController {
   }
 
 
-  
+
   /*
     Metodo que recibe un array de ordenes para guardarlas en la base de datos
   */
@@ -1453,7 +1453,9 @@ export class OrdersController {
     try {
       findDocuments(Service, {}, "", {}, '', '', 0, null, null).then((ServicesResult: Array<{ key: string, desc: string, typeDelivery: string }>) => {
         if (ServicesResult.length > 0) {
+
           let query = { "key": 0 }
+          
           findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
             if (findResult.length > 0) {
               let orders: Array<any>;
