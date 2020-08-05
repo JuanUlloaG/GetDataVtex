@@ -21,7 +21,8 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", '*');
     res.header("Access-Control-Allow-Credentials", 'true');
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json,Authorization');
+    res.header("Access-Control-Allow-Headers", 'Origin, X-Requested-With, Content-Type, Accept, content-type, application/json, Authorization');
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
 
@@ -31,7 +32,7 @@ app.use(bodyParser.json());
 
 function checkUser(req: Request, res: Response, next: NextFunction) {
     if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/") {
-    // if (true) {
+        // if (true) {
         next();
     } else {
         const token = (<any>req).headers['access-token'];
