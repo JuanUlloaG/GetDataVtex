@@ -10,7 +10,12 @@ import OrderBags from "./entity/OrderBags";
 import { Routes } from "./routes";
 const validation = require("./middleware/middleware")
 const { initDB, insertDB } = require("./config/db")
-// const cors = require('cors')
+const cors = require('cors')
+
+var corsOptions = {
+    origin: ' https://omni360-lab.azurewebsites.net/',
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
 
 let app = express();
 // 1
@@ -31,8 +36,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 function checkUser(req: Request, res: Response, next: NextFunction) {
-    if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/") {
-        // if (true) {
+    // if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/") {
+    if (true) {
         next();
     } else {
         const token = (<any>req).headers['access-token'];
@@ -67,6 +72,8 @@ Routes.forEach(route => {
         }
     });
 });
+
+
 
 
 
