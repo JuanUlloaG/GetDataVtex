@@ -18,6 +18,7 @@ var corsOptions = {
 }
 
 let app = express();
+app.use(cors());
 // 1
 app.set('key', config.key);
 // 2
