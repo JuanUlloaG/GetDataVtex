@@ -18,7 +18,8 @@ var corsOptions = {
 }
 
 let app = express();
-app.use(cors());
+
+app.use(cors({ origin: true }));
 // 1
 app.set('key', config.key);
 // 2
@@ -37,8 +38,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 function checkUser(req: Request, res: Response, next: NextFunction) {
-    // if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/") {
-    if (true) {
+    if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/") {
+    // if (true) {
         next();
     } else {
         const token = (<any>req).headers['access-token'];
