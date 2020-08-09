@@ -972,16 +972,16 @@ class OrdersController {
                         if (query.buyFromDate && query.buyToDate) {
                             arrayQuery.push({
                                 'date': {
-                                    $gte: query.buyFromDate,
-                                    $lt: query.buyToDate
+                                    $gte: new Date(query.buyFromDate),
+                                    $lt: new Date(query.buyToDate)
                                 }
                             });
                         }
                         if (query.deliveryFromDate && query.deliveryToDate) {
                             arrayQuery.push({
                                 'endDeliveryDate': {
-                                    $gte: query.deliveryFromDate,
-                                    $lt: query.deliveryToDate
+                                    $gte: new Date(query.deliveryFromDate),
+                                    $lt: new Date(query.deliveryToDate)
                                 }
                             });
                         }
@@ -1091,15 +1091,15 @@ class OrdersController {
                         if (query.buyFromDate && query.buyToDate) {
                             arrayQuery.push({
                                 'date': {
-                                    $gte: query.buyFromDate,
-                                    $lt: query.buyToDate
+                                    $gte: new Date(query.buyFromDate),
+                                    $lt: new Date(query.buyToDate)
                                 }
                             });
                         }
                         if (query.buyFromDate && !query.buyToDate) {
                             arrayQuery.push({
                                 'date': {
-                                    $gte: query.buyFromDate,
+                                    $gte: new Date(query.buyFromDate),
                                     $lt: new Date()
                                 }
                             });
@@ -1107,15 +1107,15 @@ class OrdersController {
                         if (query.deliveryFromDate && query.deliveryToDate) {
                             arrayQuery.push({
                                 'endDeliveryDate': {
-                                    $gte: query.deliveryFromDate,
-                                    $lt: query.deliveryToDate
+                                    $gte: new Date(query.deliveryFromDate),
+                                    $lt: new Date(query.deliveryToDate)
                                 }
                             });
                         }
                         if (query.deliveryFromDate && !query.deliveryToDate) {
                             arrayQuery.push({
                                 'endDeliveryDate': {
-                                    $gte: query.deliveryFromDate,
+                                    $gte: new Date(query.deliveryFromDate),
                                     $lt: new Date()
                                 }
                             });
@@ -1215,26 +1215,20 @@ class OrdersController {
             let populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
             queryState = { $or: [{ "key": 2 }] };
-            // findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
             let arrayQuery = [];
-            // if (findResult.length > 0) {
-            // findResult.map((stat) => {
-            //   let stateId = stat._id;
-            //   // arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
-            // })
             if (Object.keys(query).length > 0) {
                 if (query.buyFromDate && query.buyToDate) {
                     arrayQuery.push({
                         'date': {
-                            $gte: query.buyFromDate,
-                            $lt: query.buyToDate
+                            $gte: new Date(query.buyFromDate),
+                            $lt: new Date(query.buyToDate)
                         }
                     });
                 }
                 if (query.buyFromDate && !query.buyToDate) {
                     arrayQuery.push({
                         'date': {
-                            $gte: query.buyFromDate,
+                            $gte: new Date(query.buyFromDate),
                             $lt: new Date()
                         }
                     });
@@ -1242,15 +1236,15 @@ class OrdersController {
                 if (query.deliveryFromDate && query.deliveryToDate) {
                     arrayQuery.push({
                         'endDeliveryDate': {
-                            $gte: query.deliveryFromDate,
-                            $lt: query.deliveryToDate
+                            $gte: new Date(query.deliveryFromDate),
+                            $lt: new Date(query.deliveryToDate)
                         }
                     });
                 }
                 if (query.deliveryFromDate && !query.deliveryToDate) {
                     arrayQuery.push({
                         'endDeliveryDate': {
-                            $gte: query.deliveryFromDate,
+                            $gte: new Date(query.deliveryFromDate),
                             $lt: new Date()
                         }
                     });
@@ -1276,8 +1270,8 @@ class OrdersController {
             }
             if (company)
                 query_['uid'] = mongoose_1.default.Types.ObjectId(company);
-            // if (shopId) arrayQuery.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
-            query_['$and'] = [...arrayQuery];
+            if (arrayQuery.length > 0)
+                query_['$and'] = [...arrayQuery];
             findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                 if (result.length) {
                     let newOrders = result.map((order, index) => {
@@ -1307,41 +1301,35 @@ class OrdersController {
                         return order;
                     });
                     response.json({
-                        message: 'Listado de ordenes para resetear',
+                        message: 'Listado de ordenes home',
                         data: newOrders,
-                        success: true
+                        success: true,
+                        orders: result.length
                     });
                 }
                 else {
                     response.json({
-                        message: 'Listado de ordenes para resetear',
+                        message: 'Listado de ordenes home',
                         data: result,
-                        success: true
+                        success: true,
+                        orders: result.length
                     });
                 }
             }).catch((err) => {
+                console.log("Aqui");
                 response.json({
-                    message: err.message,
-                    success: false
+                    message: err,
+                    success: false,
+                    data: []
                 });
             });
-            // } else {
-            //   response.json({
-            //     message: 'Error al listar ordernes',
-            //     success: false
-            //   });
-            // }
-            // }).catch((err: Error) => {
-            //   response.json({
-            //     message: err.message,
-            //     success: false
-            //   });
-            // });
         }
         catch (error) {
+            console.log("Aquisa");
             response.json({
                 message: error,
-                success: false
+                success: false,
+                data: []
             });
         }
     }

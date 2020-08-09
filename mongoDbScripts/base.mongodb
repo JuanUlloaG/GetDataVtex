@@ -67,20 +67,23 @@ db.states.find({
 //     }, { limit: 0, projection: {} })
 
 
-db.orders.find({ 
-    '$and': [ 
-            { 
-                '$or': [ 
-                    { shopId: ObjectId("5f247b4f9cc76b5a9ed6b9b4") }, 
-                    { 'client.name': 'weewe' }, 
-                    { 'client.address': 'dasdasd' } 
-            ] 
-        }, 
-            { 
-                state: ObjectId("5f1c70b28126df435e1a2f14") 
-            } 
-        ]
-        })
+// db.orders.find({ 
+//     '$and': [ 
+//             { 
+//                 '$or': [ 
+//                     { shopId: ObjectId("5f247b4f9cc76b5a9ed6b9b4") }, 
+//                     { 'client.name': 'weewe' }, 
+//                     { 'client.address': 'dasdasd' } 
+//             ] 
+//         }, 
+//             { 
+//                 state: ObjectId("5f1c70b28126df435e1a2f14") 
+//             } 
+//         ]
+//         })
+
+
+        db.orders.find({ '$and': [ { date: { '$gte': new Date("Fri, 31 Jul 2020 06:00:00 GMT"), '$lt': new Date("Fri, 31 Jul 2020 23:00:00 GMT") } } ]})
 
 // db.orders.find({ 
 //     $and: 

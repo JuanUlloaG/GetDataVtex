@@ -11,12 +11,8 @@ const routes_1 = require("./routes");
 const validation = require("./middleware/middleware");
 const { initDB, insertDB } = require("./config/db");
 const cors = require('cors');
-var corsOptions = {
-    origin: ' https://omni360-lab.azurewebsites.net/',
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-};
 let app = express_1.default();
-app.use(cors({ origin: true }));
+app.use(cors());
 // 1
 app.set('key', config.key);
 // 2
