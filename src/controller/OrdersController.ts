@@ -516,7 +516,9 @@ export class OrdersController {
             if (query.address) arrayQuery.push({ "client.address": query.address })
           }
           if (stateId) arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
-          query_['$and'] = [...arrayQuery]
+
+          if (arrayQuery.length > 0)
+            query_['$and'] = [...arrayQuery]
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -628,7 +630,9 @@ export class OrdersController {
             if (query.address) arrayQuery.push({ "client.address": query.address })
           }
           if (stateId) arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
-          query_['$and'] = [...arrayQuery]
+
+          if (arrayQuery.length > 0)
+            query_['$and'] = [...arrayQuery]
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -969,8 +973,9 @@ export class OrdersController {
           }
           // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
           if (company) query_['uid'] = mongoose.Types.ObjectId(company)
-          query_['$and'] = [...arrayQuery]
-          if (shopId) query_['$and'] = [{ 'shopId': mongoose.Types.ObjectId(shopId) }]
+          if (shopId) arrayQuery.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
+          if (arrayQuery.length > 0)
+            query_['$and'] = [...arrayQuery]
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1102,10 +1107,10 @@ export class OrdersController {
               arrayQuery.push({ 'service': query.service })
             }
           }
-          // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
           if (company) query_['uid'] = mongoose.Types.ObjectId(company)
           if (shopId) arrayQuery.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
-          query_['$and'] = [...arrayQuery]
+          if (arrayQuery.length > 0)
+            query_['$and'] = [...arrayQuery]
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
