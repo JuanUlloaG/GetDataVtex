@@ -1054,7 +1054,7 @@ export class OrdersController {
         if (findResult.length > 0) {
           findResult.map((stat) => {
             let stateId = stat._id;
-            // arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+            arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
           })
           if (Object.keys(query).length > 0) {
             if (query.buyFromDate && query.buyToDate) {
