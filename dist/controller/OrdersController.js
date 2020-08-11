@@ -515,7 +515,8 @@ class OrdersController {
                     }
                     if (stateId)
                         arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
-                    query_['$and'] = [...arrayQuery];
+                    if (arrayQuery.length > 0)
+                        query_['$and'] = [...arrayQuery];
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -634,7 +635,8 @@ class OrdersController {
                     }
                     if (stateId)
                         arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
-                    query_['$and'] = [...arrayQuery];
+                    if (arrayQuery.length > 0)
+                        query_['$and'] = [...arrayQuery];
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -885,6 +887,7 @@ class OrdersController {
                         queryArr.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
                     if (shopId || company)
                         query_['$and'] = [...queryArr];
+                    console.log(queryArr);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1001,9 +1004,10 @@ class OrdersController {
                     // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
                     if (company)
                         query_['uid'] = mongoose_1.default.Types.ObjectId(company);
-                    query_['$and'] = [...arrayQuery];
                     if (shopId)
-                        query_['$and'] = [{ 'shopId': mongoose_1.default.Types.ObjectId(shopId) }];
+                        arrayQuery.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
+                    if (arrayQuery.length > 0)
+                        query_['$and'] = [...arrayQuery];
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1085,7 +1089,7 @@ class OrdersController {
                 if (findResult.length > 0) {
                     findResult.map((stat) => {
                         let stateId = stat._id;
-                        // arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+                        arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
                     });
                     if (Object.keys(query).length > 0) {
                         if (query.buyFromDate && query.buyToDate) {
@@ -1133,12 +1137,12 @@ class OrdersController {
                             arrayQuery.push({ 'service': query.service });
                         }
                     }
-                    // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
                     if (company)
                         query_['uid'] = mongoose_1.default.Types.ObjectId(company);
                     if (shopId)
                         arrayQuery.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
-                    query_['$and'] = [...arrayQuery];
+                    if (arrayQuery.length > 0)
+                        query_['$and'] = [...arrayQuery];
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {

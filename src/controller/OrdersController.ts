@@ -846,7 +846,6 @@ export class OrdersController {
       let populate: string = 'bag pickerId deliveryId state service shopId';
       let queryState: any
 
-
       queryState = { $or: [{ "key": 2 }] }
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
         let arrayQuery: Array<any> = []
@@ -860,6 +859,7 @@ export class OrdersController {
           if (company) queryArr.push({ 'uid': mongoose.Types.ObjectId(company) })
           if (shopId) queryArr.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
           if (shopId || company) query_['$and'] = [...queryArr]
+          console.log(queryArr)
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
