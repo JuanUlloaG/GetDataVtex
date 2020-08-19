@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 import mongoose from "mongoose";
 const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB } = require("../config/db");
 import User from "../entity/User";
+import { UserInterface } from "../entity/User";
 import bcrypt from "bcryptjs";
 import State from "../entity/State";
 mongoose.set('debug', true);
@@ -189,8 +190,6 @@ export class UserController {
     }
   }
 
-
-
   async one(request: Request, response: Response, next: NextFunction, app: any) {
     return null
   }
@@ -289,7 +288,6 @@ export class UserController {
   }
 
   async inactive(request: Request, response: Response, next: NextFunction, app: any) {
-
   }
 
   async auth(request: Request, response: Response, next: NextFunction, app: any) {
@@ -299,8 +297,28 @@ export class UserController {
         check: true
       };
 
-      findDocuments(User, query, "", {}, 'company profile', '', 0, null, null).then((result: any) => {
+      const location = request.body.location
+
+      findDocuments(User, query, "", {}, 'company profile', '', 0, null, null).then((result: Array<UserInterface>) => {
         if (result.length > 0) {
+          if ((result[0].profile.key == 2 || result[0].profile.key == 3) && location !== 1) {
+            response.json({
+              message: 'Error usuario no permitido',
+              success: false
+            });
+          }
+          if ((result[0].profile.key == 2 || result[0].profile.key == 3) && location == 0) {
+            response.json({
+              message: 'Error, usuario no permitido',
+              success: false
+            });
+          }
+          if ((result[0].profile.key !== 2 && result[0].profile.key !== 3 && result[0].profile.key !== 4) && location == 1) {
+            response.json({
+              message: 'Error, usuario no permitido',
+              success: false
+            });
+          }
           let pass = result[0].password
           bcrypt.compare(request.body.password, pass, (err, match) => {
             if (err) {
