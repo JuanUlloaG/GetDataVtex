@@ -292,16 +292,16 @@ export class UserController {
 
   async auth(request: Request, response: Response, next: NextFunction, app: any) {
     try {
+      const rut = request.body.user
       const query = { 'rut': request.body.user }
       const payload = {
         check: true
       };
-
       const location = request.body.location
 
       findDocuments(User, query, "", {}, 'company profile', '', 0, null, null).then((result: Array<UserInterface>) => {
         if (result.length > 0) {
-          
+
           // if ((result[0].profile.key == 2 || result[0].profile.key == 3) && location == 0) {
           //   response.json({
           //     message: 'Error, usuario no permitido',
@@ -336,7 +336,7 @@ export class UserController {
                     company = { id: "", name: "N/A" }
                   }
                   response.json({
-                    message: 'Autentication successfull',
+                    message: 'Login exitoso',
                     token: token,
                     profile: result[0].profile,
                     company: company,
@@ -348,8 +348,9 @@ export class UserController {
                   });
                 } else {
                   response.json({
-                    message: "Error al iniciar sesión",
-                    success: false
+                    message: "Ha ocurrido un error al iniciar sesión",
+                    success: false,
+                    data: update
                   });
                 }
               }).catch((err: Error) => {
@@ -358,24 +359,23 @@ export class UserController {
                   success: false
                 });
               });
-
             } else {
               response.json({
-                message: "Usuario o contraseña incorrecta",
+                message: "Error, Usuario o contraseña incorrecta",
                 success: false,
-                code: err
+                code: "err"
               });
             }
           })
         } else {
           response.json({
-            message: 'Error usuario no encontrado',
+            message: `Error, el usuario ${rut} no esta registrado`,
             success: false
           });
         }
       }).catch((err: Error) => {
         response.json({
-          message: err,
+          message: err.message,
           success: false
         });
       })

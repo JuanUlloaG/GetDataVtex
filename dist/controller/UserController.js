@@ -272,6 +272,7 @@ class UserController {
     }
     async auth(request, response, next, app) {
         try {
+            const rut = request.body.user;
             const query = { 'rut': request.body.user };
             const payload = {
                 check: true
@@ -314,7 +315,7 @@ class UserController {
                                         company = { id: "", name: "N/A" };
                                     }
                                     response.json({
-                                        message: 'Autentication successfull',
+                                        message: 'Login exitoso',
                                         token: token,
                                         profile: result[0].profile,
                                         company: company,
@@ -327,8 +328,9 @@ class UserController {
                                 }
                                 else {
                                     response.json({
-                                        message: "Error al iniciar sesión",
-                                        success: false
+                                        message: "Ha ocurrido un error al iniciar sesión",
+                                        success: false,
+                                        data: update
                                     });
                                 }
                             }).catch((err) => {
@@ -340,22 +342,22 @@ class UserController {
                         }
                         else {
                             response.json({
-                                message: "Usuario o contraseña incorrecta",
+                                message: "Error, Usuario o contraseña incorrecta",
                                 success: false,
-                                code: err
+                                code: "err"
                             });
                         }
                     });
                 }
                 else {
                     response.json({
-                        message: 'Error usuario no encontrado',
+                        message: `Error, el usuario ${rut} no esta registrado`,
                         success: false
                     });
                 }
             }).catch((err) => {
                 response.json({
-                    message: err,
+                    message: err.message,
                     success: false
                 });
             });
