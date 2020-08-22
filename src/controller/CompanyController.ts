@@ -10,7 +10,7 @@ export class CompanyControllers {
     async all(request: Request, response: Response, next: NextFunction, app: any) {
         try {
             let { profile, company, query } = request.body
-            let _query: object;
+            let _query: any = {};
             let populate: string = '';
             let queryState = { "key": 10 }
             findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
@@ -18,23 +18,12 @@ export class CompanyControllers {
                     let stateId = findResult[0]._id;
                     if (Object.keys(query).length > 0) {
                         if (query.rut) {
-                            _query = {
-                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
-                                "rut": query.rut,
-
-                            }
+                            _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
+                            _query["rut"] = query.rut
                         }
                         if (query.name) {
-                            _query = {
-                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
-                                "name": query.name
-                            }
-                        }
-                        if (query.name && query.name) {
-                            _query = {
-                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
-                                "$or": [{ "rut": query.rut }, { "name": query.name }],
-                            }
+                            _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
+                            _query["name"] = query.name
                         }
 
                     } else {
@@ -43,34 +32,46 @@ export class CompanyControllers {
                         }
                     }
                     populate = 'condition'
-                    findDocuments(Company, _query, "", {}, populate, '', 0, null, null).then((result: any) => {
-                        response.json({
-                            message: 'Listado de usuarios',
-                            data: result,
-                            success: true
-                        });
+                    findDocuments(Company, _query, "", {}, populate, '', 0, null, null).then((result: Array<any>) => {
+                        if (result.length > 0) {
+                            response.json({
+                                message: 'Listado de usuarios',
+                                data: result,
+                                success: true
+                            });
+                        } else {
+                            response.json({
+                                message: 'Listado de usuarios',
+                                data: result,
+                                success: true
+                            });
+                        }
                     }).catch((err: Error) => {
                         response.json({
-                            message: err,
-                            success: false
+                            message: err.message,
+                            success: false,
+                            data: []
                         });
                     });
                 } else {
                     response.json({
                         message: "Error al traer cuentas",
                         success: false,
+                        data: []
                     });
                 }
             }).catch((err: Error) => {
                 response.json({
-                    message: err,
-                    success: false
+                    message: err.message,
+                    success: false,
+                    data: []
                 });
             });
         } catch (error) {
             response.json({
                 message: error,
-                success: false
+                success: false,
+                data: []
             });
         }
     }
