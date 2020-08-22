@@ -13,11 +13,10 @@ export class CompanyControllers {
             let _query: object;
             let populate: string = '';
             let queryState = { "key": 10 }
-            console.log(query)
             findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
-                    if (query) {
+                    if (Object.keys(query).length > 0) {
                         if (query.rut) {
                             _query = {
                                 "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
@@ -28,7 +27,6 @@ export class CompanyControllers {
                         if (query.name) {
                             _query = {
                                 "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
-
                                 "name": query.name
                             }
                         }
@@ -44,7 +42,6 @@ export class CompanyControllers {
                             "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
                         }
                     }
-                    console.log(_query)
                     populate = 'condition'
                     findDocuments(Company, _query, "", {}, populate, '', 0, null, null).then((result: any) => {
                         response.json({
@@ -120,39 +117,50 @@ export class CompanyControllers {
             let query: object;
             query = { '_id': mongoose.Types.ObjectId(id) }
             let queryState = { "key": 10 }
-            findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
-                if (findResult.length > 0) {
-                    let stateId = findResult[0]._id;
-                    let update = { 'condition': mongoose.Types.ObjectId(stateId) }
-                    findOneAndUpdateDB(Company, query, update, null, null).then((result: any) => {
-                        if (result) {
+            if (id) {
+                findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+                    console.log("arer", findResult)
+                    if (findResult.length > 0) {
+                        let stateId = findResult[0]._id;
+                        let update = { 'condition': mongoose.Types.ObjectId(stateId) }
+                        findOneAndUpdateDB(Company, query, update, null, null).then((result: any) => {
+                            if (result) {
+                                response.json({
+                                    message: 'Se ha eliminado la cuenta correctamente',
+                                    data: result,
+                                    success: true
+                                });
+                            } else {
+                                response.json({
+                                    message: "Error al eliminar cuenta",
+                                    success: false
+                                });
+                            }
+
+                        }).catch((err: Error) => {
                             response.json({
-                                message: 'Usuario Actualizado correctamente',
-                                data: result,
-                                success: true
-                            });
-                        } else {
-                            response.json({
-                                message: "Error al eliminar cuenta",
+                                message: err,
                                 success: false
                             });
-                        }
-
-                    }).catch((err: Error) => {
+                        });
+                    } else {
                         response.json({
-                            message: err,
+                            message: "Error al ingresar las ordenes, no se ha encontrado un estado valido",
                             success: false
                         });
-                    });
-                } else {
+                    }
+                }).catch((err: Error) => {
                     response.json({
                         message: "Error al ingresar las ordenes, no se ha encontrado un estado valido",
                         success: false
                     });
-                }
-            }).catch((err: Error) => {
-
-            })
+                })
+            } else {
+                response.json({
+                    message: "Error al eliminar la cuenta, el identificador es invalido",
+                    success: false
+                });
+            }
         } catch (error) {
             response.json({
                 message: error,
@@ -163,7 +171,6 @@ export class CompanyControllers {
 
     async save(request: Request, response: Response, next: NextFunction, app: any) {
         const { name, phone, email, rut } = request.body
-
         let queryState = { "key": 9 }
         findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
             if (findResult.length > 0) {

@@ -22,20 +22,12 @@ export class UserController {
       let query_: any = {}
       if (query) {
         if (query.profile) {
-          arrayQuery.push({ 'profile': mongoose.Types.ObjectId(query.profile) })
+          query_['profile'] = mongoose.Types.ObjectId(query.profile)
         }
         if (query.company) {
-          arrayQuery.push({ 'company': mongoose.Types.ObjectId(query.company) })
-        }
-
-        if (query.profile && query.company) {
-          query_['$or'] = [...arrayQuery]
-        } else {
-          query_['$or'] = [...arrayQuery]
+          query_['company'] = mongoose.Types.ObjectId(query.company)
         }
       }
-
-
       let populate: string = '';
       let queryState = { "key": 10 }
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
