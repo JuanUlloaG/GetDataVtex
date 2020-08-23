@@ -78,32 +78,48 @@ export class CompanyControllers {
 
     async update(request: Request, response: Response, next: NextFunction, app: any) {
         try {
-            const { id, name, email, phone } = request.body
-            let update = { name, email, phone }
-            let query: object;
-            query = { '_id': mongoose.Types.ObjectId(id) }
-            findOneAndUpdateDB(Company, query, update, null, null).then((result: any) => {
-                if (result) {
-                    response.json({
-                        message: 'Cuenta Actualizada correctamente',
-                        data: result,
-                        success: true
+            const { id, name, email, phone, rut } = request.body
+            if (id) {
+                if (name !== "" && email !== "" && phone !== "" && rut !== "") {
+                    let update = { name, email, phone, rut }
+                    let query: object;
+                    query = { '_id': mongoose.Types.ObjectId(id) }
+                    findOneAndUpdateDB(Company, query, update, null, null).then((result: any) => {
+                        if (result) {
+                            console.log(result)
+                            response.json({
+                                message: `Cuenta ${result.name} actualizada correctamente`,
+                                data: result,
+                                success: true
+                            });
+                        } else {
+                            response.json({
+                                message: "Error al actualizar cuenta",
+                                success: false,
+                                data: result
+                            });
+                        }
+
+                    }).catch((err: Error) => {
+                        response.json({
+                            message: err.message,
+                            success: false
+                        });
                     });
                 } else {
                     response.json({
-                        message: "Error al actualizar cuenta",
+                        message: "Error al actualizar cuenta, no puedes dejar en blanco la informacion de la cuenta",
                         success: false,
-                        data: result
+                        data: []
                     });
                 }
-
-            }).catch((err: Error) => {
+            } else {
                 response.json({
-                    message: err,
-                    success: false
+                    message: "Error al actualizar cuenta, el dentificador de la cuenta es erroneo",
+                    success: false,
+                    data: []
                 });
-            });
-
+            }
         } catch (error) {
             response.json({
                 message: error,
