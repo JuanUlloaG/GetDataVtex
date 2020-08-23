@@ -21,16 +21,10 @@ class UserController {
             let query_ = {};
             if (query) {
                 if (query.profile) {
-                    arrayQuery.push({ 'profile': mongoose_1.default.Types.ObjectId(query.profile) });
+                    query_['profile'] = mongoose_1.default.Types.ObjectId(query.profile);
                 }
                 if (query.company) {
-                    arrayQuery.push({ 'company': mongoose_1.default.Types.ObjectId(query.company) });
-                }
-                if (query.profile && query.company) {
-                    query_['$or'] = [...arrayQuery];
-                }
-                else {
-                    query_['$or'] = [...arrayQuery];
+                    query_['company'] = mongoose_1.default.Types.ObjectId(query.company);
                 }
             }
             let populate = '';

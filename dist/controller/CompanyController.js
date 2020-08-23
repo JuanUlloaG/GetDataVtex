@@ -13,31 +13,20 @@ class CompanyControllers {
     async all(request, response, next, app) {
         try {
             let { profile, company, query } = request.body;
-            let _query;
+            let _query = {};
             let populate = '';
             let queryState = { "key": 10 };
-            console.log(query);
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
-                    if (query) {
+                    if (Object.keys(query).length > 0) {
                         if (query.rut) {
-                            _query = {
-                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
-                                "rut": query.rut,
-                            };
+                            _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
+                            _query["rut"] = query.rut;
                         }
                         if (query.name) {
-                            _query = {
-                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
-                                "name": query.name
-                            };
-                        }
-                        if (query.name && query.name) {
-                            _query = {
-                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
-                                "$or": [{ "rut": query.rut }, { "name": query.name }],
-                            };
+                            _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
+                            _query["name"] = query.name;
                         }
                     }
                     else {
@@ -45,18 +34,27 @@ class CompanyControllers {
                             "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) }
                         };
                     }
-                    console.log(_query);
                     populate = 'condition';
                     findDocuments(Company_1.default, _query, "", {}, populate, '', 0, null, null).then((result) => {
-                        response.json({
-                            message: 'Listado de usuarios',
-                            data: result,
-                            success: true
-                        });
+                        if (result.length > 0) {
+                            response.json({
+                                message: 'Listado de usuarios',
+                                data: result,
+                                success: true
+                            });
+                        }
+                        else {
+                            response.json({
+                                message: 'Listado de usuarios',
+                                data: result,
+                                success: true
+                            });
+                        }
                     }).catch((err) => {
                         response.json({
-                            message: err,
-                            success: false
+                            message: err.message,
+                            success: false,
+                            data: []
                         });
                     });
                 }
@@ -64,49 +62,71 @@ class CompanyControllers {
                     response.json({
                         message: "Error al traer cuentas",
                         success: false,
+                        data: []
                     });
                 }
             }).catch((err) => {
                 response.json({
-                    message: err,
-                    success: false
+                    message: err.message,
+                    success: false,
+                    data: []
                 });
             });
         }
         catch (error) {
             response.json({
                 message: error,
-                success: false
+                success: false,
+                data: []
             });
         }
     }
     async update(request, response, next, app) {
         try {
-            const { id, name, email, phone } = request.body;
-            let update = { name, email, phone };
-            let query;
-            query = { '_id': mongoose_1.default.Types.ObjectId(id) };
-            findOneAndUpdateDB(Company_1.default, query, update, null, null).then((result) => {
-                if (result) {
-                    response.json({
-                        message: 'Cuenta Actualizada correctamente',
-                        data: result,
-                        success: true
+            const { id, name, email, phone, rut } = request.body;
+            if (id) {
+                if (name !== "" && email !== "" && phone !== "" && rut !== "") {
+                    let update = { name, email, phone, rut };
+                    let query;
+                    query = { '_id': mongoose_1.default.Types.ObjectId(id) };
+                    findOneAndUpdateDB(Company_1.default, query, update, null, null).then((result) => {
+                        if (result) {
+                            console.log(result);
+                            response.json({
+                                message: `Cuenta ${result.name} actualizada correctamente`,
+                                data: result,
+                                success: true
+                            });
+                        }
+                        else {
+                            response.json({
+                                message: "Error al actualizar cuenta",
+                                success: false,
+                                data: result
+                            });
+                        }
+                    }).catch((err) => {
+                        response.json({
+                            message: err.message,
+                            success: false
+                        });
                     });
                 }
                 else {
                     response.json({
-                        message: "Error al actualizar cuenta",
+                        message: "Error al actualizar cuenta, no puedes dejar en blanco la informacion de la cuenta",
                         success: false,
-                        data: result
+                        data: []
                     });
                 }
-            }).catch((err) => {
+            }
+            else {
                 response.json({
-                    message: err,
-                    success: false
+                    message: "Error al actualizar cuenta, el dentificador de la cuenta es erroneo",
+                    success: false,
+                    data: []
                 });
-            });
+            }
         }
         catch (error) {
             response.json({
@@ -121,39 +141,52 @@ class CompanyControllers {
             let query;
             query = { '_id': mongoose_1.default.Types.ObjectId(id) };
             let queryState = { "key": 10 };
-            findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
-                if (findResult.length > 0) {
-                    let stateId = findResult[0]._id;
-                    let update = { 'condition': mongoose_1.default.Types.ObjectId(stateId) };
-                    findOneAndUpdateDB(Company_1.default, query, update, null, null).then((result) => {
-                        if (result) {
+            if (id) {
+                findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
+                    console.log("arer", findResult);
+                    if (findResult.length > 0) {
+                        let stateId = findResult[0]._id;
+                        let update = { 'condition': mongoose_1.default.Types.ObjectId(stateId) };
+                        findOneAndUpdateDB(Company_1.default, query, update, null, null).then((result) => {
+                            if (result) {
+                                response.json({
+                                    message: 'Se ha eliminado la cuenta correctamente',
+                                    data: result,
+                                    success: true
+                                });
+                            }
+                            else {
+                                response.json({
+                                    message: "Error al eliminar cuenta",
+                                    success: false
+                                });
+                            }
+                        }).catch((err) => {
                             response.json({
-                                message: 'Usuario Actualizado correctamente',
-                                data: result,
-                                success: true
-                            });
-                        }
-                        else {
-                            response.json({
-                                message: "Error al eliminar cuenta",
+                                message: err,
                                 success: false
                             });
-                        }
-                    }).catch((err) => {
+                        });
+                    }
+                    else {
                         response.json({
-                            message: err,
+                            message: "Error al ingresar las ordenes, no se ha encontrado un estado valido",
                             success: false
                         });
-                    });
-                }
-                else {
+                    }
+                }).catch((err) => {
                     response.json({
                         message: "Error al ingresar las ordenes, no se ha encontrado un estado valido",
                         success: false
                     });
-                }
-            }).catch((err) => {
-            });
+                });
+            }
+            else {
+                response.json({
+                    message: "Error al eliminar la cuenta, el identificador es invalido",
+                    success: false
+                });
+            }
         }
         catch (error) {
             response.json({
