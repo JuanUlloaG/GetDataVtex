@@ -214,6 +214,50 @@ export class OrdersController {
 
 
   }
+  async ordersTest(request: Request, response: Response, next: NextFunction, app: any) {
+
+    try {
+      // console.log(request.body)
+      // const { company, profile } = request.body
+      let query: object;
+      let populate: string = '';
+
+      // if (profile == 2) {
+      //   query = {
+      //     "uid": company,
+      //     "pickerId": { "$eq": null }
+      //   }
+      // } else {
+      //   query = {}
+      // }
+      query = {}
+
+      // if (profile == 4) 
+      populate = 'bag deliveryId pickerId state service'
+
+      findDocuments(Orders, query, "", {}, populate, '', 0, null, null).then((result: any) => {
+        console.log(result)
+        response.json({
+          message: 'Listado de ordenes',
+          data: result,
+          success: true
+        });
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false
+        });
+      });
+
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+
+
+  }
 
   async getOrderDetailById(request: Request, response: Response, next: NextFunction, app: any) {
 

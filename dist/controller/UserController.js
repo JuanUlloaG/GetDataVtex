@@ -60,6 +60,7 @@ class UserController {
                     }
                     populate = 'profile company condition';
                     findDocuments(User_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+                        console.log(result);
                         response.json({
                             message: 'Listado de usuarios',
                             data: result,

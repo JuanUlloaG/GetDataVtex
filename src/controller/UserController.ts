@@ -62,6 +62,7 @@ export class UserController {
 
 
           findDocuments(User, query_, "", {}, populate, '', 0, null, null).then((result: any) => {
+            console.log(result)
             response.json({
               message: 'Listado de usuarios',
               data: result,
