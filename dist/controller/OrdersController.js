@@ -227,9 +227,7 @@ class OrdersController {
             findDocuments(Orders_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
                 console.log(result);
                 response.json({
-                    message: 'Listado de ordenes',
-                    data: result,
-                    success: true
+                    result
                 });
             }).catch((err) => {
                 response.json({
