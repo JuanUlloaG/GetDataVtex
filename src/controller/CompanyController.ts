@@ -162,13 +162,13 @@ export class CompanyControllers {
                         });
                     } else {
                         response.json({
-                            message: "Error al ingresar las ordenes, no se ha encontrado un estado valido",
+                            message: "Error al eliminar la cuenta, no se ha encontrado un estado valido",
                             success: false
                         });
                     }
                 }).catch((err: Error) => {
                     response.json({
-                        message: "Error al ingresar las ordenes, no se ha encontrado un estado valido",
+                        message: `Error al eliminar la cuenta, no se ha encontrado un estado valido ${err.message}`,
                         success: false
                     });
                 })
@@ -180,7 +180,7 @@ export class CompanyControllers {
             }
         } catch (error) {
             response.json({
-                message: error,
+                message: `Error al eliminar la cuenta, ${error}`,
                 success: false
             });
         }
@@ -195,7 +195,7 @@ export class CompanyControllers {
                 let _company = { name, rut, email, phone, 'condition': mongoose.Types.ObjectId(stateId) }
                 insertDB(Company, _company).then((result: any) => {
                     response.json({
-                        message: 'Se ha creado la cuenta: ' + name,
+                        message: `Se ha creado la cuenta: ${name} de manera exitosa`,
                         data: result,
                         success: true
                     });
@@ -207,13 +207,13 @@ export class CompanyControllers {
                 });
             } else {
                 response.json({
-                    message: "Error Al Crear Cuenta, no se encontro estado valido",
+                    message: `Error al crear la cuenta: ${name} no se ha encontrado estado valido.`,
                     success: false
                 });
             }
         }).catch((err: Error) => {
             response.json({
-                message: err,
+                message: `Error al crear la cuenta: ${err.message}`,
                 success: false
             });
         });
@@ -221,7 +221,7 @@ export class CompanyControllers {
 
     async ordersToDelivery(request: Request, response: Response, next: NextFunction, app: any) {
         response.json({
-            message: 'Listado de ordenes',
+            message: 'Listado de clientes',
             data: [],
             success: true
         });

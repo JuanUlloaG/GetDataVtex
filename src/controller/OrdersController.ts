@@ -233,12 +233,117 @@ export class OrdersController {
       query = {}
 
       // if (profile == 4) 
-      populate = 'bag deliveryId pickerId state service'
+      populate = 'uid bag bag.shopId deliveryId pickerId state service'
 
-      findDocuments(Orders, query, "", {}, populate, '', 0, null, null).then((result: any) => {
-        console.log(result)
+      console.log("object")
+
+      findDocuments(Orders, query, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+
+        let ordersToReturn: Array<any> = [];
+        result.map((order) => {
+          let shopname = "", pickername = "", pickerrut = "", pickercompany = "", deliveryname = "", deliveryrut = "", deliverycompany = "", bagdelivery = "", bagrecived = "", tienda = "", cliente = ""
+          let keys = Object.keys(order)
+          let orderReturn: any = {}
+
+          orderReturn['tercero'] = order.client.third
+          orderReturn['clienteRut'] = order.client.rut
+          orderReturn['clienteComuna'] = order.client.comuna
+          orderReturn['clienteCiudad'] = order.client.ciudad
+          orderReturn['clienteLongitud'] = order.client.long
+          orderReturn['clienteLatitud'] = order.client.lat
+
+          if (order.shopId) shopname = order.shopId.number
+          orderReturn['tienda'] = shopname
+
+          if (order.pickerId) pickername = order.pickerId.number
+          orderReturn['pickerNombre'] = pickername
+
+          if (order.pickerId) pickerrut = order.pickerId.number
+          orderReturn['pickerRut'] = pickerrut
+
+          if (order.pickerId) pickercompany = order.pickerId.company.name
+          orderReturn['pickerCuenta'] = pickercompany
+
+          if (order.deliveryId) deliveryname = order.deliveryId.name
+          orderReturn['deliveryNombre'] = deliveryname
+
+          if (order.deliveryId) deliveryrut = order.deliveryId.rut
+          orderReturn['deliveryRut'] = deliveryrut
+
+          if (order.deliveryId) deliverycompany = order.deliveryId.company.name
+          orderReturn['deliveryCuenta'] = deliverycompany
+
+          if (order.bag) bagdelivery = order.bag.delivery
+          orderReturn['bultoDelivery'] = bagdelivery
+
+          if (order.bag) bagrecived = order.bag.received
+          orderReturn['bultoRecived'] = bagrecived
+
+          orderReturn['numeroOrden'] = order.orderNumber
+
+          if (order.bag) tienda = order.bag.shopId
+          orderReturn['tienda'] = tienda
+
+          if (order.uid) cliente = order.uid.name
+          orderReturn['cliente'] = cliente
+
+
+          orderReturn['inicioPicking'] = order.startPickingDate
+          orderReturn['finPicking'] = order.endPickingDate
+          orderReturn['inicioDelivery'] = order.starDeliveryDate
+          orderReturn['finDelivery'] = order.endDeliveryDate
+          orderReturn['fechaCancelado'] = order.cancellDate
+          orderReturn['fechaComromiso'] = order.realdatedelivery
+          orderReturn['isInShop'] = order.isInShop
+          orderReturn['restocked'] = order.restocked
+
+
+          orderReturn['estadoId'] = order.state.key
+          orderReturn['estadoDesc'] = order.state.desc
+          orderReturn['servicioId'] = order.service.key
+          orderReturn['servicioTipo'] = order.service.typeDelivery
+          orderReturn['canal'] = order.channel
+          orderReturn['fechaCompra'] = order.date
+          orderReturn['turno'] = order.pickerWorkShift
+
+          if (order.bag) {
+            //aqui se sacan los productos si hay un bulto hecho
+            order.bag.bags.products.map((producto: any) => {
+              orderReturn['numeroBulto'] = producto.bagNumber
+              orderReturn['productoUnidadesPicked'] = producto.unitsPicked
+              orderReturn['productoUnidadesSusti'] = producto.unitsSubstitutes
+              orderReturn['productoUnidadesBroke'] = producto.unitsBroken
+              orderReturn['productoUnidadesReplace'] = producto.unitsReplaced
+              orderReturn['productoRecepcion'] = ''
+              orderReturn['productoId'] = producto.id
+              orderReturn['productoCodigoBarra'] = producto.barcode
+              orderReturn['producto'] = producto.product
+              orderReturn['productoUnidades'] = producto.units
+              orderReturn['productoUbicacion'] = producto.location
+              ordersToReturn.push(orderReturn)
+            })
+
+          } else {
+            //aqui se sacan los productos si no hay un bulto hecho
+            order.products.map((producto) => {
+              orderReturn['numeroBulto'] = ''
+              orderReturn['productoUnidadesPicked'] = producto.unitsPicked
+              orderReturn['productoUnidadesSusti'] = producto.unitsSubstitutes
+              orderReturn['productoUnidadesBroke'] = producto.unitsBroken
+              orderReturn['productoUnidadesReplace'] = producto.unitsReplaced
+              orderReturn['productoRecepcion'] = producto.reception
+              orderReturn['productoId'] = producto.id
+              orderReturn['productoCodigoBarra'] = producto.barcode
+              orderReturn['producto'] = producto.product
+              orderReturn['productoUnidades'] = producto.units
+              orderReturn['productoUbicacion'] = producto.location
+              ordersToReturn.push(orderReturn)
+            })
+          }
+        })
+        console.log(ordersToReturn)
         response.json({
-          result
+          messsage: "vamos bien :D"
         });
       }).catch((err: Error) => {
         response.json({

@@ -7,42 +7,31 @@ import State from "../entity/State";
 
 
 export class ShopController {
-
-    // private userRepository = getRepository(User);
-
     async all(request: Request, response: Response, next: NextFunction, app: any) {
         try {
             let { profile, company, query } = request.body
-            let _query: any;
+            let _query: any = {};
             let populate: string = '';
             let queryState = { "key": 10 }
             findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
-                    if (query) {
+                    if (Object.keys(query).length > 0) {
                         if (query.company) {
-                            _query = {
-                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
-                                "company": mongoose.Types.ObjectId(query.company)
-                            }
+                            _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
+                            _query["company"] = mongoose.Types.ObjectId(query.company)
                         }
                         if (query.number) {
-                            _query = {
-                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
-                                "number": query.number
-                            }
+                            _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
+                            _query["number"] = query.number
                         }
                         if (query.company && query.number) {
-                            _query = {
-                                "condition": { "$ne": mongoose.Types.ObjectId(stateId) },
-                                "$or": [{ "company": mongoose.Types.ObjectId(query.company) }, { "number": query.number }],
-                            }
+                            _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
+                            _query["number"] = query.number
+                            _query["company"] = mongoose.Types.ObjectId(query.company)
                         }
-
                     } else {
-                        _query = {
-                            "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
-                        }
+                        _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
                     }
 
                     if (company) {
@@ -58,7 +47,7 @@ export class ShopController {
                         });
                     }).catch((err: Error) => {
                         response.json({
-                            message: err,
+                            message: err.message,
                             success: false
                         });
                     });
@@ -70,7 +59,7 @@ export class ShopController {
                 }
             }).catch((err: Error) => {
                 response.json({
-                    message: err,
+                    message: err.message,
                     success: false
                 });
             });
@@ -97,13 +86,13 @@ export class ShopController {
 
             findDocuments(Shop, query, select, {}, '', '', 0, null, null).then((result: any) => {
                 response.json({
-                    message: 'Listado de locales para el usuario',
+                    message: 'Listado de tiendas para el usuario',
                     data: result,
                     success: true
                 });
             }).catch((err: Error) => {
                 response.json({
-                    message: 'error listando locales para el usuario',
+                    message: 'error listando tiendas para el usuario',
                     data: [],
                     err: [],
                     success: true
@@ -113,7 +102,7 @@ export class ShopController {
 
         } catch (error) {
             response.json({
-                message: 'error listando locales para el usuario',
+                message: 'error listando tiendas para el usuario',
                 data: [],
                 eror: error,
                 success: true
@@ -183,13 +172,13 @@ export class ShopController {
             findOneAndUpdateDB(Shop, query, update, null, null).then((result: any) => {
                 if (result) {
                     response.json({
-                        message: 'Cuenta Actualizada correctamente',
+                        message: 'Tienda actualizada correctamente',
                         data: result,
                         success: true
                     });
                 } else {
                     response.json({
-                        message: "Error al actualizar cuenta",
+                        message: "Error al actualizar tienda",
                         success: false,
                         data: result
                     });
@@ -223,7 +212,7 @@ export class ShopController {
                 let shop = { phone, address, company: mongoose.Types.ObjectId(company), number: name, 'condition': mongoose.Types.ObjectId(stateId) }
                 insertDB(Shop, shop).then((result: any) => {
                     response.json({
-                        message: 'Local creado exitosamente',
+                        message: 'Tienda creada exitosamente',
                         data: result,
                         success: true
                     });
@@ -232,7 +221,7 @@ export class ShopController {
                 });
             } else {
                 response.json({
-                    message: "Error Al Crear Cuenta, no se encontro estado valido",
+                    message: "Error al crear tienda, no se encontro estado valido",
                     success: false
                 });
             }
