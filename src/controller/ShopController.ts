@@ -35,11 +35,10 @@ export class ShopController {
                     }
 
                     if (company) {
-                        _query["company"] = { "$eq": mongoose.Types.ObjectId(company) }
+                        _query["company"] = mongoose.Types.ObjectId(company)
                     }
                     populate = 'condition company'
                     findDocuments(Shop, _query, "", {}, populate, '', 0, null, null).then((result: any) => {
-                        console.log(result)
                         response.json({
                             message: 'Listado de Tiendas',
                             data: result,

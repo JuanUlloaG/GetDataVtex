@@ -36,28 +36,73 @@ class StateControllers {
     async one(request, response, next, app) {
         return null;
     }
+    comparer(otherArray) {
+        return function (current) {
+            return otherArray.filter(function (other) {
+                return other.key == current.key;
+            }).length == 0;
+        };
+    }
     async save(request, response, next, app) {
         const { states } = request.body;
         let statesToSave = [];
         let statesNotSave = [];
+        let keys = [];
         states.map((state) => {
+            keys.push(state.key);
             let _state = state;
             let valid = validate(_state);
-            if (valid) {
+            if (valid)
                 statesToSave.push(_state);
-            }
             else {
                 statesNotSave.push(_state);
             }
         });
         if (statesToSave.length > 0) {
-            insertManyDB(State_1.default, statesToSave).then((result) => {
-                response.json({
-                    message: 'Se crearon los estados de forma exitosa',
-                    data: result,
-                    stateNotSave: statesNotSave,
-                    success: true
-                });
+            findDocuments(State_1.default, { 'key': { '$in': keys } }, "", {}, '', '', 0, null, null).then((findResult) => {
+                if (findResult) {
+                    let statesdef = [];
+                    findResult.map((state) => { statesdef.push(state.key); });
+                    let finishStates = statesToSave.filter((state) => !statesdef.includes(state.key.toString()));
+                    let statesNoSaved = statesToSave.filter((state) => statesdef.includes(state.key.toString()));
+                    if (finishStates.length > 0) {
+                        insertManyDB(State_1.default, finishStates).then((result) => {
+                            response.json({
+                                message: `Se crearon los estados de forma exitosa`,
+                                data: result,
+                                stateNotSave: statesNoSaved,
+                                success: true
+                            });
+                        }).catch((err) => {
+                            response.json({
+                                message: err.message,
+                                success: false
+                            });
+                        });
+                    }
+                    else {
+                        response.json({
+                            message: `Los estados que intentas agregar ya existen`,
+                            success: false,
+                            data: statesNoSaved
+                        });
+                    }
+                }
+                else {
+                    insertManyDB(State_1.default, statesToSave).then((result) => {
+                        response.json({
+                            message: 'Se crearon los estados de forma exitosa',
+                            data: result,
+                            stateNotSave: statesNotSave,
+                            success: true
+                        });
+                    }).catch((err) => {
+                        response.json({
+                            message: err.message,
+                            success: false
+                        });
+                    });
+                }
             }).catch((err) => {
                 response.json({
                     message: err.message,

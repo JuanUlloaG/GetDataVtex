@@ -13,6 +13,7 @@ class CompanyControllers {
     async all(request, response, next, app) {
         try {
             let { profile, company, query } = request.body;
+            console.log(request.body);
             let _query = {};
             let populate = '';
             let queryState = { "key": 10 };
@@ -34,6 +35,10 @@ class CompanyControllers {
                             "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) }
                         };
                     }
+                    if (company) {
+                        _query['_id'] = mongoose_1.default.Types.ObjectId(company);
+                    }
+                    console.log(_query);
                     populate = 'condition';
                     findDocuments(Company_1.default, _query, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length > 0) {

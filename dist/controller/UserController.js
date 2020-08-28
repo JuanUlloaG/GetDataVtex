@@ -182,9 +182,18 @@ class UserController {
             const { name, phone, email, profile, rut, password, company } = request.body;
             if (!name || !phone || !email || !profile || !rut || !password) {
                 response.json({
-                    message: 'Error! al crear usuario',
+                    message: `Error! al crear usuario, hace falta data.`,
                     success: false
                 });
+                return;
+            }
+            const pass = password;
+            if (pass.length !== 5) {
+                response.json({
+                    message: `Error! al crear usuario, la contraseña no cumple con los minimos establecidos.`,
+                    success: false
+                });
+                return;
             }
             bcryptjs_1.default.genSalt(10, function (err, salt) {
                 bcryptjs_1.default.hash(password, salt, function (err, hash) {
@@ -196,22 +205,41 @@ class UserController {
                         if (findResult.length > 0) {
                             let stateId = findResult[0]._id;
                             _user = { name, rut, email, password: hashedPassword, phone, profile: mongoose_1.default.Types.ObjectId(profile), condition: mongoose_1.default.Types.ObjectId(stateId), state: false };
+                            let queryPrevUser = { 'rut': rut };
                             if (company) {
                                 _user['company'] = mongoose_1.default.Types.ObjectId(company);
+                                queryPrevUser['company'] = mongoose_1.default.Types.ObjectId(company);
                             }
-                            insertDB(User_1.default, _user).then((result) => {
-                                response.json({
-                                    message: 'Usuario ' + name + ' Creado exitosamente ',
-                                    data: result,
-                                    success: true
-                                });
+                            findDocuments(User_1.default, queryPrevUser, "", {}, '', '', 0, null, null).then((result) => {
+                                if (!result.length) {
+                                    insertDB(User_1.default, _user).then((result) => {
+                                        response.json({
+                                            message: 'Usuario ' + name + ' Creado exitosamente ',
+                                            data: result,
+                                            success: true
+                                        });
+                                    }).catch((err) => {
+                                        response.json({
+                                            message: err.message,
+                                            data: err,
+                                            success: false
+                                        });
+                                        console.log(err);
+                                    });
+                                }
+                                else {
+                                    response.json({
+                                        message: `El rut ${rut} ya existe en el sistema para la cuenta.`,
+                                        data: [],
+                                        success: false
+                                    });
+                                }
                             }).catch((err) => {
                                 response.json({
                                     message: err.message,
                                     data: err,
                                     success: false
                                 });
-                                console.log(err);
                             });
                         }
                         else {
@@ -275,17 +303,39 @@ class UserController {
             const location = request.body.location;
             findDocuments(User_1.default, query, "", {}, 'company profile', '', 0, null, null).then((result) => {
                 if (result.length > 0) {
-                    // if ((result[0].profile.key == 2 || result[0].profile.key == 3) && location == 0) {
+                    const profile = result[0].profile.key;
+                    const profilesApp = ["2", "3"];
+                    const profilesOms = ["5", "4", "0", "6"];
+                    console.log(profile);
+                    console.log(location);
+                    if (!profilesApp.indexOf(profile) && location == 0) {
+                        response.json({
+                            message: 'Usuario no tiene acceso',
+                            success: false
+                        });
+                        return;
+                    }
+                    if (!profilesOms.indexOf(profile) && location == 1) {
+                        response.json({
+                            message: 'Usuario no tiene acceso',
+                            success: false
+                        });
+                        return;
+                    }
+                    // console.log((result[0].profile.key == 2 || result[0].profile.key == 3) && location == 0)
+                    // if ((profile == 2 || profile == 3) && location == 0) {
                     //   response.json({
-                    //     message: 'Error, usuario no permitido',
+                    //     message: 'Usuario no tiene acceso',
                     //     success: false
                     //   });
+                    //   return
                     // }
                     // if ((result[0].profile.key !== 2 && result[0].profile.key !== 3 && result[0].profile.key !== 4) && location == 1) {
                     //   response.json({
-                    //     message: 'Error, usuario no permitido',
+                    //     message: 'Usuario no tiene acceso',
                     //     success: false
                     //   });
+                    //   return
                     // }
                     let pass = result[0].password;
                     bcryptjs_1.default.compare(request.body.password, pass, (err, match) => {

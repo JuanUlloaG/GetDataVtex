@@ -91,6 +91,29 @@ module.exports = {
             });
         });
     },
+    findDocumentsMultiPopulate: async function (form, query, select, sort, populate, populate1, populate2, populate3, populate4, populate5, populate6, fields, limit, req, res) {
+        return new Promise(function (resolve, reject) {
+            form
+                .find(query)
+                .sort(sort)
+                .select(select)
+                .limit(limit)
+                .populate(populate)
+                .populate(populate1)
+                .populate(populate2)
+                .populate(populate3)
+                .populate(populate4)
+                .populate(populate5)
+                .populate(populate6)
+                .exec(function (err, documents) {
+                if (err)
+                    reject(err.message);
+                else {
+                    resolve(documents);
+                }
+            });
+        });
+    },
     findOneAndUpdateDB: async function (form, query, update, req, res) {
         return new Promise(function (resolve, reject) {
             try {

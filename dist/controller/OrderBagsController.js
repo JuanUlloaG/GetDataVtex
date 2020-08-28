@@ -118,19 +118,41 @@ class OrderBagsController {
     async listBags(request, response, next, app) {
         try {
             const { shopId, deliveryId } = request.body;
-            let query;
+            let query = {};
             query = {
                 "shopId": mongoose_1.default.Types.ObjectId(shopId),
                 "deliveryId": mongoose_1.default.Types.ObjectId(deliveryId),
                 "delivery": false
             };
+            console.log(query);
+            let queryState = {
+                "key": { '$in': ["8", "7", "6"] }
+            };
             if (shopId) {
-                findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result) => {
-                    response.json({
-                        message: 'Listado de bolsas a despachar',
-                        data: result,
-                        success: true
-                    });
+                findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResultState) => {
+                    if (findResultState.length > 0) {
+                        let stateIds = [];
+                        findResultState.map((state) => { stateIds.push(state._id); });
+                        findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', '', 0, null, null).then((result) => {
+                            let bagsResult = result.filter((bag) => !stateIds.indexOf(bag.state));
+                            response.json({
+                                message: 'Listado de bolsas a despachar',
+                                data: bagsResult,
+                                success: true
+                            });
+                        }).catch((err) => {
+                            response.json({
+                                message: err,
+                                success: false
+                            });
+                        });
+                    }
+                    else {
+                        response.json({
+                            message: "Error al consultar estados, ",
+                            success: false
+                        });
+                    }
                 }).catch((err) => {
                     response.json({
                         message: err,

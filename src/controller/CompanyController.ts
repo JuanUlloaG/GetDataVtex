@@ -10,6 +10,7 @@ export class CompanyControllers {
     async all(request: Request, response: Response, next: NextFunction, app: any) {
         try {
             let { profile, company, query } = request.body
+            console.log(request.body)
             let _query: any = {};
             let populate: string = '';
             let queryState = { "key": 10 }
@@ -31,6 +32,10 @@ export class CompanyControllers {
                             "condition": { "$ne": mongoose.Types.ObjectId(stateId) }
                         }
                     }
+                    if (company) {
+                        _query['_id'] = mongoose.Types.ObjectId(company)
+                    }
+                    console.log(_query)
                     populate = 'condition'
                     findDocuments(Company, _query, "", {}, populate, '', 0, null, null).then((result: Array<any>) => {
                         if (result.length > 0) {

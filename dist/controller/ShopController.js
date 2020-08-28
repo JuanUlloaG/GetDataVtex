@@ -38,11 +38,10 @@ class ShopController {
                         _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
                     }
                     if (company) {
-                        _query["company"] = { "$eq": mongoose_1.default.Types.ObjectId(company) };
+                        _query["company"] = mongoose_1.default.Types.ObjectId(company);
                     }
                     populate = 'condition company';
                     findDocuments(Shop_1.default, _query, "", {}, populate, '', 0, null, null).then((result) => {
-                        console.log(result);
                         response.json({
                             message: 'Listado de Tiendas',
                             data: result,
