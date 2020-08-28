@@ -371,9 +371,8 @@ export class OrdersController {
             })
           }
         })
-        console.log(ordersToReturn)
         response.json({
-          messsage: "vamos bien :D"
+          result: ordersToReturn
         });
       }).catch((err: Error) => {
         response.json({
