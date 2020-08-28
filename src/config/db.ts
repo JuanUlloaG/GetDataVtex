@@ -84,6 +84,28 @@ module.exports = {
                 })
         })
     },
+    findDocumentsMultiPopulate: async function (form: any, query: any, select: string, sort: any, populate: object, populate1: object, populate2: object, populate3: object, populate4: object, populate5: object, populate6: object, fields: string, limit: number, req: any, res: any) {
+        return new Promise(function (resolve, reject) {
+            form
+                .find(query)
+                .sort(sort)
+                .select(select)
+                .limit(limit)
+                .populate(populate)
+                .populate(populate1)
+                .populate(populate2)
+                .populate(populate3)
+                .populate(populate4)
+                .populate(populate5)
+                .populate(populate6)
+                .exec(function (err: Error, documents: Document) {
+                    if (err) reject(err.message)
+                    else {
+                        resolve(documents)
+                    }
+                })
+        })
+    },
     findOneAndUpdateDB: async function (form: any, query: any, update: any, req: any, res: any) {
         return new Promise(function (resolve, reject) {
             try {

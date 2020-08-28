@@ -6,7 +6,7 @@ import Orders from "../entity/Orders";
 import { OrderInterface } from "../entity/Orders";
 import State from "../entity/State";
 import Service from "../entity/Services";
-const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB, findOneDB, updateManyDB } = require("../config/db")
+const { initDB, insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB } = require("../config/db")
 import moment from 'moment'
 import { ObjectID } from "mongodb";
 // mongoose.set('debug', true);
@@ -233,14 +233,42 @@ export class OrdersController {
       query = {}
 
       // if (profile == 4) 
-      populate = 'uid bag bag.shopId deliveryId pickerId state service'
+      // populate = 'uid bag bag.shopId deliveryId pickerId state service shopId pickerId.company '
+      let _populate = {
+        path: 'uid',
+      }
+      let _populate1 = {
+        path: 'bag',
+        populate: {
+          path: 'shopId'
+        }
+      }
+      let _populate2 = {
+        path: 'state',
+      }
+      let _populate3 = {
+        path: 'deliveryId',
+        populate: {
+          path: 'company'
+        }
+      }
+      let _populate4 = {
+        path: 'pickerId',
+        populate: {
+          path: 'company'
+        }
+      }
+      let _populate5 = {
+        path: 'service',
+      }
+      let _populate6 = {
+        path: 'shopId',
+      }
 
-      console.log("object")
-
-      findDocuments(Orders, query, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+      findDocumentsMultiPopulate(Orders, query, "", {}, _populate, _populate1, _populate2, _populate3, _populate4, _populate5, _populate6, '', 0, null, null).then((result: Array<OrderInterface>) => {
 
         let ordersToReturn: Array<any> = [];
-        result.map((order) => {
+        result.map((order, index) => {
           let shopname = "", pickername = "", pickerrut = "", pickercompany = "", deliveryname = "", deliveryrut = "", deliverycompany = "", bagdelivery = "", bagrecived = "", tienda = "", cliente = ""
           let keys = Object.keys(order)
           let orderReturn: any = {}
@@ -252,13 +280,16 @@ export class OrdersController {
           orderReturn['clienteLongitud'] = order.client.long
           orderReturn['clienteLatitud'] = order.client.lat
 
+
           if (order.shopId) shopname = order.shopId.number
           orderReturn['tienda'] = shopname
 
-          if (order.pickerId) pickername = order.pickerId.number
+          console.log(order)
+
+          if (order.pickerId) pickername = order.pickerId.name
           orderReturn['pickerNombre'] = pickername
 
-          if (order.pickerId) pickerrut = order.pickerId.number
+          if (order.pickerId) pickerrut = order.pickerId.rut
           orderReturn['pickerRut'] = pickerrut
 
           if (order.pickerId) pickercompany = order.pickerId.company.name
@@ -280,9 +311,6 @@ export class OrdersController {
           orderReturn['bultoRecived'] = bagrecived
 
           orderReturn['numeroOrden'] = order.orderNumber
-
-          if (order.bag) tienda = order.bag.shopId
-          orderReturn['tienda'] = tienda
 
           if (order.uid) cliente = order.uid.name
           orderReturn['cliente'] = cliente
@@ -308,19 +336,21 @@ export class OrdersController {
 
           if (order.bag) {
             //aqui se sacan los productos si hay un bulto hecho
-            order.bag.bags.products.map((producto: any) => {
-              orderReturn['numeroBulto'] = producto.bagNumber
-              orderReturn['productoUnidadesPicked'] = producto.unitsPicked
-              orderReturn['productoUnidadesSusti'] = producto.unitsSubstitutes
-              orderReturn['productoUnidadesBroke'] = producto.unitsBroken
-              orderReturn['productoUnidadesReplace'] = producto.unitsReplaced
-              orderReturn['productoRecepcion'] = ''
-              orderReturn['productoId'] = producto.id
-              orderReturn['productoCodigoBarra'] = producto.barcode
-              orderReturn['producto'] = producto.product
-              orderReturn['productoUnidades'] = producto.units
-              orderReturn['productoUbicacion'] = producto.location
-              ordersToReturn.push(orderReturn)
+            order.bag.bags.map((bag: any) => {
+              bag.products.map((producto: any) => {
+                orderReturn['numeroBulto'] = producto.bagNumber
+                orderReturn['productoUnidadesPicked'] = producto.unitsPicked
+                orderReturn['productoUnidadesSusti'] = producto.unitsSubstitutes
+                orderReturn['productoUnidadesBroke'] = producto.unitsBroken
+                orderReturn['productoUnidadesReplace'] = producto.unitsReplaced
+                orderReturn['productoRecepcion'] = ''
+                orderReturn['productoId'] = producto.id
+                orderReturn['productoCodigoBarra'] = producto.barcode
+                orderReturn['producto'] = producto.product
+                orderReturn['productoUnidades'] = producto.units
+                orderReturn['productoUbicacion'] = producto.location
+                ordersToReturn.push(orderReturn)
+              })
             })
 
           } else {
@@ -347,7 +377,7 @@ export class OrdersController {
         });
       }).catch((err: Error) => {
         response.json({
-          message: err,
+          message: err.message,
           success: false
         });
       });
