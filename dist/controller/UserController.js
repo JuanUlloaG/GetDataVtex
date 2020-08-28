@@ -6,13 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const jwt = require('jsonwebtoken');
 const mongoose_1 = __importDefault(require("mongoose"));
+mongoose_1.default.set('debug', true);
 const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB } = require("../config/db");
 const User_1 = __importDefault(require("../entity/User"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const State_1 = __importDefault(require("../entity/State"));
-mongoose_1.default.set('debug', true);
+const { profilesApp, profilesOms } = require("../config/config");
 class UserController {
-    // private userRepository = getRepository(User);
     async all(request, response, next, app) {
         try {
             const { company, query } = request.body;
@@ -60,7 +60,6 @@ class UserController {
                     }
                     populate = 'profile company condition';
                     findDocuments(User_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
-                        console.log(result);
                         response.json({
                             message: 'Listado de usuarios',
                             data: result,
@@ -131,6 +130,10 @@ class UserController {
                     });
                 }
             }).catch((err) => {
+                response.json({
+                    message: err.message,
+                    success: false
+                });
             });
         }
         catch (error) {
@@ -224,7 +227,6 @@ class UserController {
                                             data: err,
                                             success: false
                                         });
-                                        console.log(err);
                                     });
                                 }
                                 else {
@@ -304,39 +306,20 @@ class UserController {
             findDocuments(User_1.default, query, "", {}, 'company profile', '', 0, null, null).then((result) => {
                 if (result.length > 0) {
                     const profile = result[0].profile.key;
-                    const profilesApp = ["2", "3"];
-                    const profilesOms = ["5", "4", "0", "6"];
-                    console.log(profile);
-                    console.log(location);
-                    if (!profilesApp.indexOf(profile) && location == 0) {
+                    if (location == 0 && profilesApp.includes(profile)) {
                         response.json({
                             message: 'Usuario no tiene acceso',
                             success: false
                         });
                         return;
                     }
-                    if (!profilesOms.indexOf(profile) && location == 1) {
+                    if (location == 1 && profilesOms.includes(profile)) {
                         response.json({
                             message: 'Usuario no tiene acceso',
                             success: false
                         });
                         return;
                     }
-                    // console.log((result[0].profile.key == 2 || result[0].profile.key == 3) && location == 0)
-                    // if ((profile == 2 || profile == 3) && location == 0) {
-                    //   response.json({
-                    //     message: 'Usuario no tiene acceso',
-                    //     success: false
-                    //   });
-                    //   return
-                    // }
-                    // if ((result[0].profile.key !== 2 && result[0].profile.key !== 3 && result[0].profile.key !== 4) && location == 1) {
-                    //   response.json({
-                    //     message: 'Usuario no tiene acceso',
-                    //     success: false
-                    //   });
-                    //   return
-                    // }
                     let pass = result[0].password;
                     bcryptjs_1.default.compare(request.body.password, pass, (err, match) => {
                         if (err) {

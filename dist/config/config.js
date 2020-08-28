@@ -6,5 +6,7 @@ module.exports = {
         user: "app-picking-dev2",
         pass: "NoyyhjzfxK7kXFbZ0Ca0VWbnA6FbHvpggpE9hRDRVkBBn58bglXM6xx81si6wffSDW9rDYmrVQg5fTQ7hffoEg==",
         dbname: "picking-dev2"
-    }
+    },
+    profilesApp: ["2", "3"],
+    profilesOms: ["5", "4", "0", "6"]
 };
