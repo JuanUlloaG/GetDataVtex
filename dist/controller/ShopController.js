@@ -10,40 +10,32 @@ const Shop_1 = __importDefault(require("../entity/Shop"));
 const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB } = require("../config/db");
 const State_1 = __importDefault(require("../entity/State"));
 class ShopController {
-    // private userRepository = getRepository(User);
     async all(request, response, next, app) {
         try {
             let { profile, company, query } = request.body;
-            let _query;
+            let _query = {};
             let populate = '';
             let queryState = { "key": 10 };
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
-                    if (query) {
+                    if (Object.keys(query).length > 0) {
                         if (query.company) {
-                            _query = {
-                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
-                                "company": mongoose_1.default.Types.ObjectId(query.company)
-                            };
+                            _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
+                            _query["company"] = mongoose_1.default.Types.ObjectId(query.company);
                         }
                         if (query.number) {
-                            _query = {
-                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
-                                "number": query.number
-                            };
+                            _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
+                            _query["number"] = query.number;
                         }
                         if (query.company && query.number) {
-                            _query = {
-                                "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) },
-                                "$or": [{ "company": mongoose_1.default.Types.ObjectId(query.company) }, { "number": query.number }],
-                            };
+                            _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
+                            _query["number"] = query.number;
+                            _query["company"] = mongoose_1.default.Types.ObjectId(query.company);
                         }
                     }
                     else {
-                        _query = {
-                            "condition": { "$ne": mongoose_1.default.Types.ObjectId(stateId) }
-                        };
+                        _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
                     }
                     if (company) {
                         _query["company"] = { "$eq": mongoose_1.default.Types.ObjectId(company) };
@@ -58,7 +50,7 @@ class ShopController {
                         });
                     }).catch((err) => {
                         response.json({
-                            message: err,
+                            message: err.message,
                             success: false
                         });
                     });
@@ -71,7 +63,7 @@ class ShopController {
                 }
             }).catch((err) => {
                 response.json({
-                    message: err,
+                    message: err.message,
                     success: false
                 });
             });
@@ -95,13 +87,13 @@ class ShopController {
             const select = 'id_ address number';
             findDocuments(Shop_1.default, query, select, {}, '', '', 0, null, null).then((result) => {
                 response.json({
-                    message: 'Listado de locales para el usuario',
+                    message: 'Listado de tiendas para el usuario',
                     data: result,
                     success: true
                 });
             }).catch((err) => {
                 response.json({
-                    message: 'error listando locales para el usuario',
+                    message: 'error listando tiendas para el usuario',
                     data: [],
                     err: [],
                     success: true
@@ -111,7 +103,7 @@ class ShopController {
         }
         catch (error) {
             response.json({
-                message: 'error listando locales para el usuario',
+                message: 'error listando tiendas para el usuario',
                 data: [],
                 eror: error,
                 success: true
@@ -178,14 +170,14 @@ class ShopController {
             findOneAndUpdateDB(Shop_1.default, query, update, null, null).then((result) => {
                 if (result) {
                     response.json({
-                        message: 'Cuenta Actualizada correctamente',
+                        message: 'Tienda actualizada correctamente',
                         data: result,
                         success: true
                     });
                 }
                 else {
                     response.json({
-                        message: "Error al actualizar cuenta",
+                        message: "Error al actualizar tienda",
                         success: false,
                         data: result
                     });
@@ -216,7 +208,7 @@ class ShopController {
                 let shop = { phone, address, company: mongoose_1.default.Types.ObjectId(company), number: name, 'condition': mongoose_1.default.Types.ObjectId(stateId) };
                 insertDB(Shop_1.default, shop).then((result) => {
                     response.json({
-                        message: 'Local creado exitosamente',
+                        message: 'Tienda creada exitosamente',
                         data: result,
                         success: true
                     });
@@ -226,7 +218,7 @@ class ShopController {
             }
             else {
                 response.json({
-                    message: "Error Al Crear Cuenta, no se encontro estado valido",
+                    message: "Error al crear tienda, no se encontro estado valido",
                     success: false
                 });
             }

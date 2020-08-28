@@ -39,34 +39,78 @@ export class StateControllers {
         return null
     }
 
+    comparer(otherArray: any) {
+        return function (current: any) {
+            return otherArray.filter(function (other: any) {
+                return other.key == current.key
+            }).length == 0;
+        }
+    }
+
     async save(request: Request, response: Response, next: NextFunction, app: any) {
         const { states } = request.body
         let statesToSave: Array<{ key: string, desc: string }> = []
         let statesNotSave: Array<{ key: string, desc: string }> = []
+        let keys: Array<any> = []
         states.map((state: { key: string, desc: string }) => {
+            keys.push(state.key)
             let _state = state
             let valid = validate(_state)
-            if (valid) {
-                statesToSave.push(_state)
-            } else {
-                statesNotSave.push(_state)
-            }
+            if (valid) statesToSave.push(_state)
+            else { statesNotSave.push(_state) }
         })
 
         if (statesToSave.length > 0) {
-            insertManyDB(State, statesToSave).then((result: any) => {
-                response.json({
-                    message: 'Se crearon los estados de forma exitosa',
-                    data: result,
-                    stateNotSave: statesNotSave,
-                    success: true
-                });
+            findDocuments(State, { 'key': { '$in': keys } }, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
+                if (findResult) {
+                    let statesdef: Array<any> = []
+                    findResult.map((state) => { statesdef.push(state.key) })
+                    let finishStates = statesToSave.filter((state) => !statesdef.includes(state.key.toString()))
+                    let statesNoSaved = statesToSave.filter((state) => statesdef.includes(state.key.toString()))
+                    if (finishStates.length > 0) {
+                        insertManyDB(State, finishStates).then((result: any) => {
+                            response.json({
+                                message: `Se crearon los estados de forma exitosa`,
+                                data: result,
+                                stateNotSave: statesNoSaved,
+                                success: true
+                            });
+                        }).catch((err: Error) => {
+                            response.json({
+                                message: err.message,
+                                success: false
+                            });
+                        });
+                    } else {
+                        response.json({
+                            message: `Los estados que intentas agregar ya existen`,
+                            success: false,
+                            data: statesNoSaved
+                        });
+                    }
+                } else {
+                    insertManyDB(State, statesToSave).then((result: any) => {
+                        response.json({
+                            message: 'Se crearon los estados de forma exitosa',
+                            data: result,
+                            stateNotSave: statesNotSave,
+                            success: true
+                        });
+                    }).catch((err: Error) => {
+                        response.json({
+                            message: err.message,
+                            success: false
+                        });
+                    });
+                }
+
             }).catch((err: Error) => {
                 response.json({
                     message: err.message,
                     success: false
                 });
             });
+
         } else {
             response.json({
                 message: "Los estados no cumplen con los requisitos",
