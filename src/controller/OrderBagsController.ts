@@ -134,7 +134,7 @@ export class OrderBagsController {
                 "deliveryId": mongoose.Types.ObjectId(deliveryId),
                 "delivery": false
             }
-            console.log(query)
+
             let queryState = {
                 "key": { '$in': ["8", "7", "6"] }
             }
@@ -144,7 +144,7 @@ export class OrderBagsController {
                         let stateIds: Array<any> = []
                         findResultState.map((state) => { stateIds.push(state._id) })
                         findDocuments(OrderBags, query, "", {}, 'orderNumber', '', 0, null, null).then((result: Array<any>) => {
-                            let bagsResult = result.filter((bag) => !stateIds.indexOf(bag.state))
+                            let bagsResult = result.filter((bag) => !stateIds.includes(bag.orderNumber.state))
                             response.json({
                                 message: 'Listado de bolsas a despachar',
                                 data: bagsResult,
@@ -308,7 +308,6 @@ export class OrderBagsController {
                         let updateOrder = { state: mongoose.Types.ObjectId(stateId), endDeliveryDate: new Date(), received: received, comment: comment }
                         let query = { "_id": mongoose.Types.ObjectId(id) }
                         let update = { comment: comment, "delivery": true, received: received }
-
                         findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
                             if (updateOrder) {
                                 findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: any) => {
@@ -345,8 +344,6 @@ export class OrderBagsController {
                                 success: false
                             });
                         });
-
-
                     } else {
                         response.json({
                             message: "Debe proporcionar el id del bulto",
@@ -396,7 +393,6 @@ export class OrderBagsController {
                         console.log(pickerId)
                         findDocuments(OrderBags, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
                             if (true) {
-                                // if (!findResult.length) {
                                 insertDB(OrderBags, bag).then((result: any) => {
                                     if (result) {
                                         update['bag'] = mongoose.Types.ObjectId(result._id)
