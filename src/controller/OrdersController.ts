@@ -680,7 +680,9 @@ export class OrdersController {
 
           if (arrayQuery.length > 0)
             query_['$and'] = [...arrayQuery]
+          console.log("result", query)
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+            console.log("result", result)
             if (result.length) {
               let newOrders = result.map((order, index) => {
                 let pickername = ""
@@ -709,16 +711,16 @@ export class OrdersController {
                 let headers = ["Numero de Pedido", "Nombre Cliente", "F. de compra", "F. de compromiso", "Canal", "Servicio", "Estado"];
 
                 let reportdata = data.map(field => {
-                  let file = '{"Numero de Pedido":"' + field.orderNumber + '","Nombre Cliente":"' + field.client.name + '","F. de compra":"' + field.date + '","F. de compromiso":"' +
-                    field.realdatedelivery +
-                    '","Canal":"' +
-                    field.channel +
-                    '","Servicio":"' +
-                    field.service.desc +
-                    '","Estado":"' +
-                    field.state.desc +
-                    '"}'
-                  // console.log()
+                  let file =
+                    `{
+                      "Numero de Pedido":"${field.orderNumber}",
+                      "Nombre Cliente":"${field.client.name}",
+                      "F. de compra":"${moment(field.date).format("DD/MM/YYYY HH:mm")}",
+                      "F. de compromiso":"${moment(field.realdatedelivery).format("DD/MM/YYYY HH:mm")}",
+                      "Canal":"${field.channel}",
+                      "Servicio":"${field.service.desc}",
+                      "Estado":"${field.state.desc}"
+                    }`
                   return JSON.parse(file);
                 });
                 let wb = xlsx.utils.book_new();
@@ -969,20 +971,20 @@ export class OrdersController {
       let populate: string = 'bag pickerId deliveryId state service shopId';
       let queryState: any
 
-      queryState = { $or: [{ "key": 6 }, { "key": 7 }] }
+      queryState = { "key": { $in: [6, 7] } }
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
         let arrayQuery: Array<any> = []
         if (findResult.length > 0) {
           findResult.map((stat) => {
             let stateId = stat._id;
-            arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+            console.log(stat)
+            arrayQuery.push(mongoose.Types.ObjectId(stateId))
           })
-          query_['$or'] = [...arrayQuery]
-          let queryArr = []
-          if (company) queryArr.push({ 'uid': mongoose.Types.ObjectId(company) })
-          if (shopId) queryArr.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
-          if (orderNumber) queryArr.push({ 'orderNumber': orderNumber })
-          if (company || shopId || orderNumber) query_['$and'] = [...queryArr]
+          query_['state'] = { $in: arrayQuery }
+          if (company) query_['uid'] = mongoose.Types.ObjectId(company)
+          if (shopId) query_['shopId'] = mongoose.Types.ObjectId(shopId)
+          if (orderNumber) query_['orderNumber'] = orderNumber
+          console.log("test", query_)
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
