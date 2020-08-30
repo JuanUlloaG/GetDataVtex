@@ -905,7 +905,6 @@ export class OrdersController {
             stateId.push(mongoose.Types.ObjectId(state._id))
           })
           if (stateId) query_['state'] = { $nin: stateId }
-          console.log(query_)
           findDocuments(Orders, query_, "", {}, '', '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1404,9 +1403,9 @@ export class OrdersController {
           from.setHours(0)
           from.setMinutes(0)
           from.setSeconds(0)
-          to.setHours(0)
-          to.setMinutes(0)
-          to.setSeconds(0)
+          to.setHours(23)
+          to.setMinutes(59)
+          to.setSeconds(59)
 
           query_['date'] = {
             $gte: from,
@@ -1416,13 +1415,10 @@ export class OrdersController {
 
         if (query.buyFromDate && !query.buyToDate) {
           let from = new Date(query.buyFromDate)
-          let to = new Date(query.buyFromDate)
+          let to = new Date()
           from.setHours(0)
           from.setMinutes(0)
           from.setSeconds(0)
-          to.setHours(23)
-          to.setMinutes(59)
-          to.setSeconds(59)
           query_['date'] = {
             $gte: from,
             $lt: to
@@ -1438,7 +1434,7 @@ export class OrdersController {
           to.setHours(23)
           to.setMinutes(59)
           to.setSeconds(59)
-          query_['endDeliveryDate'] = {
+          query_['realdatedelivery'] = {
             $gte: from,
             $lt: to
           }
@@ -1446,14 +1442,14 @@ export class OrdersController {
 
         if (query.deliveryFromDate && !query.deliveryToDate) {
           let from = new Date(query.deliveryFromDate)
-          let to = new Date(query.deliveryFromDate)
+          let to = new Date()
           from.setHours(0)
           from.setMinutes(0)
           from.setSeconds(0)
           to.setHours(23)
           to.setMinutes(59)
           to.setSeconds(59)
-          query_['endDeliveryDate'] = {
+          query_['realdatedelivery'] = {
             $gte: from,
             $lt: from
           }
@@ -1503,13 +1499,17 @@ export class OrdersController {
             return order
           })
           let filterOrders = newOrders.filter((orders) => {
-            if (namePicker) {
-              if (orders.pickerId.name == namePicker)
-                return orders
-            }
-            if (nameDelivery) {
-              if (orders.deliveryId.name == nameDelivery)
-                return orders
+            if (namePicker && nameDelivery) {
+              if (namePicker) {
+                if (orders.pickerId.name == namePicker)
+                  return orders
+              }
+              if (nameDelivery) {
+                if (orders.deliveryId.name == nameDelivery)
+                  return orders
+              }
+            } else {
+              return orders
             }
           })
           response.json({
