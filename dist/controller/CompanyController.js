@@ -6,9 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CompanyControllers = void 0;
 const jwt = require('jsonwebtoken');
 const mongoose_1 = __importDefault(require("mongoose"));
-const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB } = require("../config/db");
+const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB, updateManyDB } = require("../config/db");
 const State_1 = __importDefault(require("../entity/State"));
 const Company_1 = __importDefault(require("../entity/Company"));
+const User_1 = __importDefault(require("../entity/User"));
+const Shop_1 = __importDefault(require("../entity/Shop"));
+const Orders_1 = __importDefault(require("../entity/Orders"));
 class CompanyControllers {
     async all(request, response, next, app) {
         try {
@@ -38,7 +41,6 @@ class CompanyControllers {
                     if (company) {
                         _query['_id'] = mongoose_1.default.Types.ObjectId(company);
                     }
-                    console.log(_query);
                     populate = 'condition';
                     findDocuments(Company_1.default, _query, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length > 0) {
@@ -96,7 +98,6 @@ class CompanyControllers {
                     query = { '_id': mongoose_1.default.Types.ObjectId(id) };
                     findOneAndUpdateDB(Company_1.default, query, update, null, null).then((result) => {
                         if (result) {
-                            console.log(result);
                             response.json({
                                 message: `Cuenta ${result.name} actualizada correctamente`,
                                 data: result,
@@ -148,16 +149,66 @@ class CompanyControllers {
             let queryState = { "key": 10 };
             if (id) {
                 findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
-                    console.log("arer", findResult);
                     if (findResult.length > 0) {
                         let stateId = findResult[0]._id;
                         let update = { 'condition': mongoose_1.default.Types.ObjectId(stateId) };
                         findOneAndUpdateDB(Company_1.default, query, update, null, null).then((result) => {
                             if (result) {
-                                response.json({
-                                    message: 'Se ha eliminado la cuenta correctamente',
-                                    data: result,
-                                    success: true
+                                let state = { 'condition': mongoose_1.default.Types.ObjectId(stateId) };
+                                let queryUser = { 'company': mongoose_1.default.Types.ObjectId(id) };
+                                updateManyDB(User_1.default, queryUser, state, null, null).then((result) => {
+                                    if (result) {
+                                        let stateShop = { 'condition': mongoose_1.default.Types.ObjectId(stateId) };
+                                        let queryShop = { 'company': mongoose_1.default.Types.ObjectId(id) };
+                                        updateManyDB(Shop_1.default, queryShop, stateShop, null, null).then((result) => {
+                                            if (result) {
+                                                let stateOrder = { 'condition': mongoose_1.default.Types.ObjectId(stateId) };
+                                                let queryOrder = { 'uid': mongoose_1.default.Types.ObjectId(id) };
+                                                updateManyDB(Orders_1.default, queryOrder, stateOrder, null, null).then((result) => {
+                                                    if (result) {
+                                                        response.json({
+                                                            message: 'Se ha eliminado la cuenta correctamente',
+                                                            data: result,
+                                                            success: true
+                                                        });
+                                                    }
+                                                    else {
+                                                        response.json({
+                                                            message: "Error al eliminar cuenta",
+                                                            success: false
+                                                        });
+                                                    }
+                                                }).catch((err) => {
+                                                    response.json({
+                                                        message: err.message,
+                                                        success: false
+                                                    });
+                                                });
+                                            }
+                                            else {
+                                                response.json({
+                                                    message: "Error al eliminar cuenta",
+                                                    success: false
+                                                });
+                                            }
+                                        }).catch((err) => {
+                                            response.json({
+                                                message: err.message,
+                                                success: false
+                                            });
+                                        });
+                                    }
+                                    else {
+                                        response.json({
+                                            message: "Error al eliminar cuenta",
+                                            success: false
+                                        });
+                                    }
+                                }).catch((err) => {
+                                    response.json({
+                                        message: err.message,
+                                        success: false
+                                    });
                                 });
                             }
                             else {

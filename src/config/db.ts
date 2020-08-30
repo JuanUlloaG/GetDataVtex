@@ -84,6 +84,23 @@ module.exports = {
                 })
         })
     },
+    findDocumentsOrdesPopulate: async function (form: any, query: any, select: string, sort: any, populate: object, fields: string, limit: number, req: any, res: any) {
+        return new Promise(function (resolve, reject) {
+            console.log("populated", populate)
+            form
+                .find(query)
+                .sort(sort)
+                .select(select)
+                .limit(limit)
+                .populate(populate)
+                .exec(function (err: Error, documents: Document) {
+                    if (err) reject(err.message)
+                    else {
+                        resolve(documents)
+                    }
+                })
+        })
+    },
     findDocumentsMultiPopulate: async function (form: any, query: any, select: string, sort: any, populate: object, populate1: object, populate2: object, populate3: object, populate4: object, populate5: object, populate6: object, fields: string, limit: number, req: any, res: any) {
         return new Promise(function (resolve, reject) {
             form

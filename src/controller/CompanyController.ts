@@ -1,9 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 const jwt = require('jsonwebtoken');
 import mongoose from "mongoose";
-const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB } = require("../config/db");
+const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB, updateManyDB } = require("../config/db");
 import State from "../entity/State";
 import Company from "../entity/Company";
+import User from "../entity/User";
+import Shop from "../entity/Shop";
+import Order from "../entity/Orders";
 
 export class CompanyControllers {
 
@@ -35,7 +38,6 @@ export class CompanyControllers {
                     if (company) {
                         _query['_id'] = mongoose.Types.ObjectId(company)
                     }
-                    console.log(_query)
                     populate = 'condition'
                     findDocuments(Company, _query, "", {}, populate, '', 0, null, null).then((result: Array<any>) => {
                         if (result.length > 0) {
@@ -91,7 +93,6 @@ export class CompanyControllers {
                     query = { '_id': mongoose.Types.ObjectId(id) }
                     findOneAndUpdateDB(Company, query, update, null, null).then((result: any) => {
                         if (result) {
-                            console.log(result)
                             response.json({
                                 message: `Cuenta ${result.name} actualizada correctamente`,
                                 data: result,
@@ -141,16 +142,63 @@ export class CompanyControllers {
             let queryState = { "key": 10 }
             if (id) {
                 findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
-                    console.log("arer", findResult)
                     if (findResult.length > 0) {
                         let stateId = findResult[0]._id;
                         let update = { 'condition': mongoose.Types.ObjectId(stateId) }
                         findOneAndUpdateDB(Company, query, update, null, null).then((result: any) => {
                             if (result) {
-                                response.json({
-                                    message: 'Se ha eliminado la cuenta correctamente',
-                                    data: result,
-                                    success: true
+                                let state = { 'condition': mongoose.Types.ObjectId(stateId) }
+                                let queryUser = { 'company': mongoose.Types.ObjectId(id) }
+                                updateManyDB(User, queryUser, state, null, null).then((result: any) => {
+                                    if (result) {
+                                        let stateShop = { 'condition': mongoose.Types.ObjectId(stateId) }
+                                        let queryShop = { 'company': mongoose.Types.ObjectId(id) }
+                                        updateManyDB(Shop, queryShop, stateShop, null, null).then((result: any) => {
+                                            if (result) {
+                                                let stateOrder = { 'condition': mongoose.Types.ObjectId(stateId) }
+                                                let queryOrder = { 'uid': mongoose.Types.ObjectId(id) }
+                                                updateManyDB(Order, queryOrder, stateOrder, null, null).then((result: any) => {
+                                                    if (result) {
+                                                        response.json({
+                                                            message: 'Se ha eliminado la cuenta correctamente',
+                                                            data: result,
+                                                            success: true
+                                                        });
+                                                    } else {
+                                                        response.json({
+                                                            message: "Error al eliminar cuenta",
+                                                            success: false
+                                                        });
+                                                    }
+                                                }).catch((err: Error) => {
+                                                    response.json({
+                                                        message: err.message,
+                                                        success: false
+                                                    });
+                                                });
+                                            } else {
+                                                response.json({
+                                                    message: "Error al eliminar cuenta",
+                                                    success: false
+                                                });
+                                            }
+                                        }).catch((err: Error) => {
+                                            response.json({
+                                                message: err.message,
+                                                success: false
+                                            });
+                                        });
+                                    } else {
+                                        response.json({
+                                            message: "Error al eliminar cuenta",
+                                            success: false
+                                        });
+                                    }
+                                }).catch((err: Error) => {
+                                    response.json({
+                                        message: err.message,
+                                        success: false
+                                    });
                                 });
                             } else {
                                 response.json({

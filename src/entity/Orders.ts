@@ -61,13 +61,13 @@ export interface OrderInterface extends Document {
 }
 
 const OrderSchema: Schema = new Schema({
-    uid: { type: Schema.Types.ObjectId, required: true, ref: "Company" },
-    shopId: { type: Schema.Types.ObjectId, required: false, ref: "Shop", default: null },
-    pickerId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
-    deliveryId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
-    bag: { type: Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null },
-    state: { type: Schema.Types.ObjectId, required: true, ref: "State" },
-    service: { type: Schema.Types.ObjectId, required: true, ref: "Service" },
+    uid: { type: Schema.Types.ObjectId, required: true, ref: "Company", autopopulate: true },
+    shopId: { type: Schema.Types.ObjectId, required: false, ref: "Shop", default: null, autopopulate: true },
+    pickerId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
+    deliveryId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
+    bag: { type: Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null, autopopulate: true },
+    state: { type: Schema.Types.ObjectId, required: true, ref: "State", autopopulate: true },
+    service: { type: Schema.Types.ObjectId, required: true, ref: "Service", autopopulate: true },
     orderNumber: { type: String, required: true },
     channel: { type: String, required: true },
     received: { type: String, required: false, default: "" },
@@ -110,6 +110,6 @@ const OrderSchema: Schema = new Schema({
     isInShop: { type: Boolean, required: false, default: false },
     restocked: { type: Boolean, required: false, default: false }
 });
-
+OrderSchema.plugin(require('mongoose-autopopulate'))
 const Order = mongoose.model<OrderInterface>("Order", OrderSchema, "orders");
 export default Order;

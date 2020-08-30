@@ -30,12 +30,15 @@ use('picking-dev');
 
 // db.orders.find({})
 
-db.states.find({
-    $or:[
-        { key: '8' },
-        { key: '7' }
-    ]
-})
+// db.states.find({
+//     $or:[
+//         { key: '8' },
+//         { key: '7' }
+//     ]
+// })
+
+
+db.orders.find({}).populate('pickerId')
 
 // db.orders.find({ 
 //     '$or': [ 
