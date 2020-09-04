@@ -15,6 +15,7 @@ import History, { HistoryInterface } from "../entity/History";
 
 
 export class OrdersController {
+
   async all(request: Request, response: Response, next: NextFunction, app: any) {
     response.json({
       message: 'Listado de ordenes',
@@ -52,14 +53,12 @@ export class OrdersController {
                 success: false
               });
             }
-
           }).catch((err: Error) => {
             response.json({
               message: err,
               success: false
             });
           });
-
         } else {
           response.json({
             message: "Error al actualizar orden: " + findResultState,
@@ -72,7 +71,6 @@ export class OrdersController {
           success: false
         });
       });
-
     } catch (error) {
       response.json({
         message: error.message,
@@ -127,7 +125,6 @@ export class OrdersController {
       findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
         if (findResultState.length > 0) {
           let stateId = findResultState[0]._id;
-          // let updateOrder: any = { state: mongoose.Types.ObjectId(stateId) }
           let updateOrder: any = { products: products }
           updateOrder['isInShop'] = true
           findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
@@ -143,14 +140,12 @@ export class OrdersController {
                 success: false
               });
             }
-
           }).catch((err: Error) => {
             response.json({
               message: err,
               success: false
             });
           });
-
         } else {
           response.json({
             message: "Error al actualizar orden: " + findResultState,
@@ -163,7 +158,6 @@ export class OrdersController {
           success: false
         });
       });
-
     } catch (error) {
       response.json({
         message: error.message,
@@ -173,7 +167,6 @@ export class OrdersController {
   }
 
   async orders(request: Request, response: Response, next: NextFunction, app: any) {
-
     try {
       console.log(request.body)
       const { company, profile } = request.body
@@ -204,19 +197,15 @@ export class OrdersController {
           success: false
         });
       });
-
     } catch (error) {
       response.json({
         message: error,
         success: false
       });
     }
-
-
   }
 
   async ordersTest(request: Request, response: Response, next: NextFunction, app: any) {
-
     try {
       let query: object;
       let populate: string = '';
@@ -367,19 +356,15 @@ export class OrdersController {
           success: false
         });
       });
-
     } catch (error) {
       response.json({
         message: error,
         success: false
       });
     }
-
-
   }
 
   async getOrderDetailById(request: Request, response: Response, next: NextFunction, app: any) {
-
     try {
       const { id } = request.body
       let query: object;
@@ -420,14 +405,12 @@ export class OrdersController {
             success: false
           });
         }
-
       }).catch((err: Error) => {
         response.json({
           message: err,
           success: false
         });
       });
-
     } catch (error) {
       response.json({
         message: error,
@@ -437,7 +420,6 @@ export class OrdersController {
   }
 
   async getOrderDetailBynumber(request: Request, response: Response, next: NextFunction, app: any) {
-
     try {
       const { orderNumber } = request.body
       let query: object;
@@ -493,7 +475,6 @@ export class OrdersController {
                 success: false
               });
             }
-
           }).catch((err: Error) => {
             response.json({
               message: err.message,
@@ -513,8 +494,6 @@ export class OrdersController {
           success: false
         });
       });
-
-
     } catch (error) {
       response.json({
         message: error,
@@ -524,7 +503,6 @@ export class OrdersController {
   }
 
   createData(name: string, compra: any, picking: any, delivery: any, reception: any, type: number) {
-
     if (type == 0) {
       if (compra) {
         let _compra: Date = new Date(compra)
@@ -590,9 +568,7 @@ export class OrdersController {
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
         if (findResult.length > 0) {
           let stateId = findResult[0]._id;
-          if (state) {
-            query_['state'] = mongoose.Types.ObjectId(stateId)
-          }
+          if (state) { query_['state'] = mongoose.Types.ObjectId(stateId) }
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -627,8 +603,6 @@ export class OrdersController {
                 success: true
               });
             }
-
-
           }).catch((err: Error) => {
             response.json({
               message: err.message,
@@ -681,7 +655,7 @@ export class OrdersController {
 
           if (arrayQuery.length > 0)
             query_['$and'] = [...arrayQuery]
-          console.log("result", query)
+
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             console.log("result", result)
             if (result.length) {
@@ -705,12 +679,9 @@ export class OrdersController {
                 order.set('timeLine', [...rows], { strict: false })
                 return order
               })
-
               try {
                 let data = newOrders;
-                //console.log(data)
                 let headers = ["Numero de Pedido", "Nombre Cliente", "F. de compra", "F. de compromiso", "Canal", "Servicio", "Estado"];
-
                 let reportdata = data.map(field => {
                   let file =
                     `{
@@ -738,7 +709,6 @@ export class OrdersController {
                   success: false
                 });
               }
-
             } else {
               response.json({
                 message: 'Sin data para exportar',
@@ -822,7 +792,6 @@ export class OrdersController {
             }
             if (query.shopId) query_['shopId'] = mongoose.Types.ObjectId(query.shopId)
           }
-          console.log(query_)
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -857,8 +826,6 @@ export class OrdersController {
                 success: true
               });
             }
-
-
           }).catch((err: Error) => {
             response.json({
               message: err.message,
@@ -1120,17 +1087,12 @@ export class OrdersController {
           success: false
         });
       });
-
-
-
     } catch (error) {
       response.json({
         message: error,
         success: false
       });
     }
-
-
   }
 
   async ordersForOmsFindReassing(request: Request, response: Response, next: NextFunction, app: any) {
@@ -1236,9 +1198,6 @@ export class OrdersController {
           success: false
         });
       });
-
-
-
     } catch (error) {
       response.json({
         message: error,
@@ -1559,10 +1518,36 @@ export class OrdersController {
             let update = { "pickerId": null, startPickingDate: null, state: mongoose.Types.ObjectId(stateId), shopId: null }
             findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {
               if (update) {
-                response.json({
-                  message: 'Orden Tomada',
-                  data: update,
-                  success: true
+                let historyObj = {
+                  state: mongoose.Types.ObjectId(stateId),
+                  orderNumber: update.orderNumber,
+                  order: mongoose.Types.ObjectId(update._id),
+                  bag: null,
+                  shop: null,
+                  picker: null,
+                  delivery: null,
+                  orderSnapShot: update,
+                  dateHistory: new Date()
+                }
+                insertDB(History, historyObj).then((result: HistoryInterface) => {
+                  if (result) {
+                    response.json({
+                      message: 'Orden dejada',
+                      data: update,
+                      success: true
+                    });
+                  } else {
+                    response.json({
+                      message: 'Error al Tomar la orden',
+                      data: result,
+                      success: true
+                    });
+                  }
+                }).catch((err: Error) => {
+                  response.json({
+                    message: err.message,
+                    success: false
+                  });
                 });
               } else {
                 response.json({
@@ -1616,7 +1601,6 @@ export class OrdersController {
             let queryFind = { "_id": mongoose.Types.ObjectId(id) }
             findDocuments(Orders, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
               if (findResult.length > 0) {
-
                 if (findResult[0].pickerId) {
                   response.json({
                     message: 'Orden Tomada',
@@ -1625,44 +1609,54 @@ export class OrdersController {
                   });
                 } else {
                   findOneAndUpdateDB(Orders, query, update, null, null).then((update: OrderInterface) => {
-                    console.log("aqui", update)
-                    // let historyObj = {
-                    //   state: mongoose.Types.ObjectId(stateId),
-                    //   orderNumber: ,
-                    //   order: mongoose.Types.ObjectId(id),
-                    //   bag: null,
-                    //   shop: null,
-                    //   picker: null,
-                    //   delivery: null,
-                    //   dateHistory: new Date()
-                    // }
-                    // insertDB(History, historyObj).then((result: HistoryInterface) => {
-
-                    // }).catch((err: Error) => {
-
-                    // });
-                    // if (update) {
-                    //   response.json({
-                    //     message: 'Orden Tomada',
-                    //     data: update,
-                    //     success: true
-                    //   });
-                    // } else {
-                    //   response.json({
-                    //     message: "Error al actualizar orden",
-                    //     success: false
-                    //   });
-                    // }
+                    if (update) {
+                      let historyObj = {
+                        state: mongoose.Types.ObjectId(stateId),
+                        orderNumber: update.orderNumber,
+                        order: mongoose.Types.ObjectId(update._id),
+                        bag: null,
+                        shop: null,
+                        picker: mongoose.Types.ObjectId(pickerId),
+                        delivery: null,
+                        orderSnapShot: update,
+                        dateHistory: new Date()
+                      }
+                      insertDB(History, historyObj).then((result: HistoryInterface) => {
+                        if (result) {
+                          response.json({
+                            message: 'Orden Tomada',
+                            data: update,
+                            success: true
+                          });
+                        } else {
+                          response.json({
+                            message: 'Error al Tomar la orden',
+                            data: result,
+                            success: true
+                          });
+                        }
+                      }).catch((err: Error) => {
+                        response.json({
+                          message: err.message,
+                          success: false
+                        });
+                      });
+                    } else {
+                      response.json({
+                        message: "Error al tomar la orden",
+                        success: false
+                      });
+                    }
                   }).catch((err: Error) => {
                     response.json({
-                      message: err,
+                      message: err.message,
                       success: false
                     });
                   });
                 }
               } else {
                 response.json({
-                  message: "Error al actualizar orden",
+                  message: "Error al tomar laa orden",
                   success: false
                 });
               }
@@ -1754,11 +1748,14 @@ export class OrdersController {
 
               insertManyDB(Orders, _orders).then((result: Array<OrderInterface>) => {
                 result.map((order) => {
-                  history.map((history: { state: ObjectId, orderNumber: number, order: ObjectId, bag: ObjectId, shop: ObjectId, picker: ObjectId, delivery: ObjectId, date: Date }) => {
-                    if (order.orderNumber == history.orderNumber) history.order = mongoose.Types.ObjectId(order._id)
+                  history.map((history: { state: ObjectId, orderNumber: number, order: ObjectId, bag: ObjectId, shop: ObjectId, picker: ObjectId, delivery: ObjectId, orderSnapShot: object, date: Date }) => {
+                    if (order.orderNumber == history.orderNumber) {
+                      history.order = mongoose.Types.ObjectId(order._id)
+                      history['orderSnapShot'] = order
+                    }
                   })
                 })
-                insertManyDB(History, _orders).then((result: Array<HistoryInterface>) => {
+                insertManyDB(History, history).then((result: Array<HistoryInterface>) => {
                   // executeInsertProcedure()
                   response.json({
                     message: 'orden(es) creada(s) exitosamente',
@@ -1767,13 +1764,13 @@ export class OrdersController {
                   });
                 }).catch((err: Error) => {
                   response.json({
-                    message: err.message,
+                    message: err,
                     success: false
                   });
                 });
               }).catch((err: Error) => {
                 response.json({
-                  message: err,
+                  message: err.message,
                   success: false
                 });
               });
@@ -1785,7 +1782,7 @@ export class OrdersController {
             }
           }).catch((err: Error) => {
             response.json({
-              message: err,
+              message: err.message,
               success: false
             });
           });
@@ -1798,12 +1795,10 @@ export class OrdersController {
 
       }).catch((err: Error) => {
         response.json({
-          message: err,
+          message: err.message,
           success: false
         });
       });
-
-
     } catch (error) {
       console.log(error)
       response.json({
@@ -1822,7 +1817,6 @@ export class OrdersController {
   }
 
   async remove(request: Request, response: Response, next: NextFunction, app: any) {
-
   }
 
   async auth(request: Request, response: Response, next: NextFunction, app: any) {

@@ -14,6 +14,7 @@ export interface HistoryInterface extends Document {
     delivery?: UserInterface['_id'],
     state: StateInterface['_id'],
     orderNumber: string,
+    orderSnapShot: object,
     dateHistory: Date,
 }
 
@@ -25,6 +26,7 @@ const HistorySchema: Schema = new Schema({
     delivery: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
     state: { type: Schema.Types.ObjectId, required: false, ref: "State", default: null, autopopulate: true },
     orderNumber: { type: String, required: true },
+    orderSnapShot: { type: Object, required: true },
     dateHistory: { type: Date, required: true, default: new Date() },
 });
 
