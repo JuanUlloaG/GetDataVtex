@@ -6,9 +6,10 @@ import Orders from "../entity/Orders";
 import { OrderInterface } from "../entity/Orders";
 import State from "../entity/State";
 import Service from "../entity/Services";
-const { initDB, insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, findDocumentsOrdesPopulate } = require("../config/db")
+const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, executeInsertProcedure } = require("../config/db")
 import moment from 'moment'
-import { ObjectID } from "mongodb";
+import { ObjectID, ObjectId } from "mongodb";
+import History, { HistoryInterface } from "../entity/History";
 // mongoose.set('debug', true);
 
 
@@ -1609,13 +1610,13 @@ export class OrdersController {
         if (findResultState.length > 0) {
           let stateId = findResultState[0]._id;
           const { id, pickerId, shopId } = request.body
-          console.log(shopId)
           if (id) {
             let query = { "_id": mongoose.Types.ObjectId(id) }
             let update = { "pickerId": mongoose.Types.ObjectId(pickerId), startPickingDate: new Date(), state: mongoose.Types.ObjectId(stateId), shopId: mongoose.Types.ObjectId(shopId) }
             let queryFind = { "_id": mongoose.Types.ObjectId(id) }
             findDocuments(Orders, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
               if (findResult.length > 0) {
+
                 if (findResult[0].pickerId) {
                   response.json({
                     message: 'Orden Tomada',
@@ -1623,19 +1624,35 @@ export class OrdersController {
                     success: true
                   });
                 } else {
-                  findOneAndUpdateDB(Orders, query, update, null, null).then((update: any) => {
-                    if (update) {
-                      response.json({
-                        message: 'Orden Tomada',
-                        data: update,
-                        success: true
-                      });
-                    } else {
-                      response.json({
-                        message: "Error al actualizar orden",
-                        success: false
-                      });
-                    }
+                  findOneAndUpdateDB(Orders, query, update, null, null).then((update: OrderInterface) => {
+                    console.log("aqui", update)
+                    // let historyObj = {
+                    //   state: mongoose.Types.ObjectId(stateId),
+                    //   orderNumber: ,
+                    //   order: mongoose.Types.ObjectId(id),
+                    //   bag: null,
+                    //   shop: null,
+                    //   picker: null,
+                    //   delivery: null,
+                    //   dateHistory: new Date()
+                    // }
+                    // insertDB(History, historyObj).then((result: HistoryInterface) => {
+
+                    // }).catch((err: Error) => {
+
+                    // });
+                    // if (update) {
+                    //   response.json({
+                    //     message: 'Orden Tomada',
+                    //     data: update,
+                    //     success: true
+                    //   });
+                    // } else {
+                    //   response.json({
+                    //     message: "Error al actualizar orden",
+                    //     success: false
+                    //   });
+                    // }
                   }).catch((err: Error) => {
                     response.json({
                       message: err,
@@ -1699,6 +1716,7 @@ export class OrdersController {
               orders = request.body.orders;
               let stateId = findResult[0]._id;
               let _orders: Array<any> = [];
+              let history: Array<any> = [];
               orders.map((order, index) => {
                 // Aqui la logica para determinar la mejor hora de despacho
                 let deliveryDate = new Date()
@@ -1720,14 +1738,38 @@ export class OrdersController {
                   realdatedelivery: deliveryDate,
                   pickerWorkShift: "Mañana"
                 }
+                let historyObj = {
+                  state: mongoose.Types.ObjectId(stateId),
+                  orderNumber: order.orderNumber,
+                  order: null,
+                  bag: null,
+                  shop: null,
+                  picker: null,
+                  delivery: null,
+                  dateHistory: new Date()
+                }
+                history.push(historyObj)
                 _orders.push(_order)
               })
 
-              insertManyDB(Orders, _orders).then((result: any) => {
-                response.json({
-                  message: 'orden(es) creada(s) exitosamente',
-                  data: result,
-                  success: true
+              insertManyDB(Orders, _orders).then((result: Array<OrderInterface>) => {
+                result.map((order) => {
+                  history.map((history: { state: ObjectId, orderNumber: number, order: ObjectId, bag: ObjectId, shop: ObjectId, picker: ObjectId, delivery: ObjectId, date: Date }) => {
+                    if (order.orderNumber == history.orderNumber) history.order = mongoose.Types.ObjectId(order._id)
+                  })
+                })
+                insertManyDB(History, _orders).then((result: Array<HistoryInterface>) => {
+                  // executeInsertProcedure()
+                  response.json({
+                    message: 'orden(es) creada(s) exitosamente',
+                    data: result,
+                    success: true
+                  });
+                }).catch((err: Error) => {
+                  response.json({
+                    message: err.message,
+                    success: false
+                  });
                 });
               }).catch((err: Error) => {
                 response.json({

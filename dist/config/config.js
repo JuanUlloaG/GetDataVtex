@@ -8,5 +8,20 @@ module.exports = {
         dbname: "picking-dev2"
     },
     profilesApp: ["2", "3"],
-    profilesOms: ["5", "4", "0", "6"]
+    profilesOms: ["5", "4", "0", "6"],
+    sqlConfig: {
+        server: 'srvreportes01pd.database.windows.net',
+        authentication: {
+            type: 'default',
+            options: {
+                userName: 'sessionadmin',
+                password: 'SR2020..Pdxyz..' //update me
+            }
+        },
+        options: {
+            // If you are on Microsoft Azure, you need encryption:
+            encrypt: true,
+            database: 'SRReportPrimeDEV' //update me
+        }
+    }
 };

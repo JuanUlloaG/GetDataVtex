@@ -21,13 +21,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const OrderSchema = new mongoose_1.Schema({
-    uid: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Company" },
-    shopId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Shop", default: null },
-    pickerId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
-    deliveryId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
-    bag: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null },
-    state: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "State" },
-    service: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Service" },
+    uid: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Company", autopopulate: true },
+    shopId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Shop", default: null, autopopulate: true },
+    pickerId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
+    deliveryId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
+    bag: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null, autopopulate: true },
+    state: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "State", autopopulate: true },
+    service: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Service", autopopulate: true },
     orderNumber: { type: String, required: true },
     channel: { type: String, required: true },
     received: { type: String, required: false, default: "" },
@@ -70,5 +70,6 @@ const OrderSchema = new mongoose_1.Schema({
     isInShop: { type: Boolean, required: false, default: false },
     restocked: { type: Boolean, required: false, default: false }
 });
+OrderSchema.plugin(require('mongoose-autopopulate'));
 const Order = mongoose_1.default.model("Order", OrderSchema, "orders");
 exports.default = Order;

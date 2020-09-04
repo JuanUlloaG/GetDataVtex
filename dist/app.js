@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 const config = require('./config/config');
 const routes_1 = require("./routes");
 const validation = require("./middleware/middleware");
-const { initDB, insertDB } = require("./config/db");
+const { initDB, insertDB, conectionToSql, executeStatement } = require("./config/db");
 const cors = require('cors');
 let app = express_1.default();
 app.use(cors());
@@ -63,11 +63,15 @@ routes_1.Routes.forEach(route => {
         }
     });
 });
+// conectionToSql().then((result: any) => {
+// console.log("Picking server on! happy hacking 👨🏾‍💻")
 initDB().then((result) => {
     app.listen(3000, () => {
-        console.log(result);
         console.log("Picking server on! happy hacking 👨🏾‍💻");
     });
 }).catch((err) => {
     console.log(err);
 });
+// }).catch((err: Error) => {
+//     console.log(err)
+// });

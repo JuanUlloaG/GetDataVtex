@@ -20,6 +20,7 @@ class ShopController {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
                     if (Object.keys(query).length > 0) {
+                        console.log("a erw ");
                         if (query.company) {
                             _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
                             _query["company"] = mongoose_1.default.Types.ObjectId(query.company);
@@ -33,14 +34,17 @@ class ShopController {
                             _query["number"] = query.number;
                             _query["company"] = mongoose_1.default.Types.ObjectId(query.company);
                         }
+                        _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
                     }
                     else {
+                        console.log("a er ");
                         _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
                     }
                     if (company) {
                         _query["company"] = mongoose_1.default.Types.ObjectId(company);
                     }
                     populate = 'condition company';
+                    console.log("aers", _query);
                     findDocuments(Shop_1.default, _query, "", {}, populate, '', 0, null, null).then((result) => {
                         response.json({
                             message: 'Listado de Tiendas',

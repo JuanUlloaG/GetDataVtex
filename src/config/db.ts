@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { MongoError } from "mongodb";
-const { mongo } = require("./config")
+const { mongo, sqlConfig } = require("./config")
+import Conect, { Connection, Request as TediusRequest, TYPES, ConnectionConfig } from "tedious";
+var connection: any;
+
 
 module.exports = {
     initDB: function (res: Response, req: Request) {
@@ -15,9 +18,9 @@ module.exports = {
                         mongoose.connection.db.listCollections().toArray((error: any, collections: any) => {
                             if (error) reject(error.message)
                             if (collections) {
-                                collections.forEach((collection: any, index: any) => {
-                                    console.log(collection.name)
-                                })
+                                // collections.forEach((collection: any, index: any) => {
+                                //     console.log(collection.name)
+                                // })
                                 resolve(true)
 
                             }
@@ -26,6 +29,76 @@ module.exports = {
                 })
             } catch (error) {
                 console.log(error.message)
+            }
+        })
+    },
+    conectionToSql: function (res: Response, req: Request) {
+        // return new Promise(function (resolve, reject) {
+        //     try {
+        //         connection = new Connection(sqlConfig);
+        //         connection.on('connect', function (err: Error) {
+        //             if (err) {
+        //                 reject(err.message)
+        //             } else {
+        //                 console.log("Connected To Sql");
+        //                 resolve(true)
+        //             }
+        //         });
+        //     } catch (error) {
+        //         console.log(error.message)
+        //     }
+        // })
+    },
+    executeStatement: function executeQuery() {
+
+        // try {
+        //     connection = new Connection(sqlConfig);
+        //     connection.on('connect', function (err: Error) {
+        //         if (err) {
+        //         } else {
+        //             console.log("Connected To Sql");
+        //             var request = new TediusRequest("SELECT * from OMS.CosmoOrder", function (err) {
+        //                 if (err) {
+        //                     console.log(err);
+        //                 }
+        //             });
+        //             var result = "";
+        //             request.on('row', function (columns) {
+        //                 columns.forEach(function (column) {
+        //                     if (column.value === null) {
+        //                         console.log('NULL');
+        //                     } else {
+        //                         result += column.value + " ";
+        //                     }
+        //                 });
+        //                 result = "";
+        //             });
+
+        //             request.on('done', function (rowCount, more) {
+        //                 console.log(rowCount + ' rows returned');
+        //             });
+        //             connection.execSql(request);
+        //         }
+        //     });
+        // } catch (error) {
+        //     console.log(error.message)
+        // }
+
+    },
+    executeInsertProcedure: function () {
+        connection = new Connection(sqlConfig);
+        connection.on('connect', function (err: Error) {
+            if (err) {
+            } else {
+                var request = new TediusRequest("[OMS].[CosmoIngresoOrder]", function (err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                })
+
+                request.addParameter("OrdenTrabajo", TYPES.VarChar, "123456789666")
+                connection.callProcedure(request);
+                connection.close()
             }
         })
     },

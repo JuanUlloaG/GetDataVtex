@@ -4,7 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
-const { mongo } = require("./config");
+const { mongo, sqlConfig } = require("./config");
+const tedious_1 = require("tedious");
+var connection;
 module.exports = {
     initDB: function (res, req) {
         return new Promise(function (resolve, reject) {
@@ -19,9 +21,9 @@ module.exports = {
                             if (error)
                                 reject(error.message);
                             if (collections) {
-                                collections.forEach((collection, index) => {
-                                    console.log(collection.name);
-                                });
+                                // collections.forEach((collection: any, index: any) => {
+                                //     console.log(collection.name)
+                                // })
                                 resolve(true);
                             }
                         });
@@ -30,6 +32,73 @@ module.exports = {
             }
             catch (error) {
                 console.log(error.message);
+            }
+        });
+    },
+    conectionToSql: function (res, req) {
+        // return new Promise(function (resolve, reject) {
+        //     try {
+        //         connection = new Connection(sqlConfig);
+        //         connection.on('connect', function (err: Error) {
+        //             if (err) {
+        //                 reject(err.message)
+        //             } else {
+        //                 console.log("Connected To Sql");
+        //                 resolve(true)
+        //             }
+        //         });
+        //     } catch (error) {
+        //         console.log(error.message)
+        //     }
+        // })
+    },
+    executeStatement: function executeQuery() {
+        // try {
+        //     connection = new Connection(sqlConfig);
+        //     connection.on('connect', function (err: Error) {
+        //         if (err) {
+        //         } else {
+        //             console.log("Connected To Sql");
+        //             var request = new TediusRequest("SELECT * from OMS.CosmoOrder", function (err) {
+        //                 if (err) {
+        //                     console.log(err);
+        //                 }
+        //             });
+        //             var result = "";
+        //             request.on('row', function (columns) {
+        //                 columns.forEach(function (column) {
+        //                     if (column.value === null) {
+        //                         console.log('NULL');
+        //                     } else {
+        //                         result += column.value + " ";
+        //                     }
+        //                 });
+        //                 result = "";
+        //             });
+        //             request.on('done', function (rowCount, more) {
+        //                 console.log(rowCount + ' rows returned');
+        //             });
+        //             connection.execSql(request);
+        //         }
+        //     });
+        // } catch (error) {
+        //     console.log(error.message)
+        // }
+    },
+    executeInsertProcedure: function () {
+        connection = new tedious_1.Connection(sqlConfig);
+        connection.on('connect', function (err) {
+            if (err) {
+            }
+            else {
+                var request = new tedious_1.Request("[OMS].[CosmoIngresoOrder]", function (err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                });
+                request.addParameter("OrdenTrabajo", tedious_1.TYPES.VarChar, "123456789666");
+                connection.callProcedure(request);
+                connection.close();
             }
         });
     },
@@ -76,6 +145,24 @@ module.exports = {
     },
     findDocuments: async function (form, query, select, sort, populate, fields, limit, req, res) {
         return new Promise(function (resolve, reject) {
+            form
+                .find(query)
+                .sort(sort)
+                .select(select)
+                .limit(limit)
+                .populate(populate)
+                .exec(function (err, documents) {
+                if (err)
+                    reject(err.message);
+                else {
+                    resolve(documents);
+                }
+            });
+        });
+    },
+    findDocumentsOrdesPopulate: async function (form, query, select, sort, populate, fields, limit, req, res) {
+        return new Promise(function (resolve, reject) {
+            console.log("populated", populate);
             form
                 .find(query)
                 .sort(sort)

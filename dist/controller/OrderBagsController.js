@@ -124,7 +124,6 @@ class OrderBagsController {
                 "deliveryId": mongoose_1.default.Types.ObjectId(deliveryId),
                 "delivery": false
             };
-            console.log(query);
             let queryState = {
                 "key": { '$in': ["8", "7", "6"] }
             };
@@ -134,7 +133,7 @@ class OrderBagsController {
                         let stateIds = [];
                         findResultState.map((state) => { stateIds.push(state._id); });
                         findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', '', 0, null, null).then((result) => {
-                            let bagsResult = result.filter((bag) => !stateIds.indexOf(bag.state));
+                            let bagsResult = result.filter((bag) => !stateIds.includes(bag.orderNumber.state));
                             response.json({
                                 message: 'Listado de bolsas a despachar',
                                 data: bagsResult,
@@ -385,7 +384,6 @@ class OrderBagsController {
                         console.log(pickerId);
                         findDocuments(OrderBags_1.default, queryFind, "", {}, '', '', 0, null, null).then((findResult) => {
                             if (true) {
-                                // if (!findResult.length) {
                                 insertDB(OrderBags_1.default, bag).then((result) => {
                                     if (result) {
                                         update['bag'] = mongoose_1.default.Types.ObjectId(result._id);

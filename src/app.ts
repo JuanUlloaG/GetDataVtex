@@ -9,7 +9,7 @@ import Orders from "./entity/Orders";
 import OrderBags from "./entity/OrderBags";
 import { Routes } from "./routes";
 const validation = require("./middleware/middleware")
-const { initDB, insertDB } = require("./config/db")
+const { initDB, insertDB, conectionToSql, executeStatement } = require("./config/db")
 const cors = require('cors')
 
 let app = express();
@@ -71,15 +71,20 @@ Routes.forEach(route => {
 });
 
 
-
-
-
+// conectionToSql().then((result: any) => {
+// console.log("Picking server on! happy hacking 👨🏾‍💻")
 initDB().then((result: any) => {
     app.listen(3000, () => {
-        console.log(result)
         console.log("Picking server on! happy hacking 👨🏾‍💻")
     })
 }).catch((err: Error) => {
     console.log(err)
 });
+// }).catch((err: Error) => {
+//     console.log(err)
+// });
+
+
+
+
 

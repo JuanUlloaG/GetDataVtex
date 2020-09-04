@@ -10,11 +10,11 @@ const jwt = require('jsonwebtoken');
 const Orders_1 = __importDefault(require("../entity/Orders"));
 const State_1 = __importDefault(require("../entity/State"));
 const Services_1 = __importDefault(require("../entity/Services"));
-const { initDB, insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB } = require("../config/db");
+const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, executeInsertProcedure } = require("../config/db");
 const moment_1 = __importDefault(require("moment"));
+const History_1 = __importDefault(require("../entity/History"));
 // mongoose.set('debug', true);
 class OrdersController {
-    // private userRepository = getRepository(User);
     async all(request, response, next, app) {
         response.json({
             message: 'Listado de ordenes',
@@ -209,21 +209,9 @@ class OrdersController {
     }
     async ordersTest(request, response, next, app) {
         try {
-            // console.log(request.body)
-            // const { company, profile } = request.body
             let query;
             let populate = '';
-            // if (profile == 2) {
-            //   query = {
-            //     "uid": company,
-            //     "pickerId": { "$eq": null }
-            //   }
-            // } else {
-            //   query = {}
-            // }
             query = {};
-            // if (profile == 4) 
-            // populate = 'uid bag bag.shopId deliveryId pickerId state service shopId pickerId.company '
             let _populate = {
                 path: 'uid',
             };
@@ -677,7 +665,9 @@ class OrdersController {
                         arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
                     if (arrayQuery.length > 0)
                         query_['$and'] = [...arrayQuery];
+                    console.log("result", query);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+                        console.log("result", result);
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
                                 let pickername = "";
@@ -710,16 +700,15 @@ class OrdersController {
                                 //console.log(data)
                                 let headers = ["Numero de Pedido", "Nombre Cliente", "F. de compra", "F. de compromiso", "Canal", "Servicio", "Estado"];
                                 let reportdata = data.map(field => {
-                                    let file = '{"Numero de Pedido":"' + field.orderNumber + '","Nombre Cliente":"' + field.client.name + '","F. de compra":"' + field.date + '","F. de compromiso":"' +
-                                        field.realdatedelivery +
-                                        '","Canal":"' +
-                                        field.channel +
-                                        '","Servicio":"' +
-                                        field.service.desc +
-                                        '","Estado":"' +
-                                        field.state.desc +
-                                        '"}';
-                                    // console.log()
+                                    let file = `{
+                      "Numero de Pedido":"${field.orderNumber}",
+                      "Nombre Cliente":"${field.client.name}",
+                      "F. de compra":"${moment_1.default(field.date).format("DD/MM/YYYY HH:mm")}",
+                      "F. de compromiso":"${moment_1.default(field.realdatedelivery).format("DD/MM/YYYY HH:mm")}",
+                      "Canal":"${field.channel}",
+                      "Servicio":"${field.service.desc}",
+                      "Estado":"${field.state.desc}"
+                    }`;
                                     return JSON.parse(file);
                                 });
                                 let wb = xlsx_1.default.utils.book_new();
@@ -784,19 +773,41 @@ class OrdersController {
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
-                    let arrayQuery = [];
-                    if (query && Object.keys(query).length > 0) {
-                        if (query.shopId)
-                            arrayQuery.push({ "shopId": mongoose_1.default.Types.ObjectId(query.shopId) });
-                        if (query.name)
-                            arrayQuery.push({ "client.name": query.name });
-                        if (query.address)
-                            arrayQuery.push({ "client.address": query.address });
-                    }
                     if (stateId)
-                        arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
-                    if (arrayQuery.length > 0)
-                        query_['$and'] = [...arrayQuery];
+                        query_['state'] = mongoose_1.default.Types.ObjectId(stateId);
+                    if (query && Object.keys(query).length > 0) {
+                        if (query.buyDate) {
+                            let from = new Date(query.buyDate);
+                            let to = new Date();
+                            from.setHours(0);
+                            from.setMinutes(0);
+                            from.setSeconds(0);
+                            to.setHours(23);
+                            to.setMinutes(59);
+                            to.setSeconds(59);
+                            query_['date'] = {
+                                $gte: from,
+                                $lt: to
+                            };
+                        }
+                        if (query.cancellDate) {
+                            let from = new Date(query.cancellDate);
+                            let to = new Date();
+                            from.setHours(0);
+                            from.setMinutes(0);
+                            from.setSeconds(0);
+                            to.setHours(23);
+                            to.setMinutes(59);
+                            to.setSeconds(59);
+                            query_['cancellDate'] = {
+                                $gte: from,
+                                $lt: to
+                            };
+                        }
+                        if (query.shopId)
+                            query_['shopId'] = mongoose_1.default.Types.ObjectId(query.shopId);
+                    }
+                    console.log(query_);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -868,55 +879,73 @@ class OrdersController {
     async ordersForOmsViewSearch(request, response, next, app) {
         try {
             const { company, profile, state, shopId, query } = request.body;
-            let query_;
+            console.log(request.body);
+            let query_ = {};
             if (company) {
-                query_ = { "shopId": mongoose_1.default.Types.ObjectId(shopId), "company": mongoose_1.default.Types.ObjectId(company) };
+                query_["company"] = mongoose_1.default.Types.ObjectId(company);
             }
-            else {
-                query_ = { "shopId": mongoose_1.default.Types.ObjectId(shopId) };
+            if (shopId) {
+                query_["shopId"] = mongoose_1.default.Types.ObjectId(shopId);
             }
-            let populate = 'bag pickerId deliveryId state service shopId';
-            findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
-                if (result.length) {
-                    let newOrders = result.map((order, index) => {
-                        let pickername = "";
-                        let deliveryname = "";
-                        let pickingDate = "";
-                        let delilveryDateStart = "";
-                        let delilveryDateEnd = "";
-                        if (order.pickerId)
-                            pickername = order.pickerId.name;
-                        if (order.deliveryId)
-                            deliveryname = order.deliveryId.name;
-                        if (order.endPickingDate)
-                            pickingDate = order.endPickingDate;
-                        if (order.starDeliveryDate)
-                            delilveryDateStart = order.starDeliveryDate;
-                        if (order.endDeliveryDate)
-                            delilveryDateEnd = order.endDeliveryDate;
-                        const rows = [
-                            this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
-                            this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
-                            this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
-                        ];
-                        if (!order.client.comment)
-                            order.set('client.comment', "Sin Comentarios", { strict: false });
-                        order.set('timeLine', [...rows], { strict: false });
-                        return order;
+            let queryState;
+            queryState = { "key": { $in: [5, 6, 7, 8] } };
+            findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
+                if (findResult.length > 0) {
+                    let stateId = [];
+                    findResult.map((state) => {
+                        stateId.push(mongoose_1.default.Types.ObjectId(state._id));
                     });
-                    response.json({
-                        message: 'Listado de ordenes',
-                        data: newOrders,
-                        success: true
+                    if (stateId)
+                        query_['state'] = { $nin: stateId };
+                    findDocuments(Orders_1.default, query_, "", {}, '', '', 0, null, null).then((result) => {
+                        if (result.length) {
+                            let newOrders = result.map((order, index) => {
+                                let pickername = "";
+                                let deliveryname = "";
+                                let pickingDate = "";
+                                let delilveryDateStart = "";
+                                let delilveryDateEnd = "";
+                                if (order.pickerId)
+                                    pickername = order.pickerId.name;
+                                if (order.deliveryId)
+                                    deliveryname = order.deliveryId.name;
+                                if (order.endPickingDate)
+                                    pickingDate = order.endPickingDate;
+                                if (order.starDeliveryDate)
+                                    delilveryDateStart = order.starDeliveryDate;
+                                if (order.endDeliveryDate)
+                                    delilveryDateEnd = order.endDeliveryDate;
+                                const rows = [
+                                    this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                                    this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                                    this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                                ];
+                                if (!order.client.comment)
+                                    order.set('client.comment', "Sin Comentarios", { strict: false });
+                                order.set('timeLine', [...rows], { strict: false });
+                                return order;
+                            });
+                            response.json({
+                                message: 'Listado de ordenes',
+                                data: newOrders,
+                                success: true
+                            });
+                        }
+                        else {
+                            response.json({
+                                message: 'Listado de ordenes',
+                                data: result,
+                                success: true
+                            });
+                        }
+                    }).catch((err) => {
+                        response.json({
+                            message: err.message,
+                            success: false
+                        });
                     });
                 }
-                else {
-                    response.json({
-                        message: 'Listado de ordenes',
-                        data: result,
-                        success: true
-                    });
-                }
+                else { }
             }).catch((err) => {
                 response.json({
                     message: err.message,
@@ -938,24 +967,23 @@ class OrdersController {
             let query_ = {};
             let populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
-            queryState = { $or: [{ "key": 6 }, { "key": 7 }] };
+            queryState = { "key": { $in: [6, 7] } };
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 let arrayQuery = [];
                 if (findResult.length > 0) {
                     findResult.map((stat) => {
                         let stateId = stat._id;
-                        arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
+                        console.log(stat);
+                        arrayQuery.push(mongoose_1.default.Types.ObjectId(stateId));
                     });
-                    query_['$or'] = [...arrayQuery];
-                    let queryArr = [];
+                    query_['state'] = { $in: arrayQuery };
                     if (company)
-                        queryArr.push({ 'uid': mongoose_1.default.Types.ObjectId(company) });
+                        query_['uid'] = mongoose_1.default.Types.ObjectId(company);
                     if (shopId)
-                        queryArr.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
+                        query_['shopId'] = mongoose_1.default.Types.ObjectId(shopId);
                     if (orderNumber)
-                        queryArr.push({ 'orderNumber': orderNumber });
-                    if (company || shopId || orderNumber)
-                        query_['$and'] = [...queryArr];
+                        query_['orderNumber'] = orderNumber;
+                    console.log("test", query_);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1376,67 +1404,93 @@ class OrdersController {
             const { company, profile, query } = request.body;
             let _query;
             let query_ = {};
-            let populate = 'bag pickerId deliveryId state service shopId';
+            let _populate1 = {};
+            let _populate2 = {};
+            let namePicker = "";
+            let nameDelivery = "";
+            let populate = '';
             let queryState;
             queryState = { $or: [{ "key": 2 }] };
             let arrayQuery = [];
+            console.log(query);
             if (Object.keys(query).length > 0) {
                 if (query.buyFromDate && query.buyToDate) {
-                    arrayQuery.push({
-                        'date': {
-                            $gte: new Date(query.buyFromDate),
-                            $lt: new Date(query.buyToDate)
-                        }
-                    });
+                    let from = new Date(query.buyFromDate);
+                    let to = new Date(query.buyToDate);
+                    from.setHours(0);
+                    from.setMinutes(0);
+                    from.setSeconds(0);
+                    to.setHours(23);
+                    to.setMinutes(59);
+                    to.setSeconds(59);
+                    query_['date'] = {
+                        $gte: from,
+                        $lt: to
+                    };
                 }
                 if (query.buyFromDate && !query.buyToDate) {
-                    arrayQuery.push({
-                        'date': {
-                            $gte: new Date(query.buyFromDate),
-                            $lt: new Date()
-                        }
-                    });
+                    let from = new Date(query.buyFromDate);
+                    let to = new Date();
+                    from.setHours(0);
+                    from.setMinutes(0);
+                    from.setSeconds(0);
+                    query_['date'] = {
+                        $gte: from,
+                        $lt: to
+                    };
                 }
                 if (query.deliveryFromDate && query.deliveryToDate) {
-                    arrayQuery.push({
-                        'endDeliveryDate': {
-                            $gte: new Date(query.deliveryFromDate),
-                            $lt: new Date(query.deliveryToDate)
-                        }
-                    });
+                    let from = new Date(query.deliveryFromDate);
+                    let to = new Date(query.deliveryToDate);
+                    from.setHours(0);
+                    from.setMinutes(0);
+                    from.setSeconds(0);
+                    to.setHours(23);
+                    to.setMinutes(59);
+                    to.setSeconds(59);
+                    query_['realdatedelivery'] = {
+                        $gte: from,
+                        $lt: to
+                    };
                 }
                 if (query.deliveryFromDate && !query.deliveryToDate) {
-                    arrayQuery.push({
-                        'endDeliveryDate': {
-                            $gte: new Date(query.deliveryFromDate),
-                            $lt: new Date()
-                        }
-                    });
+                    let from = new Date(query.deliveryFromDate);
+                    let to = new Date();
+                    from.setHours(0);
+                    from.setMinutes(0);
+                    from.setSeconds(0);
+                    to.setHours(23);
+                    to.setMinutes(59);
+                    to.setSeconds(59);
+                    query_['realdatedelivery'] = {
+                        $gte: from,
+                        $lt: from
+                    };
                 }
                 if (query.rut) {
-                    arrayQuery.push({ 'client.rut': query.rut });
+                    query_['client.rut'] = query.rut;
                 }
                 if (query.orderNumber) {
-                    arrayQuery.push({ 'orderNumber': query.orderNumber });
+                    query_['orderNumber'] = query.orderNumber;
                 }
                 if (query.service) {
-                    arrayQuery.push({ 'service': mongoose_1.default.Types.ObjectId(query.service) });
+                    query_['service'] = mongoose_1.default.Types.ObjectId(query.service);
                 }
                 if (query.shopId) {
-                    arrayQuery.push({ 'shopId': mongoose_1.default.Types.ObjectId(query.shopId) });
+                    query_['shopId'] = mongoose_1.default.Types.ObjectId(query.shopId);
                 }
                 if (query.pickerName) {
-                    arrayQuery.push({ 'pickerId.name': query.pickerName });
+                    namePicker = query.pickerName;
+                    query_['pickerId'] = { $ne: null };
                 }
                 if (query.deliveryName) {
-                    arrayQuery.push({ 'deliveryId.name': query.deliveryName });
+                    nameDelivery = query.deliveryName;
+                    query_['deliveryId'] = { $ne: null };
                 }
             }
             if (company)
                 query_['uid'] = mongoose_1.default.Types.ObjectId(company);
-            if (arrayQuery.length > 0)
-                query_['$and'] = [...arrayQuery];
-            findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+            findDocuments(Orders_1.default, query_, "", {}, '', 0, null, null).then((result) => {
                 if (result.length) {
                     let newOrders = result.map((order, index) => {
                         let pickername = "";
@@ -1464,9 +1518,24 @@ class OrdersController {
                         order.set('timeLine', [...rows], { strict: false });
                         return order;
                     });
+                    let filterOrders = newOrders.filter((orders) => {
+                        if (namePicker && nameDelivery) {
+                            if (namePicker) {
+                                if (orders.pickerId.name == namePicker)
+                                    return orders;
+                            }
+                            if (nameDelivery) {
+                                if (orders.deliveryId.name == nameDelivery)
+                                    return orders;
+                            }
+                        }
+                        else {
+                            return orders;
+                        }
+                    });
                     response.json({
                         message: 'Listado de ordenes home',
-                        data: newOrders,
+                        data: filterOrders,
                         success: true,
                         orders: result.length
                     });
@@ -1562,7 +1631,6 @@ class OrdersController {
                 if (findResultState.length > 0) {
                     let stateId = findResultState[0]._id;
                     const { id, pickerId, shopId } = request.body;
-                    console.log(shopId);
                     if (id) {
                         let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
                         let update = { "pickerId": mongoose_1.default.Types.ObjectId(pickerId), startPickingDate: new Date(), state: mongoose_1.default.Types.ObjectId(stateId), shopId: mongoose_1.default.Types.ObjectId(shopId) };
@@ -1578,19 +1646,32 @@ class OrdersController {
                                 }
                                 else {
                                     findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
-                                        if (update) {
-                                            response.json({
-                                                message: 'Orden Tomada',
-                                                data: update,
-                                                success: true
-                                            });
-                                        }
-                                        else {
-                                            response.json({
-                                                message: "Error al actualizar orden",
-                                                success: false
-                                            });
-                                        }
+                                        console.log("aqui", update);
+                                        // let historyObj = {
+                                        //   state: mongoose.Types.ObjectId(stateId),
+                                        //   orderNumber: ,
+                                        //   order: mongoose.Types.ObjectId(id),
+                                        //   bag: null,
+                                        //   shop: null,
+                                        //   picker: null,
+                                        //   delivery: null,
+                                        //   dateHistory: new Date()
+                                        // }
+                                        // insertDB(History, historyObj).then((result: HistoryInterface) => {
+                                        // }).catch((err: Error) => {
+                                        // });
+                                        // if (update) {
+                                        //   response.json({
+                                        //     message: 'Orden Tomada',
+                                        //     data: update,
+                                        //     success: true
+                                        //   });
+                                        // } else {
+                                        //   response.json({
+                                        //     message: "Error al actualizar orden",
+                                        //     success: false
+                                        //   });
+                                        // }
                                     }).catch((err) => {
                                         response.json({
                                             message: err,
@@ -1653,6 +1734,7 @@ class OrdersController {
                             orders = request.body.orders;
                             let stateId = findResult[0]._id;
                             let _orders = [];
+                            let history = [];
                             orders.map((order, index) => {
                                 // Aqui la logica para determinar la mejor hora de despacho
                                 let deliveryDate = new Date();
@@ -1675,13 +1757,38 @@ class OrdersController {
                                     realdatedelivery: deliveryDate,
                                     pickerWorkShift: "Mañana"
                                 };
+                                let historyObj = {
+                                    state: mongoose_1.default.Types.ObjectId(stateId),
+                                    orderNumber: order.orderNumber,
+                                    order: null,
+                                    bag: null,
+                                    shop: null,
+                                    picker: null,
+                                    delivery: null,
+                                    dateHistory: new Date()
+                                };
+                                history.push(historyObj);
                                 _orders.push(_order);
                             });
                             insertManyDB(Orders_1.default, _orders).then((result) => {
-                                response.json({
-                                    message: 'orden(es) creada(s) exitosamente',
-                                    data: result,
-                                    success: true
+                                result.map((order) => {
+                                    history.map((history) => {
+                                        if (order.orderNumber == history.orderNumber)
+                                            history.order = mongoose_1.default.Types.ObjectId(order._id);
+                                    });
+                                });
+                                insertManyDB(History_1.default, _orders).then((result) => {
+                                    // executeInsertProcedure()
+                                    response.json({
+                                        message: 'orden(es) creada(s) exitosamente',
+                                        data: result,
+                                        success: true
+                                    });
+                                }).catch((err) => {
+                                    response.json({
+                                        message: err.message,
+                                        success: false
+                                    });
                                 });
                             }).catch((err) => {
                                 response.json({
