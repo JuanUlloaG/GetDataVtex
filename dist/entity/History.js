@@ -28,6 +28,7 @@ const HistorySchema = new mongoose_1.Schema({
     delivery: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
     state: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "State", default: null, autopopulate: true },
     orderNumber: { type: String, required: true },
+    orderSnapShot: { type: Object, required: true },
     dateHistory: { type: Date, required: true, default: new Date() },
 });
 const History = mongoose_1.default.model("History", HistorySchema, "history");

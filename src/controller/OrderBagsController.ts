@@ -220,10 +220,36 @@ export class OrderBagsController {
                             if (updateOrder) {
                                 findOneAndUpdateDB(OrderBags, query, updateBag, null, null).then((update: OrderBagsInterface) => {
                                     if (update) {
-                                        response.json({
-                                            message: 'Orden actualizada exitosamente',
-                                            data: update,
-                                            success: true
+                                        let historyObj = {
+                                            state: mongoose.Types.ObjectId(stateId),
+                                            orderNumber: updateOrder.orderNumber,
+                                            order: mongoose.Types.ObjectId(updateOrder._id),
+                                            bag: mongoose.Types.ObjectId(id),
+                                            shop: mongoose.Types.ObjectId(updateOrder.shopId),
+                                            picker: mongoose.Types.ObjectId(updateOrder.pickerId),
+                                            delivery: mongoose.Types.ObjectId(deliveryId),
+                                            orderSnapShot: updateOrder,
+                                            dateHistory: new Date()
+                                        }
+                                        insertDB(History, historyObj).then((result: HistoryInterface) => {
+                                            if (result) {
+                                                response.json({
+                                                    message: 'Orden Actualizada correctamente',
+                                                    data: update,
+                                                    success: true
+                                                });
+                                            } else {
+                                                response.json({
+                                                    message: 'Error al actualizar la orden',
+                                                    data: result,
+                                                    success: true
+                                                });
+                                            }
+                                        }).catch((err: Error) => {
+                                            response.json({
+                                                message: err.message,
+                                                success: false
+                                            });
                                         });
                                     } else {
                                         response.json({

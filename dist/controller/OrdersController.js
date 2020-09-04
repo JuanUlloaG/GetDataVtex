@@ -125,7 +125,6 @@ class OrdersController {
             findDocuments(State_1.default, query, "", {}, '', '', 0, null, null).then((findResultState) => {
                 if (findResultState.length > 0) {
                     let stateId = findResultState[0]._id;
-                    // let updateOrder: any = { state: mongoose.Types.ObjectId(stateId) }
                     let updateOrder = { products: products };
                     updateOrder['isInShop'] = true;
                     findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
@@ -665,7 +664,6 @@ class OrdersController {
                         arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
                     if (arrayQuery.length > 0)
                         query_['$and'] = [...arrayQuery];
-                    console.log("result", query);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         console.log("result", result);
                         if (result.length) {
@@ -697,7 +695,6 @@ class OrdersController {
                             });
                             try {
                                 let data = newOrders;
-                                //console.log(data)
                                 let headers = ["Numero de Pedido", "Nombre Cliente", "F. de compra", "F. de compromiso", "Canal", "Servicio", "Estado"];
                                 let reportdata = data.map(field => {
                                     let file = `{
@@ -807,7 +804,6 @@ class OrdersController {
                         if (query.shopId)
                             query_['shopId'] = mongoose_1.default.Types.ObjectId(query.shopId);
                     }
-                    console.log(query_);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1578,10 +1574,37 @@ class OrdersController {
                         let update = { "pickerId": null, startPickingDate: null, state: mongoose_1.default.Types.ObjectId(stateId), shopId: null };
                         findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
                             if (update) {
-                                response.json({
-                                    message: 'Orden Tomada',
-                                    data: update,
-                                    success: true
+                                let historyObj = {
+                                    state: mongoose_1.default.Types.ObjectId(stateId),
+                                    orderNumber: update.orderNumber,
+                                    order: mongoose_1.default.Types.ObjectId(update._id),
+                                    bag: null,
+                                    shop: null,
+                                    picker: null,
+                                    delivery: null,
+                                    orderSnapShot: update,
+                                    dateHistory: new Date()
+                                };
+                                insertDB(History_1.default, historyObj).then((result) => {
+                                    if (result) {
+                                        response.json({
+                                            message: 'Orden dejada',
+                                            data: update,
+                                            success: true
+                                        });
+                                    }
+                                    else {
+                                        response.json({
+                                            message: 'Error al Tomar la orden',
+                                            data: result,
+                                            success: true
+                                        });
+                                    }
+                                }).catch((err) => {
+                                    response.json({
+                                        message: err.message,
+                                        success: false
+                                    });
                                 });
                             }
                             else {
@@ -1646,35 +1669,49 @@ class OrdersController {
                                 }
                                 else {
                                     findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
-                                        console.log("aqui", update);
-                                        // let historyObj = {
-                                        //   state: mongoose.Types.ObjectId(stateId),
-                                        //   orderNumber: ,
-                                        //   order: mongoose.Types.ObjectId(id),
-                                        //   bag: null,
-                                        //   shop: null,
-                                        //   picker: null,
-                                        //   delivery: null,
-                                        //   dateHistory: new Date()
-                                        // }
-                                        // insertDB(History, historyObj).then((result: HistoryInterface) => {
-                                        // }).catch((err: Error) => {
-                                        // });
-                                        // if (update) {
-                                        //   response.json({
-                                        //     message: 'Orden Tomada',
-                                        //     data: update,
-                                        //     success: true
-                                        //   });
-                                        // } else {
-                                        //   response.json({
-                                        //     message: "Error al actualizar orden",
-                                        //     success: false
-                                        //   });
-                                        // }
+                                        if (update) {
+                                            let historyObj = {
+                                                state: mongoose_1.default.Types.ObjectId(stateId),
+                                                orderNumber: update.orderNumber,
+                                                order: mongoose_1.default.Types.ObjectId(update._id),
+                                                bag: null,
+                                                shop: null,
+                                                picker: mongoose_1.default.Types.ObjectId(pickerId),
+                                                delivery: null,
+                                                orderSnapShot: update,
+                                                dateHistory: new Date()
+                                            };
+                                            insertDB(History_1.default, historyObj).then((result) => {
+                                                if (result) {
+                                                    response.json({
+                                                        message: 'Orden Tomada',
+                                                        data: update,
+                                                        success: true
+                                                    });
+                                                }
+                                                else {
+                                                    response.json({
+                                                        message: 'Error al Tomar la orden',
+                                                        data: result,
+                                                        success: true
+                                                    });
+                                                }
+                                            }).catch((err) => {
+                                                response.json({
+                                                    message: err.message,
+                                                    success: false
+                                                });
+                                            });
+                                        }
+                                        else {
+                                            response.json({
+                                                message: "Error al tomar la orden",
+                                                success: false
+                                            });
+                                        }
                                     }).catch((err) => {
                                         response.json({
-                                            message: err,
+                                            message: err.message,
                                             success: false
                                         });
                                     });
@@ -1682,7 +1719,7 @@ class OrdersController {
                             }
                             else {
                                 response.json({
-                                    message: "Error al actualizar orden",
+                                    message: "Error al tomar laa orden",
                                     success: false
                                 });
                             }
@@ -1773,11 +1810,13 @@ class OrdersController {
                             insertManyDB(Orders_1.default, _orders).then((result) => {
                                 result.map((order) => {
                                     history.map((history) => {
-                                        if (order.orderNumber == history.orderNumber)
+                                        if (order.orderNumber == history.orderNumber) {
                                             history.order = mongoose_1.default.Types.ObjectId(order._id);
+                                            history['orderSnapShot'] = order;
+                                        }
                                     });
                                 });
-                                insertManyDB(History_1.default, _orders).then((result) => {
+                                insertManyDB(History_1.default, history).then((result) => {
                                     // executeInsertProcedure()
                                     response.json({
                                         message: 'orden(es) creada(s) exitosamente',
@@ -1786,13 +1825,13 @@ class OrdersController {
                                     });
                                 }).catch((err) => {
                                     response.json({
-                                        message: err.message,
+                                        message: err,
                                         success: false
                                     });
                                 });
                             }).catch((err) => {
                                 response.json({
-                                    message: err,
+                                    message: err.message,
                                     success: false
                                 });
                             });
@@ -1805,7 +1844,7 @@ class OrdersController {
                         }
                     }).catch((err) => {
                         response.json({
-                            message: err,
+                            message: err.message,
                             success: false
                         });
                     });
@@ -1818,7 +1857,7 @@ class OrdersController {
                 }
             }).catch((err) => {
                 response.json({
-                    message: err,
+                    message: err.message,
                     success: false
                 });
             });
