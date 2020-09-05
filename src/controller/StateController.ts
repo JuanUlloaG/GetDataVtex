@@ -21,7 +21,6 @@ export class StateControllers {
     async findBy(request: Request, response: Response, next: NextFunction, app: any) {
         let queryState = { $or: [{ "key": 0 }, { "key": 2 }] }
         findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
-            console.log(findResult)
             response.json({
                 message: findResult,
                 success: false

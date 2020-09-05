@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const { mongo, sqlConfig } = require("./config");
 const tedious_1 = require("tedious");
-var connection;
 module.exports = {
     initDB: function (res, req) {
         return new Promise(function (resolve, reject) {
@@ -36,21 +35,24 @@ module.exports = {
         });
     },
     conectionToSql: function (res, req) {
-        // return new Promise(function (resolve, reject) {
-        //     try {
-        //         connection = new Connection(sqlConfig);
-        //         connection.on('connect', function (err: Error) {
-        //             if (err) {
-        //                 reject(err.message)
-        //             } else {
-        //                 console.log("Connected To Sql");
-        //                 resolve(true)
-        //             }
-        //         });
-        //     } catch (error) {
-        //         console.log(error.message)
-        //     }
-        // })
+        return new Promise(function (resolve, reject) {
+            try {
+                var connection;
+                connection = new tedious_1.Connection(sqlConfig);
+                connection.on('connect', function (err) {
+                    if (err) {
+                        reject(err.message);
+                    }
+                    else {
+                        console.log("Connected To Sql");
+                        resolve(true);
+                    }
+                });
+            }
+            catch (error) {
+                console.log(error.message);
+            }
+        });
     },
     executeStatement: function executeQuery() {
         // try {
@@ -85,21 +87,33 @@ module.exports = {
         //     console.log(error.message)
         // }
     },
-    executeInsertProcedure: function () {
-        connection = new tedious_1.Connection(sqlConfig);
-        connection.on('connect', function (err) {
-            if (err) {
-            }
-            else {
-                var request = new tedious_1.Request("[OMS].[CosmoIngresoOrder]", function (err) {
+    executeProcedure: function (procedureName, params) {
+        return new Promise(function (resolve, reject) {
+            var connection;
+            connection = new tedious_1.Connection(sqlConfig);
+            connection.connect(function (err) {
+                var request = new tedious_1.Request(procedureName, function (err) {
                     if (err) {
-                        console.log(err);
+                        console.log(err.message);
+                        reject(false);
+                    }
+                    connection.close();
+                    resolve(true);
+                });
+                let Keys = Object.keys(params);
+                Keys.map((key) => {
+                    if (key == "FecAgendada") {
+                        request.addParameter(key, tedious_1.TYPES.DateTime, params[key]);
+                    }
+                    else if (key == "UnSolicitadas" || key == "EsReagendamiento") {
+                        request.addParameter(key, tedious_1.TYPES.Int, params[key]);
+                    }
+                    else {
+                        request.addParameter(key, tedious_1.TYPES.VarChar, params[key]);
                     }
                 });
-                request.addParameter("OrdenTrabajo", tedious_1.TYPES.VarChar, "123456789666");
                 connection.callProcedure(request);
-                connection.close();
-            }
+            });
         });
     },
     insertDB: function (form, obj) {
@@ -112,7 +126,7 @@ module.exports = {
                 else {
                     resolve(document);
                 }
-            });
+            }).populate();
         });
     },
     insertManyDB: async function (form, obj) {

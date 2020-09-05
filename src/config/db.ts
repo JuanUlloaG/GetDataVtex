@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { MongoError } from "mongodb";
 const { mongo, sqlConfig } = require("./config")
 import Conect, { Connection, Request as TediusRequest, TYPES, ConnectionConfig } from "tedious";
-var connection: any;
+
 
 
 module.exports = {
@@ -33,21 +33,22 @@ module.exports = {
         })
     },
     conectionToSql: function (res: Response, req: Request) {
-        // return new Promise(function (resolve, reject) {
-        //     try {
-        //         connection = new Connection(sqlConfig);
-        //         connection.on('connect', function (err: Error) {
-        //             if (err) {
-        //                 reject(err.message)
-        //             } else {
-        //                 console.log("Connected To Sql");
-        //                 resolve(true)
-        //             }
-        //         });
-        //     } catch (error) {
-        //         console.log(error.message)
-        //     }
-        // })
+        return new Promise(function (resolve, reject) {
+            try {
+                var connection: any;
+                connection = new Connection(sqlConfig);
+                connection.on('connect', function (err: Error) {
+                    if (err) {
+                        reject(err.message)
+                    } else {
+                        console.log("Connected To Sql");
+                        resolve(true)
+                    }
+                });
+            } catch (error) {
+                console.log(error.message)
+            }
+        })
     },
     executeStatement: function executeQuery() {
 
@@ -85,21 +86,32 @@ module.exports = {
         // }
 
     },
-    executeInsertProcedure: function () {
-        connection = new Connection(sqlConfig);
-        connection.on('connect', function (err: Error) {
-            if (err) {
-            } else {
-                var request = new TediusRequest("[OMS].[CosmoIngresoOrder]", function (err) {
+    executeProcedure: function (procedureName: string, params: any) {
+        return new Promise(function (resolve, reject) {
+            var connection: any;
+            connection = new Connection(sqlConfig);
+            connection.connect(function (err: Error) {
+                var request = new TediusRequest(procedureName, function (err: Error) {
                     if (err) {
-                        console.log(err);
+                        console.log(err.message);
+                        reject(false)
+                    }
+                    connection.close();
+                    resolve(true)
+                });
+                let Keys = Object.keys(params)
+                Keys.map((key: any) => {
+                    if (key == "FecAgendada") {
+                        request.addParameter(key, TYPES.DateTime, params[key])
+                    } else if (key == "UnSolicitadas" || key == "EsReagendamiento") {
+                        request.addParameter(key, TYPES.Int, params[key])
+                    } else {
+                        request.addParameter(key, TYPES.VarChar, params[key])
                     }
                 })
-
-                request.addParameter("OrdenTrabajo", TYPES.VarChar, "123456789666")
                 connection.callProcedure(request);
-                connection.close()
-            }
+
+            });
         })
     },
     insertDB: function (form: any, obj: any) {
@@ -111,7 +123,7 @@ module.exports = {
                     else {
                         resolve(document)
                     }
-                })
+                }).populate()
         })
     },
     insertManyDB: async function (form: any, obj: any) {

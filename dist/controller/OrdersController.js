@@ -10,9 +10,10 @@ const jwt = require('jsonwebtoken');
 const Orders_1 = __importDefault(require("../entity/Orders"));
 const State_1 = __importDefault(require("../entity/State"));
 const Services_1 = __importDefault(require("../entity/Services"));
-const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, executeInsertProcedure } = require("../config/db");
+const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, executeProcedure } = require("../config/db");
 const moment_1 = __importDefault(require("moment"));
 const History_1 = __importDefault(require("../entity/History"));
+const Company_1 = __importDefault(require("../entity/Company"));
 // mongoose.set('debug', true);
 class OrdersController {
     async all(request, response, next, app) {
@@ -1770,14 +1771,18 @@ class OrdersController {
                             let orders;
                             orders = request.body.orders;
                             let stateId = findResult[0]._id;
+                            let stateDesc = findResult[0].desc;
                             let _orders = [];
                             let history = [];
+                            let orderNumbers = [];
+                            let companyUID;
+                            let ordersProcedure = [];
+                            let findService;
                             orders.map((order, index) => {
                                 // Aqui la logica para determinar la mejor hora de despacho
                                 let deliveryDate = new Date();
                                 deliveryDate.setHours(new Date(order.date).getHours() + Math.floor(Math.random() * 6) + 1);
                                 // Fin logica para generar hora 
-                                let findService;
                                 ServicesResult.map((service) => {
                                     if (service.key == order.service)
                                         findService = Object.assign(service);
@@ -1804,28 +1809,109 @@ class OrdersController {
                                     delivery: null,
                                     dateHistory: new Date()
                                 };
+                                orderNumbers.push(order.orderNumber);
+                                companyUID = mongoose_1.default.Types.ObjectId(request.body.uid);
                                 history.push(historyObj);
                                 _orders.push(_order);
                             });
-                            insertManyDB(Orders_1.default, _orders).then((result) => {
-                                result.map((order) => {
-                                    history.map((history) => {
-                                        if (order.orderNumber == history.orderNumber) {
-                                            history.order = mongoose_1.default.Types.ObjectId(order._id);
-                                            history['orderSnapShot'] = order;
+                            findDocuments(Orders_1.default, { 'uid': companyUID, orderNumber: { '$in': orderNumbers } }, "", {}, '', '', 0, null, null).then((OrdersFind) => {
+                                // console.log(OrdersFind)
+                                // let orderfinal = _orders.filter((order) => order.orderNumber !== )
+                                insertManyDB(Orders_1.default, _orders).then((result) => {
+                                    findDocuments(Company_1.default, { _id: companyUID }, "", {}, '', '', 0, null, null).then((CompanyResult) => {
+                                        if (CompanyResult.length > 0) {
+                                            let test;
+                                            result.map((order) => {
+                                                history.map((history) => {
+                                                    if (order.orderNumber == history.orderNumber) {
+                                                        history.order = mongoose_1.default.Types.ObjectId(order._id);
+                                                        history['orderSnapShot'] = order;
+                                                    }
+                                                });
+                                                let serviceDesc = "";
+                                                let companyName = CompanyResult[0].name;
+                                                ServicesResult.map((service) => {
+                                                    if (service._id == order.service)
+                                                        serviceDesc = service.desc;
+                                                });
+                                                let param = {
+                                                    "CuentaCliente": companyName,
+                                                    "OrderTrabajo": order.orderNumber,
+                                                    "NLocal": "",
+                                                    "Local_Longitud": "-77.00000",
+                                                    "Local_Latitud": "-33.77777",
+                                                    "FecAgendada": order.realdatedelivery,
+                                                    "UnSolicitadas": 5,
+                                                    "Supervisor": "",
+                                                    "RUT_Cliente": order.client.rut,
+                                                    "Comuna_Cliente": order.client.comuna,
+                                                    "Region_Cliente": order.client.ciudad,
+                                                    "Longitud": "-77.00000",
+                                                    "Latitud": "-77.00000",
+                                                    "Estado": stateDesc,
+                                                    "EsReagendamiento": 0,
+                                                    "CanalVenta": order.channel,
+                                                    "TipoDespacho": serviceDesc,
+                                                };
+                                                test = {
+                                                    "CuentaCliente": companyName,
+                                                    "OrderTrabajo": order.orderNumber,
+                                                    "NLocal": "",
+                                                    "Local_Longitud": "-77.00000",
+                                                    "Local_Latitud": "-33.77777",
+                                                    "FecAgendada": order.realdatedelivery,
+                                                    "UnSolicitadas": 5,
+                                                    "Supervisor": "",
+                                                    "RUT_Cliente": order.client.rut,
+                                                    "Comuna_Cliente": order.client.comuna,
+                                                    "Region_Cliente": order.client.ciudad,
+                                                    "Longitud": "-77.00000",
+                                                    "Latitud": "-77.00000",
+                                                    "Estado": stateDesc,
+                                                    "EsReagendamiento": 0,
+                                                    "CanalVenta": order.channel,
+                                                    "TipoDespacho": serviceDesc,
+                                                };
+                                                ordersProcedure.push(param);
+                                            });
+                                            insertManyDB(History_1.default, history).then((result) => {
+                                                let promisesOrders = ordersProcedure.map((order) => {
+                                                    return executeProcedure("[OMS].[IngresoOrder]", order);
+                                                });
+                                                Promise.all(promisesOrders).then((resultPromises) => {
+                                                    response.json({
+                                                        message: 'orden(es) creada(s) exitosamente',
+                                                        data: result,
+                                                        success: true
+                                                    });
+                                                }).catch((err) => {
+                                                    response.json({
+                                                        message: err.message,
+                                                        success: false
+                                                    });
+                                                });
+                                            }).catch((err) => {
+                                                response.json({
+                                                    message: err.message,
+                                                    success: false
+                                                });
+                                            });
                                         }
-                                    });
-                                });
-                                insertManyDB(History_1.default, history).then((result) => {
-                                    // executeInsertProcedure()
-                                    response.json({
-                                        message: 'orden(es) creada(s) exitosamente',
-                                        data: result,
-                                        success: true
+                                        else {
+                                            response.json({
+                                                message: "Error al ingresar las ordenes, no se ha encontrado un estado valido",
+                                                success: false
+                                            });
+                                        }
+                                    }).catch((err) => {
+                                        response.json({
+                                            message: err.message,
+                                            success: false
+                                        });
                                     });
                                 }).catch((err) => {
                                     response.json({
-                                        message: err,
+                                        message: err.message,
                                         success: false
                                     });
                                 });
