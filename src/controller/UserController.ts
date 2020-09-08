@@ -180,8 +180,8 @@ export class UserController {
   async save(request: Request, response: Response, next: NextFunction, app: any) {
     try {
 
-      const { name, phone, email, profile, rut, password, company } = request.body
-      if (!name || !phone || !email || !profile || !rut || !password) {
+      const { name, lastname, phone, email, profile, rut, password, company } = request.body
+      if (!name || !lastname || !phone || !email || !profile || !rut || !password) {
         response.json({
           message: `Error! al crear usuario, hace falta data.`,
           success: false
@@ -205,7 +205,7 @@ export class UserController {
             let _user: any = {};
             if (findResult.length > 0) {
               let stateId = findResult[0]._id;
-              _user = { name, rut, email, password: hashedPassword, phone, profile: mongoose.Types.ObjectId(profile), condition: mongoose.Types.ObjectId(stateId), state: false }
+              _user = { name, lastname, rut, email, password: hashedPassword, phone, profile: mongoose.Types.ObjectId(profile), condition: mongoose.Types.ObjectId(stateId), state: false }
               let queryPrevUser: any = { 'rut': rut }
               if (company) {
                 _user['company'] = mongoose.Types.ObjectId(company)
@@ -215,7 +215,7 @@ export class UserController {
                 if (!result.length) {
                   insertDB(User, _user).then((result: any) => {
                     response.json({
-                      message: 'Usuario ' + name + ' Creado exitosamente ',
+                      message: 'Usuario ' + name + " " + lastname + ' Creado exitosamente ',
                       data: result,
                       success: true
                     });

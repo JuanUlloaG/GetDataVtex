@@ -4,9 +4,9 @@ const jwt = require('jsonwebtoken');
 import OrderBags, { OrderBagsInterface } from "../entity/OrderBags";
 import Orders, { OrderInterface } from "../entity/Orders";
 import BagNumber from "../entity/Bagnumber";
-import State from "../entity/State";
+import State, { StateInterface } from "../entity/State";
 import { schemaBags } from "../entity/OrderBags";
-const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB } = require("../config/db")
+const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB, executeProcedure, findOneDB } = require("../config/db")
 import Ajv from 'ajv';
 import { ObjectId } from "mongodb";
 import History, { HistoryInterface } from "../entity/History";
@@ -306,12 +306,14 @@ export class OrderBagsController {
         }
     }
 
+    //metodo donde se finaliza el despacho de la orden  
     async updateBagReceived(request: Request, response: Response, next: NextFunction, app: any) {
         try {
             let query = { "key": 5 }
-            findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
+            findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<StateInterface>) => {
                 if (findResultState.length > 0) {
                     let stateId = findResultState[0]._id;
+                    let stateDesc = findResultState[0].desc;
                     const { id, comment, received, orderId } = request.body
                     if (id) {
                         let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
@@ -322,28 +324,63 @@ export class OrderBagsController {
                             if (updateOrder) {
                                 findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: OrderBagsInterface) => {
                                     if (update) {
-                                        let historyObj = {
-                                            state: mongoose.Types.ObjectId(stateId),
-                                            orderNumber: updateOrder.orderNumber,
-                                            order: mongoose.Types.ObjectId(updateOrder._id),
-                                            bag: mongoose.Types.ObjectId(id),
-                                            shop: mongoose.Types.ObjectId(updateOrder.shopId),
-                                            picker: mongoose.Types.ObjectId(updateOrder.pickerId),
-                                            delivery: mongoose.Types.ObjectId(updateOrder.deliveryId),
-                                            orderSnapShot: updateOrder,
-                                            dateHistory: new Date()
-                                        }
-                                        insertDB(History, historyObj).then((result: HistoryInterface) => {
-                                            if (result) {
-                                                response.json({
-                                                    message: 'Orden Actualizada correctamente',
-                                                    data: update,
-                                                    success: true
+                                        findOneDB(Orders, orderId, "", {}, '', '', 0, null, null).then((OrderResult: OrderInterface) => {
+                                            if (OrderResult) {
+                                                let historyObj = {
+                                                    state: mongoose.Types.ObjectId(stateId),
+                                                    orderNumber: updateOrder.orderNumber,
+                                                    order: mongoose.Types.ObjectId(OrderResult._id),
+                                                    bag: mongoose.Types.ObjectId(id),
+                                                    shop: mongoose.Types.ObjectId(OrderResult.shopId),
+                                                    picker: mongoose.Types.ObjectId(OrderResult.pickerId),
+                                                    delivery: mongoose.Types.ObjectId(OrderResult.deliveryId),
+                                                    orderSnapShot: Object.assign({}, OrderResult.toJSON()),
+                                                    dateHistory: new Date()
+                                                }
+                                                let param: object = {
+                                                    "CuentaCliente": OrderResult.uid.name,
+                                                    "OrderTrabajo": OrderResult.orderNumber,
+                                                    "FechaEntregaReal": OrderResult.endDeliveryDate ? new Date(OrderResult.endDeliveryDate) : null,
+                                                    "RUT_Delivery": OrderResult.pickerId.rut,
+                                                    "Nombre_Delivery": OrderResult.pickerId.name,
+                                                    "Apellido_Delivery": OrderResult.pickerId.lastname,
+                                                    "FechaRecepcionDelivery": null,
+                                                    "Estado": stateDesc,
+                                                }
+                                                insertDB(History, historyObj).then((result: HistoryInterface) => {
+                                                    if (result) {
+                                                        executeProcedure("[OMS].[Delivery]", param).then((result: any) => {
+                                                            if (result) {
+                                                                response.json({
+                                                                    message: 'Orden Actualizada correctamente',
+                                                                    data: update,
+                                                                    success: true
+                                                                });
+                                                            } else {
+                                                                response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false });
+                                                            }
+                                                        }).catch((err: any) => {
+                                                            response.json({ message: err, success: false });
+                                                        });
+
+
+
+                                                    } else {
+                                                        response.json({
+                                                            message: 'Error al actualizar la orden',
+                                                            data: result,
+                                                            success: true
+                                                        });
+                                                    }
+                                                }).catch((err: Error) => {
+                                                    response.json({
+                                                        message: err.message,
+                                                        success: false
+                                                    });
                                                 });
                                             } else {
                                                 response.json({
                                                     message: 'Error al actualizar la orden',
-                                                    data: result,
                                                     success: true
                                                 });
                                             }
@@ -353,6 +390,7 @@ export class OrderBagsController {
                                                 success: false
                                             });
                                         });
+
                                     } else {
                                         console.log(update)
                                         response.json({
@@ -412,13 +450,24 @@ export class OrderBagsController {
     async save(request: Request, response: Response, next: NextFunction, app: any) {
         try {
             let query = { "key": 3 }
-            findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
+            findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<StateInterface>) => {
                 if (findResultState.length > 0) {
                     let stateId = findResultState[0]._id;
+                    let stateDesc = findResultState[0].desc;
                     const { orderNumber, bags, shopId, pickerId } = request.body
                     let bag = { orderNumber, bags, shopId, pickerId }
                     let valid = validate(bag)
+                    let unitsPicked = 0
+                    let unitsReplaced = 0
+                    let unitsBroken = 0
                     if (valid) {
+                        bags.map((row: any) => {
+                            row.products.map((bag: any) => {
+                                unitsPicked = bag.unitsPicked + unitsPicked
+                                unitsReplaced = bag.unitsReplaced + unitsReplaced
+                                unitsBroken = bag.unitsBroken + unitsBroken
+                            })
+                        })
                         bag.orderNumber = mongoose.Types.ObjectId(orderNumber)
                         bag.shopId = mongoose.Types.ObjectId(shopId)
                         bag.pickerId = mongoose.Types.ObjectId(pickerId)
@@ -432,30 +481,67 @@ export class OrderBagsController {
                             "state": mongoose.Types.ObjectId(stateId),
                             endPickingDate: new Date()
                         }
+
                         findDocuments(OrderBags, queryFind, "", {}, '', '', 0, null, null).then((findResult: Array<OrderBagsInterface>) => {
-                            if (findResult.length > 0) {
+                            if (!findResult.length) {
                                 insertDB(OrderBags, bag).then((result: OrderBagsInterface) => {
                                     if (result) {
                                         update['bag'] = mongoose.Types.ObjectId(result._id)
-                                        findOneAndUpdateDB(Orders, query, update, null, null).then((update: OrderBagsInterface) => {
+                                        findOneAndUpdateDB(Orders, query, update, null, null).then((update: OrderInterface) => {
                                             if (update) {
-                                                let historyObj = {
-                                                    state: mongoose.Types.ObjectId(stateId),
-                                                    orderNumber: update.orderNumber,
-                                                    order: mongoose.Types.ObjectId(update._id),
-                                                    bag: mongoose.Types.ObjectId(result._id),
-                                                    shop: mongoose.Types.ObjectId(shopId),
-                                                    picker: mongoose.Types.ObjectId(pickerId),
-                                                    delivery: null,
-                                                    orderSnapShot: update,
-                                                    dateHistory: new Date()
-                                                }
-                                                insertDB(History, historyObj).then((result: HistoryInterface) => {
-                                                    if (result) {
-                                                        response.json({
-                                                            message: 'Orden guardada exitosamente',
-                                                            data: result,
-                                                            success: true
+                                                findOneDB(Orders, orderNumber, "", {}, '', '', 0, null, null).then((OrderResult: OrderInterface) => {
+                                                    if (OrderResult) {
+                                                        let historyObj = {
+                                                            state: mongoose.Types.ObjectId(stateId),
+                                                            orderNumber: update.orderNumber,
+                                                            order: mongoose.Types.ObjectId(update._id),
+                                                            bag: mongoose.Types.ObjectId(OrderResult.bag._id),
+                                                            shop: mongoose.Types.ObjectId(shopId),
+                                                            picker: mongoose.Types.ObjectId(pickerId),
+                                                            delivery: null,
+                                                            orderSnapShot: Object.assign({}, OrderResult.toJSON()),
+                                                            dateHistory: new Date()
+                                                        }
+                                                        let param: object = {
+                                                            "CuentaCliente": OrderResult.uid.name,
+                                                            "OrderTrabajo": OrderResult.orderNumber,
+                                                            "RUT_Picker": OrderResult.pickerId.rut,
+                                                            "Nombre_Picker": OrderResult.pickerId.name,
+                                                            "Apellido_Picker": OrderResult.pickerId.lastname,
+                                                            "InicioPicking": OrderResult.startPickingDate ? new Date(OrderResult.startPickingDate) : null,
+                                                            "FinPicking": OrderResult.endPickingDate ? new Date(OrderResult.endPickingDate) : null,
+                                                            "UnPickeadasSolicitadas": unitsPicked,
+                                                            "UnQuebradas": unitsBroken,
+                                                            "UnidadesSustituidas": unitsReplaced,
+                                                            "Estado": stateDesc,
+                                                        }
+                                                        insertDB(History, historyObj).then((result: HistoryInterface) => {
+                                                            if (result) {
+                                                                executeProcedure("[OMS].[PickingTerminado]", param).then((result: any) => {
+                                                                    if (result) {
+                                                                        response.json({
+                                                                            message: 'Orden guardada exitosamente',
+                                                                            data: result,
+                                                                            success: true
+                                                                        });
+                                                                    } else {
+                                                                        response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false });
+                                                                    }
+                                                                }).catch((err: any) => {
+                                                                    response.json({ message: err, success: false });
+                                                                });
+                                                            } else {
+                                                                response.json({
+                                                                    message: 'Error al Tomar la orden',
+                                                                    data: result,
+                                                                    success: true
+                                                                });
+                                                            }
+                                                        }).catch((err: Error) => {
+                                                            response.json({
+                                                                message: err.message,
+                                                                success: false
+                                                            });
                                                         });
                                                     } else {
                                                         response.json({
@@ -467,9 +553,10 @@ export class OrderBagsController {
                                                 }).catch((err: Error) => {
                                                     response.json({
                                                         message: err.message,
-                                                        success: false
+                                                        success: false,
+
                                                     });
-                                                });
+                                                })
                                             } else {
                                                 response.json({
                                                     message: "Ha ocurrido un error al actualizar la orden",
@@ -479,7 +566,7 @@ export class OrderBagsController {
                                         }).catch((err: Error) => {
                                             response.json({
                                                 message: err,
-                                                success: false
+                                                success: false,
                                             });
                                         });
                                     } else {
@@ -490,8 +577,9 @@ export class OrderBagsController {
                                     }
                                 }).catch((err: Error) => {
                                     response.json({
-                                        message: err,
-                                        success: false
+                                        message: err.message,
+                                        success: false,
+                                        que: "sdads"
                                     });
                                 });
                             } else {
@@ -502,7 +590,7 @@ export class OrderBagsController {
                             }
                         }).catch((err: Error) => {
                             response.json({
-                                message: err,
+                                message: err.message,
                                 success: false
                             });
                         });
@@ -522,8 +610,8 @@ export class OrderBagsController {
 
             }).catch((err: Error) => {
                 response.json({
-                    message: err,
-                    success: false
+                    message: err.message,
+                    success: false,
                 });
             });
 

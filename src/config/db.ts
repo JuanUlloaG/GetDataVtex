@@ -52,45 +52,17 @@ module.exports = {
     },
     executeStatement: function executeQuery() {
 
-        // try {
-        //     connection = new Connection(sqlConfig);
-        //     connection.on('connect', function (err: Error) {
-        //         if (err) {
-        //         } else {
-        //             console.log("Connected To Sql");
-        //             var request = new TediusRequest("SELECT * from OMS.CosmoOrder", function (err) {
-        //                 if (err) {
-        //                     console.log(err);
-        //                 }
-        //             });
-        //             var result = "";
-        //             request.on('row', function (columns) {
-        //                 columns.forEach(function (column) {
-        //                     if (column.value === null) {
-        //                         console.log('NULL');
-        //                     } else {
-        //                         result += column.value + " ";
-        //                     }
-        //                 });
-        //                 result = "";
-        //             });
-
-        //             request.on('done', function (rowCount, more) {
-        //                 console.log(rowCount + ' rows returned');
-        //             });
-        //             connection.execSql(request);
-        //         }
-        //     });
-        // } catch (error) {
-        //     console.log(error.message)
-        // }
-
     },
     executeProcedure: function (procedureName: string, params: any) {
         return new Promise(function (resolve, reject) {
             var connection: any;
             connection = new Connection(sqlConfig);
-            connection.connect(function (err: Error) {
+            connection.connect(function (errConn: Error) {
+                if (errConn) {
+                    console.log(errConn.message)
+                    connection.close();
+                    reject(false)
+                }
                 var request = new TediusRequest(procedureName, function (err: Error) {
                     if (err) {
                         console.log(err.message);
@@ -101,7 +73,7 @@ module.exports = {
                 });
                 let Keys = Object.keys(params)
                 Keys.map((key: any) => {
-                    if (key == "FecAgendada") {
+                    if (key == "FecAgendada" || key == "InicioPicking" || key == "FinPicking") {
                         request.addParameter(key, TYPES.DateTime, params[key])
                     } else if (key == "UnSolicitadas" || key == "EsReagendamiento") {
                         request.addParameter(key, TYPES.Int, params[key])
@@ -109,8 +81,10 @@ module.exports = {
                         request.addParameter(key, TYPES.VarChar, params[key])
                     }
                 })
+                request.on('requestCompleted', function () {
+                    connection.close();
+                });
                 connection.callProcedure(request);
-
             });
         })
     },
@@ -123,7 +97,7 @@ module.exports = {
                     else {
                         resolve(document)
                     }
-                }).populate()
+                })
         })
     },
     insertManyDB: async function (form: any, obj: any) {

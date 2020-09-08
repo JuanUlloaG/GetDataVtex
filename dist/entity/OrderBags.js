@@ -55,10 +55,10 @@ exports.schemaBags = {
     ]
 };
 const OrderBagsSchema = new mongoose_1.Schema({
-    orderNumber: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Order" },
-    shopId: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Shop" },
-    pickerId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
-    deliveryId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null },
+    orderNumber: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Order", autopopulate: true },
+    shopId: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Shop", autopopulate: true },
+    pickerId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
+    deliveryId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
     readyforDelivery: { type: Boolean, required: false, default: false },
     delivery: { type: Boolean, required: false, default: false },
     received: { type: String, required: false, default: "" },

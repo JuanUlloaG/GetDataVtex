@@ -29,6 +29,7 @@ const UserSchema = new mongoose_1.Schema({
     password: { type: String, required: true },
     rut: { type: String, required: true },
     name: { type: String, required: true },
+    lastName: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
     profile: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Profile" },

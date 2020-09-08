@@ -182,8 +182,8 @@ class UserController {
     }
     async save(request, response, next, app) {
         try {
-            const { name, phone, email, profile, rut, password, company } = request.body;
-            if (!name || !phone || !email || !profile || !rut || !password) {
+            const { name, lastname, phone, email, profile, rut, password, company } = request.body;
+            if (!name || !lastname || !phone || !email || !profile || !rut || !password) {
                 response.json({
                     message: `Error! al crear usuario, hace falta data.`,
                     success: false
@@ -207,7 +207,7 @@ class UserController {
                         let _user = {};
                         if (findResult.length > 0) {
                             let stateId = findResult[0]._id;
-                            _user = { name, rut, email, password: hashedPassword, phone, profile: mongoose_1.default.Types.ObjectId(profile), condition: mongoose_1.default.Types.ObjectId(stateId), state: false };
+                            _user = { name, lastname, rut, email, password: hashedPassword, phone, profile: mongoose_1.default.Types.ObjectId(profile), condition: mongoose_1.default.Types.ObjectId(stateId), state: false };
                             let queryPrevUser = { 'rut': rut };
                             if (company) {
                                 _user['company'] = mongoose_1.default.Types.ObjectId(company);
@@ -217,7 +217,7 @@ class UserController {
                                 if (!result.length) {
                                     insertDB(User_1.default, _user).then((result) => {
                                         response.json({
-                                            message: 'Usuario ' + name + ' Creado exitosamente ',
+                                            message: 'Usuario ' + name + " " + lastname + ' Creado exitosamente ',
                                             data: result,
                                             success: true
                                         });

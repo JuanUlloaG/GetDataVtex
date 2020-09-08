@@ -72,10 +72,10 @@ export const schemaBags = {
 }
 
 const OrderBagsSchema: Schema = new Schema({
-    orderNumber: { type: Schema.Types.ObjectId, required: true, ref: "Order" },
-    shopId: { type: Schema.Types.ObjectId, required: true, ref: "Shop" },
-    pickerId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
-    deliveryId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null },
+    orderNumber: { type: Schema.Types.ObjectId, required: true, ref: "Order", autopopulate: true },
+    shopId: { type: Schema.Types.ObjectId, required: true, ref: "Shop", autopopulate: true },
+    pickerId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
+    deliveryId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
     readyforDelivery: { type: Boolean, required: false, default: false },
     delivery: { type: Boolean, required: false, default: false },
     received: { type: String, required: false, default: "" },
