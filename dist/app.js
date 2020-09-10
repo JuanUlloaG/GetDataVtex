@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
-const config = require('./config/config');
+const config_1 = require("./config/config");
 const routes_1 = require("./routes");
 const validation = require("./middleware/middleware");
 const { initDB, insertDB, conectionToSql, executeStatement } = require("./config/db");
@@ -14,7 +14,7 @@ const cors = require('cors');
 let app = express_1.default();
 app.use(cors());
 // 1
-app.set('key', config.key);
+app.set('key', config_1.config.key);
 // 2
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", '*');

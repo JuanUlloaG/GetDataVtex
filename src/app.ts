@@ -1,7 +1,7 @@
 import express from 'express';
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
-const config = require('./config/config');
+import { config } from "./config/config";
 import { Request, Response, NextFunction } from "express";
 import Company from "./entity/Company";
 import User from "./entity/User";
