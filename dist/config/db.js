@@ -4,13 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
-const { mongo, sqlConfig } = require("./config");
+const config_1 = require("./config");
 const tedious_1 = require("tedious");
 module.exports = {
     initDB: function (res, req) {
         return new Promise(function (resolve, reject) {
             try {
-                mongoose_1.default.connect(mongo.conectionString, { useUnifiedTopology: true, connectTimeoutMS: 10000, useNewUrlParser: true }, (err) => {
+                mongoose_1.default.connect(config_1.config.mongo.conectionString, { useUnifiedTopology: true, connectTimeoutMS: 10000, useNewUrlParser: true }, (err) => {
                     if (err) {
                         reject(err.message);
                     }
@@ -38,7 +38,7 @@ module.exports = {
         return new Promise(function (resolve, reject) {
             try {
                 var connection;
-                connection = new tedious_1.Connection(sqlConfig);
+                connection = new tedious_1.Connection(config_1.config.sqlConfig);
                 connection.on('connect', function (err) {
                     if (err) {
                         reject(err.message);
@@ -59,7 +59,7 @@ module.exports = {
     executeProcedure: function (procedureName, params) {
         return new Promise(function (resolve, reject) {
             var connection;
-            connection = new tedious_1.Connection(sqlConfig);
+            connection = new tedious_1.Connection(config_1.config.sqlConfig);
             connection.connect(function (errConn) {
                 if (errConn) {
                     console.log(errConn.message);

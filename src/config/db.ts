@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { MongoError } from "mongodb";
-const { mongo, sqlConfig } = require("./config")
+import { config } from "./config";
 import Conect, { Connection, Request as TediusRequest, TYPES, ConnectionConfig } from "tedious";
 
 
@@ -10,7 +10,7 @@ module.exports = {
     initDB: function (res: Response, req: Request) {
         return new Promise(function (resolve, reject) {
             try {
-                mongoose.connect(mongo.conectionString, { useUnifiedTopology: true, connectTimeoutMS: 10000, useNewUrlParser: true }, (err: MongoError) => {
+                mongoose.connect(config.mongo.conectionString, { useUnifiedTopology: true, connectTimeoutMS: 10000, useNewUrlParser: true }, (err: MongoError) => {
                     if (err) {
                         reject(err.message)
                     } else {
@@ -36,7 +36,7 @@ module.exports = {
         return new Promise(function (resolve, reject) {
             try {
                 var connection: any;
-                connection = new Connection(sqlConfig);
+                connection = new Connection(config.sqlConfig);
                 connection.on('connect', function (err: Error) {
                     if (err) {
                         reject(err.message)
@@ -56,7 +56,7 @@ module.exports = {
     executeProcedure: function (procedureName: string, params: any) {
         return new Promise(function (resolve, reject) {
             var connection: any;
-            connection = new Connection(sqlConfig);
+            connection = new Connection(config.sqlConfig);
             connection.connect(function (errConn: Error) {
                 if (errConn) {
                     console.log(errConn.message)

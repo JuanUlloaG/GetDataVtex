@@ -2,12 +2,12 @@ import { NextFunction, Request, Response } from "express";
 const jwt = require('jsonwebtoken');
 import mongoose from "mongoose";
 mongoose.set('debug', true);
+import { config } from "../config/config";
 const { initDB, insertDB, findOneDB, findDocuments, findOneAndUpdateDB } = require("../config/db");
 import User from "../entity/User";
 import { UserInterface } from "../entity/User";
 import bcrypt from "bcryptjs";
 import State from "../entity/State";
-const { profilesApp, profilesOms } = require("../config/config")
 
 
 export class UserController {
@@ -307,14 +307,14 @@ export class UserController {
       findDocuments(User, query, "", {}, 'company profile', '', 0, null, null).then((result: Array<UserInterface>) => {
         if (result.length > 0) {
           const profile = result[0].profile.key
-          if (location == 0 && profilesApp.includes(profile)) {
+          if (location == 0 && config.profilesApp.includes(profile)) {
             response.json({
               message: 'Usuario no tiene acceso',
               success: false
             });
             return
           }
-          if (location == 1 && profilesOms.includes(profile)) {
+          if (location == 1 && config.profilesOms.includes(profile)) {
             response.json({
               message: 'Usuario no tiene acceso',
               success: false
@@ -357,39 +357,44 @@ export class UserController {
                   response.json({
                     message: "Ha ocurrido un error al iniciar sesión",
                     success: false,
+                    code: config.errorCodes.E_0,
                     data: update
                   });
                 }
               }).catch((err: Error) => {
                 response.json({
                   message: "error: " + err,
-                  success: false
+                  success: false,
+                  code: config.errorCodes.E_0
                 });
               });
             } else {
               response.json({
                 message: "Error, Usuario o contraseña incorrecta",
                 success: false,
-                code: "err"
+                code: config.errorCodes.E_1
               });
             }
           })
         } else {
           response.json({
             message: `Error, el usuario ${rut} no esta registrado`,
-            success: false
+            success: false,
+            code: config.errorCodes.E_2
           });
         }
       }).catch((err: Error) => {
         response.json({
           message: err.message,
-          success: false
+          success: false,
+          code: config.errorCodes.E_3
         });
       })
     } catch (error) {
       response.json({
         message: error,
-        success: false
+        success: false,
+        code: config.errorCodes.E_4
       });
     }
   }
