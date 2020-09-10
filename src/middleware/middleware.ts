@@ -7,7 +7,6 @@ const {jwt, decoded } = require('jsonwebtoken');
 
 module.exports = {
     validation:function(req:Request, res:Response, next:NextFunction, app:any) {
-     console.log("dsadasdasdasd")
      if(req.path === "/users/auth"){
         next();
     }else{

@@ -170,7 +170,6 @@ export class OrdersController {
 
   async orders(request: Request, response: Response, next: NextFunction, app: any) {
     try {
-      console.log(request.body)
       const { company, profile } = request.body
       let query: object;
       let populate: string = '';
@@ -187,7 +186,6 @@ export class OrdersController {
       if (profile == 4) populate = 'bag deliveryId pickerId state service'
 
       findDocuments(Orders, query, "", {}, populate, '', 0, null, null).then((result: any) => {
-        console.log(result)
         response.json({
           message: 'Listado de ordenes',
           data: result,
@@ -262,7 +260,6 @@ export class OrdersController {
           if (order.shopId) shopname = order.shopId.number
           orderReturn['tienda'] = shopname
 
-          console.log(order)
 
           if (order.pickerId) pickername = order.pickerId.name
           orderReturn['pickerNombre'] = pickername
@@ -659,7 +656,6 @@ export class OrdersController {
             query_['$and'] = [...arrayQuery]
 
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
-            console.log("result", result)
             if (result.length) {
               let newOrders = result.map((order, index) => {
                 let pickername = ""
@@ -857,7 +853,6 @@ export class OrdersController {
   async ordersForOmsViewSearch(request: Request, response: Response, next: NextFunction, app: any) {
     try {
       const { company, profile, state, shopId, query } = request.body
-      console.log(request.body)
       let query_: any = {}
 
       if (company) {
@@ -947,14 +942,12 @@ export class OrdersController {
         if (findResult.length > 0) {
           findResult.map((stat) => {
             let stateId = stat._id;
-            console.log(stat)
             arrayQuery.push(mongoose.Types.ObjectId(stateId))
           })
           query_['state'] = { $in: arrayQuery }
           if (company) query_['uid'] = mongoose.Types.ObjectId(company)
           if (shopId) query_['shopId'] = mongoose.Types.ObjectId(shopId)
           if (orderNumber) query_['orderNumber'] = orderNumber
-          console.log("test", query_)
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1036,7 +1029,6 @@ export class OrdersController {
           if (company) queryArr.push({ 'uid': mongoose.Types.ObjectId(company) })
           if (shopId) queryArr.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
           if (shopId || company) query_['$and'] = [...queryArr]
-          console.log(queryArr)
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1358,7 +1350,6 @@ export class OrdersController {
       let queryState: any
       queryState = { $or: [{ "key": 2 }] }
       let arrayQuery: Array<any> = []
-      console.log(query)
       if (Object.keys(query).length > 0) {
 
         if (query.buyFromDate && query.buyToDate) {
@@ -1491,7 +1482,6 @@ export class OrdersController {
           });
         }
       }).catch((err: Error) => {
-        console.log("Aqui")
         response.json({
           message: err,
           success: false,
@@ -1499,7 +1489,6 @@ export class OrdersController {
         });
       });
     } catch (error) {
-      console.log("Aquisa")
       response.json({
         message: error,
         success: false,

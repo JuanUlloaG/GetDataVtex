@@ -14,7 +14,6 @@ try {
     var validate = ajv.compile(Services_2.schemaState);
 }
 catch (error) {
-    console.log("error", error);
 }
 class ServiceControllers {
     // private userRepository = getRepository(User);

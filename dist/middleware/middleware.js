@@ -6,7 +6,6 @@ const { jwt, decoded } = require('jsonwebtoken');
 // import { IGetUserAuthInfoRequest } from "../types/index"
 module.exports = {
     validation: function (req, res, next, app) {
-        console.log("dsadasdasdasd");
         if (req.path === "/users/auth") {
             next();
         }

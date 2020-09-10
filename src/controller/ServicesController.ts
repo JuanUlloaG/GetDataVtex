@@ -10,7 +10,6 @@ var ajv = new Ajv({ allErrors: true });
 try {
     var validate = ajv.compile(schemaState)
 } catch (error) {
-    console.log("error", error)
 }
 
 

@@ -18,9 +18,6 @@ module.exports = {
                         mongoose.connection.db.listCollections().toArray((error: any, collections: any) => {
                             if (error) reject(error.message)
                             if (collections) {
-                                // collections.forEach((collection: any, index: any) => {
-                                //     console.log(collection.name)
-                                // })
                                 resolve(true)
 
                             }
@@ -59,13 +56,11 @@ module.exports = {
             connection = new Connection(config.sqlConfig);
             connection.connect(function (errConn: Error) {
                 if (errConn) {
-                    console.log(errConn.message)
                     connection.close();
                     reject(false)
                 }
                 var request = new TediusRequest(procedureName, function (err: Error) {
                     if (err) {
-                        console.log(err.message);
                         reject(false)
                     }
                     connection.close();
@@ -145,7 +140,6 @@ module.exports = {
     },
     findDocumentsOrdesPopulate: async function (form: any, query: any, select: string, sort: any, populate: object, fields: string, limit: number, req: any, res: any) {
         return new Promise(function (resolve, reject) {
-            console.log("populated", populate)
             form
                 .find(query)
                 .sort(sort)

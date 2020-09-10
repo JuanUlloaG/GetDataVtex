@@ -20,9 +20,6 @@ module.exports = {
                             if (error)
                                 reject(error.message);
                             if (collections) {
-                                // collections.forEach((collection: any, index: any) => {
-                                //     console.log(collection.name)
-                                // })
                                 resolve(true);
                             }
                         });
@@ -62,13 +59,11 @@ module.exports = {
             connection = new tedious_1.Connection(config_1.config.sqlConfig);
             connection.connect(function (errConn) {
                 if (errConn) {
-                    console.log(errConn.message);
                     connection.close();
                     reject(false);
                 }
                 var request = new tedious_1.Request(procedureName, function (err) {
                     if (err) {
-                        console.log(err.message);
                         reject(false);
                     }
                     connection.close();
@@ -153,7 +148,6 @@ module.exports = {
     },
     findDocumentsOrdesPopulate: async function (form, query, select, sort, populate, fields, limit, req, res) {
         return new Promise(function (resolve, reject) {
-            console.log("populated", populate);
             form
                 .find(query)
                 .sort(sort)

@@ -171,7 +171,6 @@ class OrdersController {
     }
     async orders(request, response, next, app) {
         try {
-            console.log(request.body);
             const { company, profile } = request.body;
             let query;
             let populate = '';
@@ -187,7 +186,6 @@ class OrdersController {
             if (profile == 4)
                 populate = 'bag deliveryId pickerId state service';
             findDocuments(Orders_1.default, query, "", {}, populate, '', 0, null, null).then((result) => {
-                console.log(result);
                 response.json({
                     message: 'Listado de ordenes',
                     data: result,
@@ -257,7 +255,6 @@ class OrdersController {
                     if (order.shopId)
                         shopname = order.shopId.number;
                     orderReturn['tienda'] = shopname;
-                    console.log(order);
                     if (order.pickerId)
                         pickername = order.pickerId.name;
                     orderReturn['pickerNombre'] = pickername;
@@ -666,7 +663,6 @@ class OrdersController {
                     if (arrayQuery.length > 0)
                         query_['$and'] = [...arrayQuery];
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
-                        console.log("result", result);
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
                                 let pickername = "";
@@ -876,7 +872,6 @@ class OrdersController {
     async ordersForOmsViewSearch(request, response, next, app) {
         try {
             const { company, profile, state, shopId, query } = request.body;
-            console.log(request.body);
             let query_ = {};
             if (company) {
                 query_["company"] = mongoose_1.default.Types.ObjectId(company);
@@ -970,7 +965,6 @@ class OrdersController {
                 if (findResult.length > 0) {
                     findResult.map((stat) => {
                         let stateId = stat._id;
-                        console.log(stat);
                         arrayQuery.push(mongoose_1.default.Types.ObjectId(stateId));
                     });
                     query_['state'] = { $in: arrayQuery };
@@ -980,7 +974,6 @@ class OrdersController {
                         query_['shopId'] = mongoose_1.default.Types.ObjectId(shopId);
                     if (orderNumber)
                         query_['orderNumber'] = orderNumber;
-                    console.log("test", query_);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1072,7 +1065,6 @@ class OrdersController {
                         queryArr.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
                     if (shopId || company)
                         query_['$and'] = [...queryArr];
-                    console.log(queryArr);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1409,7 +1401,6 @@ class OrdersController {
             let queryState;
             queryState = { $or: [{ "key": 2 }] };
             let arrayQuery = [];
-            console.log(query);
             if (Object.keys(query).length > 0) {
                 if (query.buyFromDate && query.buyToDate) {
                     let from = new Date(query.buyFromDate);
@@ -1546,7 +1537,6 @@ class OrdersController {
                     });
                 }
             }).catch((err) => {
-                console.log("Aqui");
                 response.json({
                     message: err,
                     success: false,
@@ -1555,7 +1545,6 @@ class OrdersController {
             });
         }
         catch (error) {
-            console.log("Aquisa");
             response.json({
                 message: error,
                 success: false,

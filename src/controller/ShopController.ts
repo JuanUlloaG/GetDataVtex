@@ -17,7 +17,6 @@ export class ShopController {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
                     if (Object.keys(query).length > 0) {
-                        console.log("a erw ")
                         if (query.company) {
                             _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
                             _query["company"] = mongoose.Types.ObjectId(query.company)
@@ -33,7 +32,6 @@ export class ShopController {
                         }
                         _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
                     } else {
-                        console.log("a er ")
                         _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
                     }
 
@@ -41,7 +39,6 @@ export class ShopController {
                         _query["company"] = mongoose.Types.ObjectId(company)
                     }
                     populate = 'condition company'
-                    console.log("aers", _query)
                     findDocuments(Shop, _query, "", {}, populate, '', 0, null, null).then((result: any) => {
                         response.json({
                             message: 'Listado de Tiendas',
@@ -100,7 +97,6 @@ export class ShopController {
                     err: [],
                     success: true
                 });
-                console.log("error", err)
             });
 
         } catch (error) {
@@ -220,7 +216,10 @@ export class ShopController {
                         success: true
                     });
                 }).catch((err: Error) => {
-                    console.log(err.message)
+                    response.json({
+                        message: err,
+                        success: false
+                    });
                 });
             } else {
                 response.json({

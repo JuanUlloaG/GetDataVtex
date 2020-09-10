@@ -13,7 +13,6 @@ export class CompanyControllers {
     async all(request: Request, response: Response, next: NextFunction, app: any) {
         try {
             let { profile, company, query } = request.body
-            console.log(request.body)
             let _query: any = {};
             let populate: string = '';
             let queryState = { "key": 10 }

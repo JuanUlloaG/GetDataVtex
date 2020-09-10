@@ -58,12 +58,9 @@ class OrderBagsController {
     async getNumber(request, response, next, app) {
         try {
             findDocuments(Bagnumber_1.default, {}, "", {}, '', '', 0, null, null).then((result) => {
-                console.log(result.length);
                 if (result.length) {
-                    console.log("dsd", result[0].number);
                     let query = { "_id": mongoose_1.default.Types.ObjectId(result[0]._id) };
                     let update = { "number": result[0].number + 1 };
-                    console.log(result[0].number + 1);
                     // findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: any) => {
                     //     if (update) {
                     //         response.json({
@@ -390,14 +387,12 @@ class OrderBagsController {
                                         });
                                     }
                                     else {
-                                        console.log(update);
                                         response.json({
                                             message: "Error al actualizar Bulto",
                                             success: false
                                         });
                                     }
                                 }).catch((err) => {
-                                    console.log(err);
                                     response.json({
                                         message: err,
                                         success: false
@@ -619,7 +614,6 @@ class OrderBagsController {
             });
         }
         catch (error) {
-            console.log(error);
             response.json({
                 message: error.message,
                 success: false

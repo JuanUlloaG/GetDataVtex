@@ -16,7 +16,6 @@ class CompanyControllers {
     async all(request, response, next, app) {
         try {
             let { profile, company, query } = request.body;
-            console.log(request.body);
             let _query = {};
             let populate = '';
             let queryState = { "key": 10 };
