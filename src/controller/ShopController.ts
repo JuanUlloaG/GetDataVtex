@@ -124,7 +124,7 @@ export class ShopController {
                     findOneAndUpdateDB(Shop, query, update, null, null).then((result: any) => {
                         if (result) {
                             response.json({
-                                message: 'TIenda Actualizada correctamente',
+                                message: 'Tienda eliminada correctamente',
                                 data: result,
                                 success: true
                             });
@@ -171,7 +171,7 @@ export class ShopController {
             findOneAndUpdateDB(Shop, query, update, null, null).then((result: any) => {
                 if (result) {
                     response.json({
-                        message: 'Tienda actualizada correctamente',
+                        message: 'Tienda editada correctamente',
                         data: result,
                         success: true
                     });

@@ -120,7 +120,7 @@ export class UserController {
           });
         } else {
           response.json({
-            message: "Error al ingresar las ordenes, no se ha encontrado un estado valido",
+            message: "Error al ingresar las ordenes, no se ha encontrado un estado válido",
             success: false
           });
         }
@@ -140,20 +140,21 @@ export class UserController {
 
   async update(request: Request, response: Response, next: NextFunction, app: any) {
     try {
-      const { id, name, email, phone, profile } = request.body
-      let update = { name, email, phone, profile }
+      const { id, name, email, phone, profile, company, rut } = request.body
+      console.log(request.body)
+      let update = { name, email, phone, profile, rut, company: mongoose.Types.ObjectId(company) }
       let query: object;
       query = { '_id': mongoose.Types.ObjectId(id) }
       findOneAndUpdateDB(User, query, update, null, null).then((result: any) => {
         if (result) {
           response.json({
-            message: 'Usuario Actualizado correctamente',
+            message: 'Usuario editado correctamente',
             data: result,
             success: true
           });
         } else {
           response.json({
-            message: "Error al actualizar usuario",
+            message: "Error al editar usuario",
             success: false
           });
         }

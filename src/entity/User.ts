@@ -27,7 +27,7 @@ const UserSchema: Schema = new Schema({
     password: { type: String, required: true },
     rut: { type: String, required: true },
     name: { type: String, required: true },
-    lastName: { type: String, required: true },
+    lastName: { type: String, required: false },
     email: { type: String, required: true },
     phone: { type: String, required: true },
     profile: { type: Schema.Types.ObjectId, required: false, ref: "Profile" },
