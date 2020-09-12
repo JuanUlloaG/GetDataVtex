@@ -122,7 +122,7 @@ class ShopController {
                     findOneAndUpdateDB(Shop_1.default, query, update, null, null).then((result) => {
                         if (result) {
                             response.json({
-                                message: 'TIenda Actualizada correctamente',
+                                message: 'Tienda eliminada correctamente',
                                 data: result,
                                 success: true
                             });
@@ -169,7 +169,7 @@ class ShopController {
             findOneAndUpdateDB(Shop_1.default, query, update, null, null).then((result) => {
                 if (result) {
                     response.json({
-                        message: 'Tienda actualizada correctamente',
+                        message: 'Tienda editada correctamente',
                         data: result,
                         success: true
                     });

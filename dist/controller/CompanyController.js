@@ -98,7 +98,7 @@ class CompanyControllers {
                     findOneAndUpdateDB(Company_1.default, query, update, null, null).then((result) => {
                         if (result) {
                             response.json({
-                                message: `Cuenta ${result.name} actualizada correctamente`,
+                                message: `Cuenta "${result.name}" editada correctamente`,
                                 data: result,
                                 success: true
                             });
@@ -259,7 +259,7 @@ class CompanyControllers {
                 let _company = { name, rut, email, phone, 'condition': mongoose_1.default.Types.ObjectId(stateId) };
                 insertDB(Company_1.default, _company).then((result) => {
                     response.json({
-                        message: `Se ha creado la cuenta: ${name} de manera exitosa`,
+                        message: `Se ha creado la cuenta: "${name}" de manera exitosa`,
                         data: result,
                         success: true
                     });
@@ -272,7 +272,7 @@ class CompanyControllers {
             }
             else {
                 response.json({
-                    message: `Error al crear la cuenta: ${name} no se ha encontrado estado valido.`,
+                    message: `Error al crear la cuenta: "${name}" no se ha encontrado estado valido.`,
                     success: false
                 });
             }
