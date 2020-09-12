@@ -181,10 +181,15 @@ export class UserController {
     try {
 
       const { name, lastname, phone, email, profile, rut, password, company } = request.body
-      if (!name || !lastname || !phone || !email || !profile || !rut || !password) {
+      console.log(!name, !lastname, !phone, !email, !profile, !rut, !password)
+      // if (!name || !lastname || !phone || !email || !profile || !rut || !password) {
+      if (!name || !phone || !email || !profile || !rut || !password) {
         response.json({
           message: `Error! al crear usuario, hace falta data.`,
-          success: false
+          success: false,
+          data: {
+            name: name, lastname: lastname, phone: phone, email: email, profile: profile, rut: rut, password: password, company: company
+          }
         });
         return
       }
@@ -214,6 +219,7 @@ export class UserController {
               findDocuments(User, queryPrevUser, "", {}, '', '', 0, null, null).then((result: Array<UserInterface>) => {
                 if (!result.length) {
                   insertDB(User, _user).then((result: any) => {
+                    console.log("object", name)
                     response.json({
                       message: 'Usuario ' + name + " " + lastname + ' Creado exitosamente ',
                       data: result,
