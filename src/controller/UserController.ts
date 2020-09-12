@@ -180,7 +180,7 @@ export class UserController {
   async save(request: Request, response: Response, next: NextFunction, app: any) {
     try {
 
-      const { name, lastname, phone, email, profile, rut, password, company } = request.body
+      const { name, lastname = "", phone, email, profile, rut, password, company } = request.body
       console.log(!name, !lastname, !phone, !email, !profile, !rut, !password)
       // if (!name || !lastname || !phone || !email || !profile || !rut || !password) {
       if (!name || !phone || !email || !profile || !rut || !password) {
