@@ -16,23 +16,19 @@ export class ShopController {
             findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
+                    _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
                     if (Object.keys(query).length > 0) {
                         if (query.company) {
-                            _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
                             _query["company"] = mongoose.Types.ObjectId(query.company)
                         }
                         if (query.number) {
-                            _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
-                            _query["number"] = query.number
+                            _query["number"] = { $regex: new RegExp(query.number, "i") }
                         }
-                        if (query.company && query.number) {
-                            _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
-                            _query["number"] = query.number
-                            _query["company"] = mongoose.Types.ObjectId(query.company)
-                        }
-                        _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
-                    } else {
-                        _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
+                        // if (query.company && query.number) {
+                        //     _query["condition"] = { "$ne": mongoose.Types.ObjectId(stateId) }
+                        //     _query["number"] = { $regex: new RegExp(query.number, "i") }
+                        //     _query["company"] = mongoose.Types.ObjectId(query.company)
+                        // }
                     }
 
                     if (company) {

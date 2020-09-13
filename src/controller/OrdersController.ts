@@ -947,7 +947,7 @@ export class OrdersController {
           query_['state'] = { $in: arrayQuery }
           if (company) query_['uid'] = mongoose.Types.ObjectId(company)
           if (shopId) query_['shopId'] = mongoose.Types.ObjectId(shopId)
-          if (orderNumber) query_['orderNumber'] = orderNumber
+          if (orderNumber) query_['orderNumber'] = { $regex: orderNumber }
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1016,19 +1016,18 @@ export class OrdersController {
       let populate: string = 'bag pickerId deliveryId state service shopId';
       let queryState: any
 
-      queryState = { $or: [{ "key": 2 }] }
+      queryState = { $or: [{ "key": { $in: [1, 2] } }] }
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
         let arrayQuery: Array<any> = []
         if (findResult.length > 0) {
           findResult.map((stat) => {
             let stateId = stat._id;
-            arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+            arrayQuery.push(mongoose.Types.ObjectId(stateId))
           })
-          query_['$or'] = [...arrayQuery]
-          let queryArr = []
-          if (company) queryArr.push({ 'uid': mongoose.Types.ObjectId(company) })
-          if (shopId) queryArr.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
-          if (shopId || company) query_['$and'] = [...queryArr]
+          query_['state'] = { $in: [...arrayQuery] }
+          if (company) query_['uid'] = mongoose.Types.ObjectId(company)
+          if (shopId) query_['shopId'] = mongoose.Types.ObjectId(shopId)
+
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1094,52 +1093,92 @@ export class OrdersController {
       const { company, shopId, query } = request.body
       let _query;
       let query_: any = {}
+      let pickerName: string
       let populate: string = 'bag pickerId deliveryId state service shopId';
       let queryState: any
       queryState = { $or: [{ "key": 1 }] }
+      console.log(query)
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
         let arrayQuery: Array<any> = []
         if (findResult.length > 0) {
           findResult.map((stat) => {
             let stateId = stat._id;
-            arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+            query_['state'] = mongoose.Types.ObjectId(stateId)
           })
           if (Object.keys(query).length > 0) {
             if (query.buyFromDate && query.buyToDate) {
-              arrayQuery.push({
-                'date': {
-                  $gte: new Date(query.buyFromDate),
-                  $lt: new Date(query.buyToDate)
-                }
-              })
+              let from = new Date(query.buyFromDate)
+              let to = new Date(query.buyToDate)
+              from.setHours(0)
+              from.setMinutes(0)
+              from.setSeconds(0)
+              to.setHours(23)
+              to.setMinutes(59)
+              to.setSeconds(59)
+
+              query_['date'] = {
+                $gte: from,
+                $lt: to
+              }
+            }
+
+            if (query.buyFromDate && !query.buyToDate) {
+              let from = new Date(query.buyFromDate)
+              let to = new Date()
+              from.setHours(0)
+              from.setMinutes(0)
+              from.setSeconds(0)
+              query_['date'] = {
+                $gte: from,
+                $lt: to
+              }
             }
 
             if (query.deliveryFromDate && query.deliveryToDate) {
-              arrayQuery.push({
-                'endDeliveryDate': {
-                  $gte: new Date(query.deliveryFromDate),
-                  $lt: new Date(query.deliveryToDate)
-                }
-              })
+              let from = new Date(query.deliveryFromDate)
+              let to = new Date(query.deliveryToDate)
+              from.setHours(0)
+              from.setMinutes(0)
+              from.setSeconds(0)
+              to.setHours(23)
+              to.setMinutes(59)
+              to.setSeconds(59)
+              query_['realdatedelivery'] = {
+                $gte: from,
+                $lt: to
+              }
+            }
+
+            if (query.deliveryFromDate && !query.deliveryToDate) {
+              let from = new Date(query.deliveryFromDate)
+              let to = new Date()
+              from.setHours(0)
+              from.setMinutes(0)
+              from.setSeconds(0)
+              to.setHours(23)
+              to.setMinutes(59)
+              to.setSeconds(59)
+              query_['realdatedelivery'] = {
+                $gte: from,
+                $lt: from
+              }
             }
             if (query.name) {
-              arrayQuery.push({ 'pickerId.name': query.name })
+              pickerName = query.name
+              query_['pickerId'] = { $ne: null }
             }
-            if (query.number) {
-              arrayQuery.push({ 'orderNumber': query.number })
-            }
-            if (query.shop) {
-              arrayQuery.push({ 'shopId': query.shop })
-            }
-            if (query.service) {
-              arrayQuery.push({ 'service': query.service })
-            }
+
+            if (query.number) { query_['orderNumber'] = { $regex: query.number } }
+
+            if (query.service) { query_['service'] = mongoose.Types.ObjectId(query.service) }
+
+            if (query.shop) { query_['shopId'] = mongoose.Types.ObjectId(query.shop) }
           }
           // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
           if (company) query_['uid'] = mongoose.Types.ObjectId(company)
-          if (shopId) arrayQuery.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
-          if (arrayQuery.length > 0)
-            query_['$and'] = [...arrayQuery]
+          // if (shopId) arrayQuery.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
+          // if (arrayQuery.length > 0)
+          //   query_['$and'] = [...arrayQuery]
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1162,9 +1201,19 @@ export class OrdersController {
                 order.set('timeLine', [...rows], { strict: false })
                 return order
               })
+              let filterOrders = newOrders.filter((orders) => {
+                if (pickerName) {
+                  if (pickerName) {
+                    if (orders.pickerId.name.toLowerCase().indexOf(pickerName.toLowerCase()) !== -1)
+                      return orders
+                  }
+                } else {
+                  return orders
+                }
+              })
               response.json({
                 message: 'Listado de ordenes para resetear',
-                data: newOrders,
+                data: filterOrders,
                 success: true
               });
             } else {
@@ -1209,69 +1258,90 @@ export class OrdersController {
       let query_: any = {}
       let populate: string = 'bag pickerId deliveryId state service shopId';
       let queryState: any
-      queryState = { $or: [{ "key": 2 }] }
+      let pickerName: string
+      queryState = { $or: [{ "key": 1 }] }
+      console.log("update", query)
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
         let arrayQuery: Array<any> = []
         if (findResult.length > 0) {
           findResult.map((stat) => {
             let stateId = stat._id;
-            arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+            query_['state'] = mongoose.Types.ObjectId(stateId)
           })
           if (Object.keys(query).length > 0) {
             if (query.buyFromDate && query.buyToDate) {
-              arrayQuery.push({
-                'date': {
-                  $gte: new Date(query.buyFromDate),
-                  $lt: new Date(query.buyToDate)
-                }
-              })
+              let from = new Date(query.buyFromDate)
+              let to = new Date(query.buyToDate)
+              from.setHours(0)
+              from.setMinutes(0)
+              from.setSeconds(0)
+              to.setHours(23)
+              to.setMinutes(59)
+              to.setSeconds(59)
+
+              query_['date'] = {
+                $gte: from,
+                $lt: to
+              }
             }
+
             if (query.buyFromDate && !query.buyToDate) {
-              arrayQuery.push({
-                'date': {
-                  $gte: new Date(query.buyFromDate),
-                  $lt: new Date()
-                }
-              })
+              let from = new Date(query.buyFromDate)
+              let to = new Date()
+              from.setHours(0)
+              from.setMinutes(0)
+              from.setSeconds(0)
+              query_['date'] = {
+                $gte: from,
+                $lt: to
+              }
             }
 
             if (query.deliveryFromDate && query.deliveryToDate) {
-              arrayQuery.push({
-                'endDeliveryDate': {
-                  $gte: new Date(query.deliveryFromDate),
-                  $lt: new Date(query.deliveryToDate)
-                }
-              })
+              let from = new Date(query.deliveryFromDate)
+              let to = new Date(query.deliveryToDate)
+              from.setHours(0)
+              from.setMinutes(0)
+              from.setSeconds(0)
+              to.setHours(23)
+              to.setMinutes(59)
+              to.setSeconds(59)
+              query_['realdatedelivery'] = {
+                $gte: from,
+                $lt: to
+              }
             }
+
             if (query.deliveryFromDate && !query.deliveryToDate) {
-              arrayQuery.push({
-                'endDeliveryDate': {
-                  $gte: new Date(query.deliveryFromDate),
-                  $lt: new Date()
-                }
-              })
+              let from = new Date(query.deliveryFromDate)
+              let to = new Date()
+              from.setHours(0)
+              from.setMinutes(0)
+              from.setSeconds(0)
+              to.setHours(23)
+              to.setMinutes(59)
+              to.setSeconds(59)
+              query_['realdatedelivery'] = {
+                $gte: from,
+                $lt: from
+              }
             }
 
             if (query.name) {
-              arrayQuery.push({ 'pickerId.name': query.name })
+              pickerName = query.name
+              query_['pickerId'] = { $ne: null }
             }
 
-            if (query.number) {
-              arrayQuery.push({ 'orderNumber': query.number })
-            }
+            if (query.number) { query_['orderNumber'] = { $regex: query.number } }
 
-            if (query.shop) {
-              arrayQuery.push({ 'shopId': query.shop })
-            }
+            if (query.service) { query_['service'] = mongoose.Types.ObjectId(query.service) }
 
-            if (query.service) {
-              arrayQuery.push({ 'service': query.service })
-            }
+            if (query.shop) { query_['shopId'] = mongoose.Types.ObjectId(query.shop) }
+
           }
           if (company) query_['uid'] = mongoose.Types.ObjectId(company)
-          if (shopId) arrayQuery.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
-          if (arrayQuery.length > 0)
-            query_['$and'] = [...arrayQuery]
+          // if (arrayQuery.length > 0)
+          //   query_['$and'] = [...arrayQuery]
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1294,9 +1364,19 @@ export class OrdersController {
                 order.set('timeLine', [...rows], { strict: false })
                 return order
               })
+              let filterOrders = newOrders.filter((orders) => {
+                if (pickerName) {
+                  if (pickerName) {
+                    if (orders.pickerId.name.toLowerCase().indexOf(pickerName.toLowerCase()) !== -1)
+                      return orders
+                  }
+                } else {
+                  return orders
+                }
+              })
               response.json({
                 message: 'Listado de ordenes para resetear',
-                data: newOrders,
+                data: filterOrders,
                 success: true
               });
             } else {
@@ -1410,9 +1490,9 @@ export class OrdersController {
           }
         }
 
-        if (query.rut) { query_['client.rut'] = query.rut }
+        if (query.rut) { query_['client.rut'] = { $regex: new RegExp(query.rut, "i") } }
 
-        if (query.orderNumber) { query_['orderNumber'] = query.orderNumber }
+        if (query.orderNumber) { query_['orderNumber'] = { $regex: query.orderNumber } }
 
         if (query.service) { query_['service'] = mongoose.Types.ObjectId(query.service) }
 
@@ -1456,11 +1536,11 @@ export class OrdersController {
           let filterOrders = newOrders.filter((orders) => {
             if (namePicker && nameDelivery) {
               if (namePicker) {
-                if (orders.pickerId.name == namePicker)
+                if (orders.pickerId.name.toLowerCase().indexOf(namePicker.toLowerCase()) !== -1)
                   return orders
               }
               if (nameDelivery) {
-                if (orders.deliveryId.name == nameDelivery)
+                if (orders.deliveryId.name.toLowerCase().indexOf(nameDelivery.toLowerCase()) !== -1)
                   return orders
               }
             } else {

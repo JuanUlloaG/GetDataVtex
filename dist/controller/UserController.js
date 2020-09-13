@@ -105,7 +105,7 @@ class UserController {
                     findOneAndUpdateDB(User_1.default, query, update, null, null).then((result) => {
                         if (result) {
                             response.json({
-                                message: 'Usuario Actualizado correctamente',
+                                message: 'Usuario eliminado correctamente',
                                 data: result,
                                 success: true
                             });

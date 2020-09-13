@@ -973,7 +973,7 @@ class OrdersController {
                     if (shopId)
                         query_['shopId'] = mongoose_1.default.Types.ObjectId(shopId);
                     if (orderNumber)
-                        query_['orderNumber'] = orderNumber;
+                        query_['orderNumber'] = { $regex: orderNumber };
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1049,22 +1049,19 @@ class OrdersController {
             let query_ = {};
             let populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
-            queryState = { $or: [{ "key": 2 }] };
+            queryState = { $or: [{ "key": { $in: [1, 2] } }] };
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 let arrayQuery = [];
                 if (findResult.length > 0) {
                     findResult.map((stat) => {
                         let stateId = stat._id;
-                        arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
+                        arrayQuery.push(mongoose_1.default.Types.ObjectId(stateId));
                     });
-                    query_['$or'] = [...arrayQuery];
-                    let queryArr = [];
+                    query_['state'] = { $in: [...arrayQuery] };
                     if (company)
-                        queryArr.push({ 'uid': mongoose_1.default.Types.ObjectId(company) });
+                        query_['uid'] = mongoose_1.default.Types.ObjectId(company);
                     if (shopId)
-                        queryArr.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
-                    if (shopId || company)
-                        query_['$and'] = [...queryArr];
+                        query_['shopId'] = mongoose_1.default.Types.ObjectId(shopId);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1138,53 +1135,92 @@ class OrdersController {
             const { company, shopId, query } = request.body;
             let _query;
             let query_ = {};
+            let pickerName;
             let populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
             queryState = { $or: [{ "key": 1 }] };
+            console.log(query);
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 let arrayQuery = [];
                 if (findResult.length > 0) {
                     findResult.map((stat) => {
                         let stateId = stat._id;
-                        arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
+                        query_['state'] = mongoose_1.default.Types.ObjectId(stateId);
                     });
                     if (Object.keys(query).length > 0) {
                         if (query.buyFromDate && query.buyToDate) {
-                            arrayQuery.push({
-                                'date': {
-                                    $gte: new Date(query.buyFromDate),
-                                    $lt: new Date(query.buyToDate)
-                                }
-                            });
+                            let from = new Date(query.buyFromDate);
+                            let to = new Date(query.buyToDate);
+                            from.setHours(0);
+                            from.setMinutes(0);
+                            from.setSeconds(0);
+                            to.setHours(23);
+                            to.setMinutes(59);
+                            to.setSeconds(59);
+                            query_['date'] = {
+                                $gte: from,
+                                $lt: to
+                            };
+                        }
+                        if (query.buyFromDate && !query.buyToDate) {
+                            let from = new Date(query.buyFromDate);
+                            let to = new Date();
+                            from.setHours(0);
+                            from.setMinutes(0);
+                            from.setSeconds(0);
+                            query_['date'] = {
+                                $gte: from,
+                                $lt: to
+                            };
                         }
                         if (query.deliveryFromDate && query.deliveryToDate) {
-                            arrayQuery.push({
-                                'endDeliveryDate': {
-                                    $gte: new Date(query.deliveryFromDate),
-                                    $lt: new Date(query.deliveryToDate)
-                                }
-                            });
+                            let from = new Date(query.deliveryFromDate);
+                            let to = new Date(query.deliveryToDate);
+                            from.setHours(0);
+                            from.setMinutes(0);
+                            from.setSeconds(0);
+                            to.setHours(23);
+                            to.setMinutes(59);
+                            to.setSeconds(59);
+                            query_['realdatedelivery'] = {
+                                $gte: from,
+                                $lt: to
+                            };
+                        }
+                        if (query.deliveryFromDate && !query.deliveryToDate) {
+                            let from = new Date(query.deliveryFromDate);
+                            let to = new Date();
+                            from.setHours(0);
+                            from.setMinutes(0);
+                            from.setSeconds(0);
+                            to.setHours(23);
+                            to.setMinutes(59);
+                            to.setSeconds(59);
+                            query_['realdatedelivery'] = {
+                                $gte: from,
+                                $lt: from
+                            };
                         }
                         if (query.name) {
-                            arrayQuery.push({ 'pickerId.name': query.name });
+                            pickerName = query.name;
+                            query_['pickerId'] = { $ne: null };
                         }
                         if (query.number) {
-                            arrayQuery.push({ 'orderNumber': query.number });
-                        }
-                        if (query.shop) {
-                            arrayQuery.push({ 'shopId': query.shop });
+                            query_['orderNumber'] = { $regex: query.number };
                         }
                         if (query.service) {
-                            arrayQuery.push({ 'service': query.service });
+                            query_['service'] = mongoose_1.default.Types.ObjectId(query.service);
+                        }
+                        if (query.shop) {
+                            query_['shopId'] = mongoose_1.default.Types.ObjectId(query.shop);
                         }
                     }
                     // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
                     if (company)
                         query_['uid'] = mongoose_1.default.Types.ObjectId(company);
-                    if (shopId)
-                        arrayQuery.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
-                    if (arrayQuery.length > 0)
-                        query_['$and'] = [...arrayQuery];
+                    // if (shopId) arrayQuery.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
+                    // if (arrayQuery.length > 0)
+                    //   query_['$and'] = [...arrayQuery]
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1213,9 +1249,20 @@ class OrdersController {
                                 order.set('timeLine', [...rows], { strict: false });
                                 return order;
                             });
+                            let filterOrders = newOrders.filter((orders) => {
+                                if (pickerName) {
+                                    if (pickerName) {
+                                        if (orders.pickerId.name.toLowerCase().indexOf(pickerName.toLowerCase()) !== -1)
+                                            return orders;
+                                    }
+                                }
+                                else {
+                                    return orders;
+                                }
+                            });
                             response.json({
                                 message: 'Listado de ordenes para resetear',
-                                data: newOrders,
+                                data: filterOrders,
                                 success: true
                             });
                         }
@@ -1260,66 +1307,88 @@ class OrdersController {
             let query_ = {};
             let populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
-            queryState = { $or: [{ "key": 2 }] };
+            let pickerName;
+            queryState = { $or: [{ "key": 1 }] };
+            console.log("update", query);
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 let arrayQuery = [];
                 if (findResult.length > 0) {
                     findResult.map((stat) => {
                         let stateId = stat._id;
-                        arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
+                        query_['state'] = mongoose_1.default.Types.ObjectId(stateId);
                     });
                     if (Object.keys(query).length > 0) {
                         if (query.buyFromDate && query.buyToDate) {
-                            arrayQuery.push({
-                                'date': {
-                                    $gte: new Date(query.buyFromDate),
-                                    $lt: new Date(query.buyToDate)
-                                }
-                            });
+                            let from = new Date(query.buyFromDate);
+                            let to = new Date(query.buyToDate);
+                            from.setHours(0);
+                            from.setMinutes(0);
+                            from.setSeconds(0);
+                            to.setHours(23);
+                            to.setMinutes(59);
+                            to.setSeconds(59);
+                            query_['date'] = {
+                                $gte: from,
+                                $lt: to
+                            };
                         }
                         if (query.buyFromDate && !query.buyToDate) {
-                            arrayQuery.push({
-                                'date': {
-                                    $gte: new Date(query.buyFromDate),
-                                    $lt: new Date()
-                                }
-                            });
+                            let from = new Date(query.buyFromDate);
+                            let to = new Date();
+                            from.setHours(0);
+                            from.setMinutes(0);
+                            from.setSeconds(0);
+                            query_['date'] = {
+                                $gte: from,
+                                $lt: to
+                            };
                         }
                         if (query.deliveryFromDate && query.deliveryToDate) {
-                            arrayQuery.push({
-                                'endDeliveryDate': {
-                                    $gte: new Date(query.deliveryFromDate),
-                                    $lt: new Date(query.deliveryToDate)
-                                }
-                            });
+                            let from = new Date(query.deliveryFromDate);
+                            let to = new Date(query.deliveryToDate);
+                            from.setHours(0);
+                            from.setMinutes(0);
+                            from.setSeconds(0);
+                            to.setHours(23);
+                            to.setMinutes(59);
+                            to.setSeconds(59);
+                            query_['realdatedelivery'] = {
+                                $gte: from,
+                                $lt: to
+                            };
                         }
                         if (query.deliveryFromDate && !query.deliveryToDate) {
-                            arrayQuery.push({
-                                'endDeliveryDate': {
-                                    $gte: new Date(query.deliveryFromDate),
-                                    $lt: new Date()
-                                }
-                            });
+                            let from = new Date(query.deliveryFromDate);
+                            let to = new Date();
+                            from.setHours(0);
+                            from.setMinutes(0);
+                            from.setSeconds(0);
+                            to.setHours(23);
+                            to.setMinutes(59);
+                            to.setSeconds(59);
+                            query_['realdatedelivery'] = {
+                                $gte: from,
+                                $lt: from
+                            };
                         }
                         if (query.name) {
-                            arrayQuery.push({ 'pickerId.name': query.name });
+                            pickerName = query.name;
+                            query_['pickerId'] = { $ne: null };
                         }
                         if (query.number) {
-                            arrayQuery.push({ 'orderNumber': query.number });
-                        }
-                        if (query.shop) {
-                            arrayQuery.push({ 'shopId': query.shop });
+                            query_['orderNumber'] = { $regex: query.number };
                         }
                         if (query.service) {
-                            arrayQuery.push({ 'service': query.service });
+                            query_['service'] = mongoose_1.default.Types.ObjectId(query.service);
+                        }
+                        if (query.shop) {
+                            query_['shopId'] = mongoose_1.default.Types.ObjectId(query.shop);
                         }
                     }
                     if (company)
                         query_['uid'] = mongoose_1.default.Types.ObjectId(company);
-                    if (shopId)
-                        arrayQuery.push({ 'shopId': mongoose_1.default.Types.ObjectId(shopId) });
-                    if (arrayQuery.length > 0)
-                        query_['$and'] = [...arrayQuery];
+                    // if (arrayQuery.length > 0)
+                    //   query_['$and'] = [...arrayQuery]
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1348,9 +1417,20 @@ class OrdersController {
                                 order.set('timeLine', [...rows], { strict: false });
                                 return order;
                             });
+                            let filterOrders = newOrders.filter((orders) => {
+                                if (pickerName) {
+                                    if (pickerName) {
+                                        if (orders.pickerId.name.toLowerCase().indexOf(pickerName.toLowerCase()) !== -1)
+                                            return orders;
+                                    }
+                                }
+                                else {
+                                    return orders;
+                                }
+                            });
                             response.json({
                                 message: 'Listado de ordenes para resetear',
-                                data: newOrders,
+                                data: filterOrders,
                                 success: true
                             });
                         }
@@ -1456,10 +1536,10 @@ class OrdersController {
                     };
                 }
                 if (query.rut) {
-                    query_['client.rut'] = query.rut;
+                    query_['client.rut'] = { $regex: new RegExp(query.rut, "i") };
                 }
                 if (query.orderNumber) {
-                    query_['orderNumber'] = query.orderNumber;
+                    query_['orderNumber'] = { $regex: query.orderNumber };
                 }
                 if (query.service) {
                     query_['service'] = mongoose_1.default.Types.ObjectId(query.service);
@@ -1509,11 +1589,11 @@ class OrdersController {
                     let filterOrders = newOrders.filter((orders) => {
                         if (namePicker && nameDelivery) {
                             if (namePicker) {
-                                if (orders.pickerId.name == namePicker)
+                                if (orders.pickerId.name.toLowerCase().indexOf(namePicker.toLowerCase()) !== -1)
                                     return orders;
                             }
                             if (nameDelivery) {
-                                if (orders.deliveryId.name == nameDelivery)
+                                if (orders.deliveryId.name.toLowerCase().indexOf(nameDelivery.toLowerCase()) !== -1)
                                     return orders;
                             }
                         }

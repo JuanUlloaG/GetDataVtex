@@ -16,6 +16,7 @@ class CompanyControllers {
     async all(request, response, next, app) {
         try {
             let { profile, company, query } = request.body;
+            console.log("object", request.body);
             let _query = {};
             let populate = '';
             let queryState = { "key": 10 };
@@ -23,13 +24,12 @@ class CompanyControllers {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
                     if (Object.keys(query).length > 0) {
+                        _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
                         if (query.rut) {
-                            _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
-                            _query["rut"] = query.rut;
+                            _query["rut"] = { $regex: query.rut };
                         }
                         if (query.name) {
-                            _query["condition"] = { "$ne": mongoose_1.default.Types.ObjectId(stateId) };
-                            _query["name"] = query.name;
+                            _query["name"] = { $regex: new RegExp(query.name, "i") };
                         }
                     }
                     else {
@@ -44,14 +44,14 @@ class CompanyControllers {
                     findDocuments(Company_1.default, _query, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length > 0) {
                             response.json({
-                                message: 'Listado de usuarios',
+                                message: 'Listado de cuentas',
                                 data: result,
                                 success: true
                             });
                         }
                         else {
                             response.json({
-                                message: 'Listado de usuarios',
+                                message: 'Listado de cuentas',
                                 data: result,
                                 success: true
                             });

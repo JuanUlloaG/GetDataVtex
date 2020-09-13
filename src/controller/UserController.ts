@@ -102,7 +102,7 @@ export class UserController {
           findOneAndUpdateDB(User, query, update, null, null).then((result: any) => {
             if (result) {
               response.json({
-                message: 'Usuario Actualizado correctamente',
+                message: 'Usuario eliminado correctamente',
                 data: result,
                 success: true
               });
