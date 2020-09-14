@@ -679,14 +679,17 @@ export class OrdersController {
               })
               try {
                 let data = newOrders;
-                let headers = ["Numero de Pedido", "Nombre Cliente", "F. de compra", "F. de compromiso", "Canal", "Servicio", "Estado"];
+                let headers = ["Número de Pedido", "Nombre Cliente", "Télefono", "Correo", "Fecha de compra", "Fecha de cancelación", "Fecha de compromiso", "Canal", "Servicio", "Estado"];
                 let reportdata = data.map(field => {
                   let file =
                     `{
-                      "Numero de Pedido":"${field.orderNumber}",
+                      "Número de Pedido":"${field.orderNumber}",
                       "Nombre Cliente":"${field.client.name}",
-                      "F. de compra":"${moment(field.date).format("DD/MM/YYYY HH:mm")}",
-                      "F. de compromiso":"${moment(field.realdatedelivery).format("DD/MM/YYYY HH:mm")}",
+                      "Télefono":"${field.client.cellphone}",
+                      "Correo":"${field.client.email}",
+                      "Fecha de compra":"${moment(field.cancellDate).format("DD/MM/YYYY HH:mm")}",
+                      "Fecha de cancelación":"${moment(field.date).format("DD/MM/YYYY HH:mm")}",
+                      "Fecha de compromiso":"${moment(field.realdatedelivery).format("DD/MM/YYYY HH:mm")}",
                       "Canal":"${field.channel}",
                       "Servicio":"${field.service.desc}",
                       "Estado":"${field.state.desc}"

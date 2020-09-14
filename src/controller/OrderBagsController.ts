@@ -218,10 +218,10 @@ export class OrderBagsController {
                     const { id, deliveryId, orderId } = request.body
                     let query = { "_id": mongoose.Types.ObjectId(id) }
                     let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
-                    let updateOrder = { state: mongoose.Types.ObjectId(stateId), "deliveryId": mongoose.Types.ObjectId(deliveryId), starDeliveryDate: new Date() }
+                    let _updateOrder = { state: mongoose.Types.ObjectId(stateId), "deliveryId": mongoose.Types.ObjectId(deliveryId), bag: mongoose.Types.ObjectId(id), starDeliveryDate: new Date() }
                     let updateBag = { "deliveryId": mongoose.Types.ObjectId(deliveryId), "readyforDelivery": true }
                     if (id && deliveryId) {
-                        findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: OrderInterface) => {
+                        findOneAndUpdateDB(Orders, queryOrder, _updateOrder, null, null).then((updateOrder: OrderInterface) => {
                             if (updateOrder) {
                                 findOneAndUpdateDB(OrderBags, query, updateBag, null, null).then((update: OrderBagsInterface) => {
                                     if (update) {
@@ -230,8 +230,8 @@ export class OrderBagsController {
                                             orderNumber: updateOrder.orderNumber,
                                             order: mongoose.Types.ObjectId(updateOrder._id),
                                             bag: mongoose.Types.ObjectId(id),
-                                            shop: mongoose.Types.ObjectId(updateOrder.shopId),
-                                            picker: mongoose.Types.ObjectId(updateOrder.pickerId),
+                                            shop: mongoose.Types.ObjectId(updateOrder.shopId._id),
+                                            picker: mongoose.Types.ObjectId(updateOrder.pickerId._id),
                                             delivery: mongoose.Types.ObjectId(deliveryId),
                                             orderSnapShot: updateOrder,
                                             dateHistory: new Date()
@@ -264,8 +264,8 @@ export class OrderBagsController {
                                     }
                                 }).catch((err: Error) => {
                                     response.json({
-                                        message: err,
-                                        success: false
+                                        message: err.message,
+                                        success: false,
                                     });
                                 });
                             } else {
@@ -277,13 +277,10 @@ export class OrderBagsController {
 
                         }).catch((err: Error) => {
                             response.json({
-                                message: err,
+                                message: err.message,
                                 success: false
                             });
                         });
-
-
-
                     } else {
                         response.json({
                             message: "Parametros Faltantes",
@@ -298,7 +295,7 @@ export class OrderBagsController {
                 }
             }).catch((err: Error) => {
                 response.json({
-                    message: err,
+                    message: err.message,
                     success: false
                 });
             });
