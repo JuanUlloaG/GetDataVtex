@@ -692,13 +692,16 @@ class OrdersController {
                             });
                             try {
                                 let data = newOrders;
-                                let headers = ["Numero de Pedido", "Nombre Cliente", "F. de compra", "F. de compromiso", "Canal", "Servicio", "Estado"];
+                                let headers = ["Número de Pedido", "Nombre Cliente", "Télefono", "Correo", "Fecha de compra", "Fecha de cancelación", "Fecha de compromiso", "Canal", "Servicio", "Estado"];
                                 let reportdata = data.map(field => {
                                     let file = `{
-                      "Numero de Pedido":"${field.orderNumber}",
+                      "Número de Pedido":"${field.orderNumber}",
                       "Nombre Cliente":"${field.client.name}",
-                      "F. de compra":"${moment_1.default(field.date).format("DD/MM/YYYY HH:mm")}",
-                      "F. de compromiso":"${moment_1.default(field.realdatedelivery).format("DD/MM/YYYY HH:mm")}",
+                      "Télefono":"${field.client.cellphone}",
+                      "Correo":"${field.client.email}",
+                      "Fecha de compra":"${moment_1.default(field.cancellDate).format("DD/MM/YYYY HH:mm")}",
+                      "Fecha de cancelación":"${moment_1.default(field.date).format("DD/MM/YYYY HH:mm")}",
+                      "Fecha de compromiso":"${moment_1.default(field.realdatedelivery).format("DD/MM/YYYY HH:mm")}",
                       "Canal":"${field.channel}",
                       "Servicio":"${field.service.desc}",
                       "Estado":"${field.state.desc}"
@@ -1910,6 +1913,7 @@ class OrdersController {
                                                         "Local_Longitud": "-77.00000",
                                                         "Local_Latitud": "-33.77777",
                                                         "FecAgendada": order.realdatedelivery,
+                                                        "FechaCompraCliente": order.date,
                                                         "UnSolicitadas": 5,
                                                         "Supervisor": "",
                                                         "RUT_Cliente": order.client.rut,

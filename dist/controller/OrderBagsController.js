@@ -217,10 +217,10 @@ class OrderBagsController {
                     const { id, deliveryId, orderId } = request.body;
                     let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
                     let queryOrder = { "_id": mongoose_1.default.Types.ObjectId(orderId) };
-                    let updateOrder = { state: mongoose_1.default.Types.ObjectId(stateId), "deliveryId": mongoose_1.default.Types.ObjectId(deliveryId), starDeliveryDate: new Date() };
+                    let _updateOrder = { state: mongoose_1.default.Types.ObjectId(stateId), "deliveryId": mongoose_1.default.Types.ObjectId(deliveryId), bag: mongoose_1.default.Types.ObjectId(id), starDeliveryDate: new Date() };
                     let updateBag = { "deliveryId": mongoose_1.default.Types.ObjectId(deliveryId), "readyforDelivery": true };
                     if (id && deliveryId) {
-                        findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
+                        findOneAndUpdateDB(Orders_1.default, queryOrder, _updateOrder, null, null).then((updateOrder) => {
                             if (updateOrder) {
                                 findOneAndUpdateDB(OrderBags_1.default, query, updateBag, null, null).then((update) => {
                                     if (update) {
@@ -229,8 +229,8 @@ class OrderBagsController {
                                             orderNumber: updateOrder.orderNumber,
                                             order: mongoose_1.default.Types.ObjectId(updateOrder._id),
                                             bag: mongoose_1.default.Types.ObjectId(id),
-                                            shop: mongoose_1.default.Types.ObjectId(updateOrder.shopId),
-                                            picker: mongoose_1.default.Types.ObjectId(updateOrder.pickerId),
+                                            shop: mongoose_1.default.Types.ObjectId(updateOrder.shopId._id),
+                                            picker: mongoose_1.default.Types.ObjectId(updateOrder.pickerId._id),
                                             delivery: mongoose_1.default.Types.ObjectId(deliveryId),
                                             orderSnapShot: updateOrder,
                                             dateHistory: new Date()
@@ -265,8 +265,8 @@ class OrderBagsController {
                                     }
                                 }).catch((err) => {
                                     response.json({
-                                        message: err,
-                                        success: false
+                                        message: err.message,
+                                        success: false,
                                     });
                                 });
                             }
@@ -278,7 +278,7 @@ class OrderBagsController {
                             }
                         }).catch((err) => {
                             response.json({
-                                message: err,
+                                message: err.message,
                                 success: false
                             });
                         });
@@ -298,7 +298,7 @@ class OrderBagsController {
                 }
             }).catch((err) => {
                 response.json({
-                    message: err,
+                    message: err.message,
                     success: false
                 });
             });
