@@ -1854,6 +1854,7 @@ export class OrdersController {
                             "Local_Longitud": "-77.00000",
                             "Local_Latitud": "-33.77777",
                             "FecAgendada": order.realdatedelivery,
+                            "FechaCompraCliente": order.date,
                             "UnSolicitadas": 5,
                             "Supervisor": "",
                             "RUT_Cliente": order.client.rut,
