@@ -1148,6 +1148,7 @@ class OrdersController {
                         query_['state'] = mongoose_1.default.Types.ObjectId(stateId);
                     });
                     if (Object.keys(query).length > 0) {
+                        console.log(query);
                         if (query.buyFromDate && query.buyToDate) {
                             let from = new Date(query.buyFromDate);
                             let to = new Date(query.buyToDate);
@@ -1158,8 +1159,8 @@ class OrdersController {
                             to.setMinutes(59);
                             to.setSeconds(59);
                             query_['date'] = {
-                                $gte: from,
-                                $lt: to
+                                "$gte": from,
+                                "$lt": to
                             };
                         }
                         if (query.buyFromDate && !query.buyToDate) {
@@ -1169,8 +1170,8 @@ class OrdersController {
                             from.setMinutes(0);
                             from.setSeconds(0);
                             query_['date'] = {
-                                $gte: from,
-                                $lt: to
+                                "$gte": from,
+                                "$lt": to,
                             };
                         }
                         if (query.deliveryFromDate && query.deliveryToDate) {
@@ -1183,10 +1184,11 @@ class OrdersController {
                             to.setMinutes(59);
                             to.setSeconds(59);
                             query_['realdatedelivery'] = {
-                                $gte: from,
-                                $lt: to
+                                "$gte": from,
+                                "$lt": to
                             };
                         }
+                        console.log("object");
                         if (query.deliveryFromDate && !query.deliveryToDate) {
                             let from = new Date(query.deliveryFromDate);
                             let to = new Date();
@@ -1197,8 +1199,8 @@ class OrdersController {
                             to.setMinutes(59);
                             to.setSeconds(59);
                             query_['realdatedelivery'] = {
-                                $gte: from,
-                                $lt: from
+                                "$gte": from,
+                                "$lt": to
                             };
                         }
                         if (query.name) {
@@ -1215,12 +1217,9 @@ class OrdersController {
                             query_['shopId'] = mongoose_1.default.Types.ObjectId(query.shop);
                         }
                     }
-                    // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
                     if (company)
                         query_['uid'] = mongoose_1.default.Types.ObjectId(company);
-                    // if (shopId) arrayQuery.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
-                    // if (arrayQuery.length > 0)
-                    //   query_['$and'] = [...arrayQuery]
+                    console.log("holdas");
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1252,7 +1251,7 @@ class OrdersController {
                             let filterOrders = newOrders.filter((orders) => {
                                 if (pickerName) {
                                     if (pickerName) {
-                                        if (orders.pickerId.name.toLowerCase().indexOf(pickerName.toLowerCase()) !== -1)
+                                        if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
                                             return orders;
                                     }
                                 }
@@ -1368,7 +1367,7 @@ class OrdersController {
                             to.setSeconds(59);
                             query_['realdatedelivery'] = {
                                 $gte: from,
-                                $lt: from
+                                $lt: to
                             };
                         }
                         if (query.name) {
@@ -1420,7 +1419,7 @@ class OrdersController {
                             let filterOrders = newOrders.filter((orders) => {
                                 if (pickerName) {
                                     if (pickerName) {
-                                        if (orders.pickerId.name.toLowerCase().indexOf(pickerName.toLowerCase()) !== -1)
+                                        if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
                                             return orders;
                                     }
                                 }
@@ -1532,7 +1531,7 @@ class OrdersController {
                     to.setSeconds(59);
                     query_['realdatedelivery'] = {
                         $gte: from,
-                        $lt: from
+                        $lt: to
                     };
                 }
                 if (query.rut) {
@@ -1589,11 +1588,11 @@ class OrdersController {
                     let filterOrders = newOrders.filter((orders) => {
                         if (namePicker && nameDelivery) {
                             if (namePicker) {
-                                if (orders.pickerId.name.toLowerCase().indexOf(namePicker.toLowerCase()) !== -1)
+                                if (orders.pickerId.name.toLowerCase().includes(namePicker.toLowerCase()))
                                     return orders;
                             }
                             if (nameDelivery) {
-                                if (orders.deliveryId.name.toLowerCase().indexOf(nameDelivery.toLowerCase()) !== -1)
+                                if (orders.deliveryId.name.toLowerCase().includes(nameDelivery.toLowerCase()))
                                     return orders;
                             }
                         }
@@ -1951,7 +1950,7 @@ class OrdersController {
                                                                     else {
                                                                         response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InfoLocal]", success: false });
                                                                     }
-                                                                }).catch((err) => { response.json({ message: err, success: false, aqi: "Dsada" }); });
+                                                                }).catch((err) => { response.json({ message: err.message, success: false }); });
                                                             }
                                                             else {
                                                                 response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[IngresoOrder]", success: false });
@@ -2004,8 +2003,6 @@ class OrdersController {
         });
     }
     async remove(request, response, next, app) {
-    }
-    async auth(request, response, next, app) {
     }
 }
 exports.OrdersController = OrdersController;

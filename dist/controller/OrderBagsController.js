@@ -115,20 +115,29 @@ class OrderBagsController {
                 "delivery": false
             };
             let queryState = {
-                "key": { '$in': ["8", "7", "6"] }
+                "key": 4
             };
             if (shopId) {
                 findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResultState) => {
                     if (findResultState.length > 0) {
-                        let stateIds = [];
-                        findResultState.map((state) => { stateIds.push(state._id); });
+                        let stateIds;
+                        stateIds = findResultState[0]._id;
                         findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', '', 0, null, null).then((result) => {
-                            let bagsResult = result.filter((bag) => !stateIds.includes(bag.orderNumber.state));
-                            response.json({
-                                message: 'Listado de bolsas a despachar',
-                                data: bagsResult,
-                                success: true
-                            });
+                            if (result.length) {
+                                let bagsResult = result.filter((bag) => stateIds = bag.orderNumber.state._id);
+                                response.json({
+                                    message: 'Listado de bolsas a despachar',
+                                    data: bagsResult,
+                                    success: true
+                                });
+                            }
+                            else {
+                                response.json({
+                                    message: 'Listado de bolsas a despachar',
+                                    data: result,
+                                    success: true
+                                });
+                            }
                         }).catch((err) => {
                             response.json({
                                 message: err,

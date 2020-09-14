@@ -120,20 +120,28 @@ export class OrderBagsController {
             }
 
             let queryState = {
-                "key": { '$in': ["8", "7", "6"] }
+                "key": 4
             }
             if (shopId) {
                 findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
                     if (findResultState.length > 0) {
-                        let stateIds: Array<any> = []
-                        findResultState.map((state) => { stateIds.push(state._id) })
+                        let stateIds: string;
+                        stateIds = findResultState[0]._id
                         findDocuments(OrderBags, query, "", {}, 'orderNumber', '', 0, null, null).then((result: Array<any>) => {
-                            let bagsResult = result.filter((bag) => !stateIds.includes(bag.orderNumber.state))
-                            response.json({
-                                message: 'Listado de bolsas a despachar',
-                                data: bagsResult,
-                                success: true
-                            });
+                            if (result.length) {
+                                let bagsResult = result.filter((bag) => stateIds = bag.orderNumber.state._id)
+                                response.json({
+                                    message: 'Listado de bolsas a despachar',
+                                    data: bagsResult,
+                                    success: true
+                                });
+                            } else {
+                                response.json({
+                                    message: 'Listado de bolsas a despachar',
+                                    data: result,
+                                    success: true
+                                });
+                            }
                         }).catch((err: Error) => {
                             response.json({
                                 message: err,

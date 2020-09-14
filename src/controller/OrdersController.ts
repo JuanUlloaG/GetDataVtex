@@ -1106,6 +1106,7 @@ export class OrdersController {
             query_['state'] = mongoose.Types.ObjectId(stateId)
           })
           if (Object.keys(query).length > 0) {
+            console.log(query)
             if (query.buyFromDate && query.buyToDate) {
               let from = new Date(query.buyFromDate)
               let to = new Date(query.buyToDate)
@@ -1117,8 +1118,8 @@ export class OrdersController {
               to.setSeconds(59)
 
               query_['date'] = {
-                $gte: from,
-                $lt: to
+                "$gte": from,
+                "$lt": to
               }
             }
 
@@ -1129,8 +1130,8 @@ export class OrdersController {
               from.setMinutes(0)
               from.setSeconds(0)
               query_['date'] = {
-                $gte: from,
-                $lt: to
+                "$gte": from,
+                "$lt": to,
               }
             }
 
@@ -1144,11 +1145,12 @@ export class OrdersController {
               to.setMinutes(59)
               to.setSeconds(59)
               query_['realdatedelivery'] = {
-                $gte: from,
-                $lt: to
+                "$gte": from,
+                "$lt": to
               }
             }
 
+            console.log("object")
             if (query.deliveryFromDate && !query.deliveryToDate) {
               let from = new Date(query.deliveryFromDate)
               let to = new Date()
@@ -1159,8 +1161,8 @@ export class OrdersController {
               to.setMinutes(59)
               to.setSeconds(59)
               query_['realdatedelivery'] = {
-                $gte: from,
-                $lt: from
+                "$gte": from,
+                "$lt": to
               }
             }
             if (query.name) {
@@ -1174,11 +1176,8 @@ export class OrdersController {
 
             if (query.shop) { query_['shopId'] = mongoose.Types.ObjectId(query.shop) }
           }
-          // query_['$and'] = [{ 'uid': mongoose.Types.ObjectId(company) }]
           if (company) query_['uid'] = mongoose.Types.ObjectId(company)
-          // if (shopId) arrayQuery.push({ 'shopId': mongoose.Types.ObjectId(shopId) })
-          // if (arrayQuery.length > 0)
-          //   query_['$and'] = [...arrayQuery]
+          console.log("holdas")
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1204,7 +1203,7 @@ export class OrdersController {
               let filterOrders = newOrders.filter((orders) => {
                 if (pickerName) {
                   if (pickerName) {
-                    if (orders.pickerId.name.toLowerCase().indexOf(pickerName.toLowerCase()) !== -1)
+                    if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
                       return orders
                   }
                 } else {
@@ -1323,7 +1322,7 @@ export class OrdersController {
               to.setSeconds(59)
               query_['realdatedelivery'] = {
                 $gte: from,
-                $lt: from
+                $lt: to
               }
             }
 
@@ -1367,7 +1366,7 @@ export class OrdersController {
               let filterOrders = newOrders.filter((orders) => {
                 if (pickerName) {
                   if (pickerName) {
-                    if (orders.pickerId.name.toLowerCase().indexOf(pickerName.toLowerCase()) !== -1)
+                    if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
                       return orders
                   }
                 } else {
@@ -1486,7 +1485,7 @@ export class OrdersController {
           to.setSeconds(59)
           query_['realdatedelivery'] = {
             $gte: from,
-            $lt: from
+            $lt: to
           }
         }
 
@@ -1536,11 +1535,11 @@ export class OrdersController {
           let filterOrders = newOrders.filter((orders) => {
             if (namePicker && nameDelivery) {
               if (namePicker) {
-                if (orders.pickerId.name.toLowerCase().indexOf(namePicker.toLowerCase()) !== -1)
+                if (orders.pickerId.name.toLowerCase().includes(namePicker.toLowerCase()))
                   return orders
               }
               if (nameDelivery) {
-                if (orders.deliveryId.name.toLowerCase().indexOf(nameDelivery.toLowerCase()) !== -1)
+                if (orders.deliveryId.name.toLowerCase().includes(nameDelivery.toLowerCase()))
                   return orders
               }
             } else {
@@ -1891,7 +1890,7 @@ export class OrdersController {
                                   } else {
                                     response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InfoLocal]", success: false });
                                   }
-                                }).catch((err: Error) => { response.json({ message: err, success: false, aqi: "Dsada" }); });
+                                }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
                               } else {
                                 response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[IngresoOrder]", success: false });
                               }
@@ -1941,6 +1940,4 @@ export class OrdersController {
   async remove(request: Request, response: Response, next: NextFunction, app: any) {
   }
 
-  async auth(request: Request, response: Response, next: NextFunction, app: any) {
-  }
 }
