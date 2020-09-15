@@ -28,6 +28,8 @@ const OrderSchema = new mongoose_1.Schema({
     bag: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null, autopopulate: true },
     state: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "State", autopopulate: true },
     service: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Service", autopopulate: true },
+    pickerName: { type: String, required: false, default: '' },
+    deliveryName: { type: String, required: false, default: '' },
     orderNumber: { type: String, required: true },
     channel: { type: String, required: true },
     received: { type: String, required: false, default: "" },

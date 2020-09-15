@@ -19,6 +19,8 @@ export interface OrderInterface extends Document {
     service: ServicesInterface['_id'],
     received?: string,
     comment?: string,
+    pickerName?: string,
+    deliveryName?: string,
     products: [{
         id: number,
         barcode: number,
@@ -68,6 +70,8 @@ const OrderSchema: Schema = new Schema({
     bag: { type: Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null, autopopulate: true },
     state: { type: Schema.Types.ObjectId, required: true, ref: "State", autopopulate: true },
     service: { type: Schema.Types.ObjectId, required: true, ref: "Service", autopopulate: true },
+    pickerName: { type: String, required: false, default: '' },
+    deliveryName: { type: String, required: false, default: '' },
     orderNumber: { type: String, required: true },
     channel: { type: String, required: true },
     received: { type: String, required: false, default: "" },

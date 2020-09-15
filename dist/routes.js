@@ -78,6 +78,12 @@ exports.Routes = [
         action: "orders"
     },
     {
+        method: "post",
+        route: "/orders/upName",
+        controller: OrdersController_1.OrdersController,
+        action: "updateNamesInOrdes"
+    },
+    {
         method: "get",
         route: "/ordersTest",
         controller: OrdersController_1.OrdersController,

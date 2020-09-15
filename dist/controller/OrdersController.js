@@ -14,6 +14,7 @@ const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findO
 const moment_1 = __importDefault(require("moment"));
 const History_1 = __importDefault(require("../entity/History"));
 const Company_1 = __importDefault(require("../entity/Company"));
+const User_1 = __importDefault(require("../entity/User"));
 // mongoose.set('debug', true);
 class OrdersController {
     async all(request, response, next, app) {
@@ -1208,7 +1209,7 @@ class OrdersController {
                         }
                         if (query.name) {
                             pickerName = query.name;
-                            query_['pickerId'] = { $ne: null };
+                            query_['pickerName'] = { $regex: new RegExp(pickerName, "i") };
                         }
                         if (query.number) {
                             query_['orderNumber'] = { $regex: query.number };
@@ -1251,20 +1252,19 @@ class OrdersController {
                                 order.set('timeLine', [...rows], { strict: false });
                                 return order;
                             });
-                            let filterOrders = newOrders.filter((orders) => {
-                                if (pickerName) {
-                                    if (pickerName) {
-                                        if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
-                                            return orders;
-                                    }
-                                }
-                                else {
-                                    return orders;
-                                }
-                            });
+                            // let filterOrders = newOrders.filter((orders) => {
+                            //   if (pickerName) {
+                            //     if (pickerName) {
+                            //       if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
+                            //         return orders
+                            //     }
+                            //   } else {
+                            //     return orders
+                            //   }
+                            // })
                             response.json({
                                 message: 'Listado de ordenes para resetear',
-                                data: filterOrders,
+                                data: newOrders,
                                 success: true
                             });
                         }
@@ -1375,7 +1375,7 @@ class OrdersController {
                         }
                         if (query.name) {
                             pickerName = query.name;
-                            query_['pickerId'] = { $ne: null };
+                            query_['pickerName'] = { $regex: new RegExp(pickerName, "i") };
                         }
                         if (query.number) {
                             query_['orderNumber'] = { $regex: query.number };
@@ -1419,20 +1419,19 @@ class OrdersController {
                                 order.set('timeLine', [...rows], { strict: false });
                                 return order;
                             });
-                            let filterOrders = newOrders.filter((orders) => {
-                                if (pickerName) {
-                                    if (pickerName) {
-                                        if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
-                                            return orders;
-                                    }
-                                }
-                                else {
-                                    return orders;
-                                }
-                            });
+                            // let filterOrders = newOrders.filter((orders) => {
+                            //   if (pickerName) {
+                            //     if (pickerName) {
+                            //       if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
+                            //         return orders
+                            //     }
+                            //   } else {
+                            //     return orders
+                            //   }
+                            // })
                             response.json({
                                 message: 'Listado de ordenes para resetear',
-                                data: filterOrders,
+                                data: newOrders,
                                 success: true
                             });
                         }
@@ -1551,11 +1550,11 @@ class OrdersController {
                 }
                 if (query.pickerName) {
                     namePicker = query.pickerName;
-                    query_['pickerId'] = { $ne: null };
+                    query_['pickerName'] = { $regex: new RegExp(namePicker, "i") };
                 }
                 if (query.deliveryName) {
                     nameDelivery = query.deliveryName;
-                    query_['deliveryId'] = { $ne: null };
+                    query_['deliveryName'] = { $regex: new RegExp(nameDelivery, "i") };
                 }
             }
             if (company)
@@ -1588,24 +1587,9 @@ class OrdersController {
                         order.set('timeLine', [...rows], { strict: false });
                         return order;
                     });
-                    let filterOrders = newOrders.filter((orders) => {
-                        if (namePicker && nameDelivery) {
-                            if (namePicker) {
-                                if (orders.pickerId.name.toLowerCase().includes(namePicker.toLowerCase()))
-                                    return orders;
-                            }
-                            if (nameDelivery) {
-                                if (orders.deliveryId.name.toLowerCase().includes(nameDelivery.toLowerCase()))
-                                    return orders;
-                            }
-                        }
-                        else {
-                            return orders;
-                        }
-                    });
                     response.json({
                         message: 'Listado de ordenes home',
-                        data: filterOrders,
+                        data: newOrders,
                         success: true,
                         orders: result.length
                     });
@@ -1643,7 +1627,7 @@ class OrdersController {
                     const { id } = request.body;
                     if (id) {
                         let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
-                        let update = { "pickerId": null, startPickingDate: null, state: mongoose_1.default.Types.ObjectId(stateId), shopId: null };
+                        let update = { "pickerId": null, startPickingDate: null, state: mongoose_1.default.Types.ObjectId(stateId), shopId: null, pickerName: "" };
                         findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
                             if (update) {
                                 let historyObj = {
@@ -1728,44 +1712,60 @@ class OrdersController {
                     const { id, pickerId, shopId } = request.body;
                     if (id) {
                         let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
-                        let update = { "pickerId": mongoose_1.default.Types.ObjectId(pickerId), startPickingDate: new Date(), state: mongoose_1.default.Types.ObjectId(stateId), shopId: mongoose_1.default.Types.ObjectId(shopId) };
+                        let update = { "pickerId": mongoose_1.default.Types.ObjectId(pickerId), pickerName: "", startPickingDate: new Date(), state: mongoose_1.default.Types.ObjectId(stateId), shopId: mongoose_1.default.Types.ObjectId(shopId) };
                         let queryFind = { "_id": mongoose_1.default.Types.ObjectId(id) };
-                        findDocuments(Orders_1.default, queryFind, "", {}, '', '', 0, null, null).then((findResult) => {
-                            if (findResult.length > 0) {
-                                if (findResult[0].pickerId) {
-                                    response.json({
-                                        message: 'Orden Tomada',
-                                        data: findResult[0],
-                                        success: true
-                                    });
-                                }
-                                else {
-                                    findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
-                                        if (update) {
-                                            let historyObj = {
-                                                state: mongoose_1.default.Types.ObjectId(stateId),
-                                                orderNumber: update.orderNumber,
-                                                order: mongoose_1.default.Types.ObjectId(update._id),
-                                                bag: null,
-                                                shop: null,
-                                                picker: mongoose_1.default.Types.ObjectId(pickerId),
-                                                delivery: null,
-                                                orderSnapShot: update,
-                                                dateHistory: new Date()
-                                            };
-                                            insertDB(History_1.default, historyObj).then((result) => {
-                                                if (result) {
-                                                    response.json({
-                                                        message: 'Orden Tomada',
-                                                        data: update,
-                                                        success: true
+                        findDocuments(User_1.default, { "_id": mongoose_1.default.Types.ObjectId(pickerId) }, "", {}, '', '', 0, null, null).then((userResult) => {
+                            if (userResult.length) {
+                                findDocuments(Orders_1.default, queryFind, "", {}, '', '', 0, null, null).then((findResult) => {
+                                    if (findResult.length > 0) {
+                                        if (findResult[0].pickerId) {
+                                            response.json({
+                                                message: 'Orden Tomada',
+                                                data: findResult[0],
+                                                success: true
+                                            });
+                                        }
+                                        else {
+                                            update.pickerName = userResult[0].name;
+                                            findOneAndUpdateDB(Orders_1.default, query, update, null, null).then((update) => {
+                                                if (update) {
+                                                    let historyObj = {
+                                                        state: mongoose_1.default.Types.ObjectId(stateId),
+                                                        orderNumber: update.orderNumber,
+                                                        order: mongoose_1.default.Types.ObjectId(update._id),
+                                                        bag: null,
+                                                        shop: null,
+                                                        picker: mongoose_1.default.Types.ObjectId(pickerId),
+                                                        delivery: null,
+                                                        orderSnapShot: update,
+                                                        dateHistory: new Date()
+                                                    };
+                                                    insertDB(History_1.default, historyObj).then((result) => {
+                                                        if (result) {
+                                                            response.json({
+                                                                message: 'Orden Tomada',
+                                                                data: update,
+                                                                success: true
+                                                            });
+                                                        }
+                                                        else {
+                                                            response.json({
+                                                                message: 'Error al Tomar la orden',
+                                                                data: result,
+                                                                success: true
+                                                            });
+                                                        }
+                                                    }).catch((err) => {
+                                                        response.json({
+                                                            message: err.message,
+                                                            success: false
+                                                        });
                                                     });
                                                 }
                                                 else {
                                                     response.json({
-                                                        message: 'Error al Tomar la orden',
-                                                        data: result,
-                                                        success: true
+                                                        message: "Error al tomar la orden",
+                                                        success: false
                                                     });
                                                 }
                                             }).catch((err) => {
@@ -1775,29 +1775,30 @@ class OrdersController {
                                                 });
                                             });
                                         }
-                                        else {
-                                            response.json({
-                                                message: "Error al tomar la orden",
-                                                success: false
-                                            });
-                                        }
-                                    }).catch((err) => {
+                                    }
+                                    else {
                                         response.json({
-                                            message: err.message,
+                                            message: "Error al tomar laa orden",
                                             success: false
                                         });
+                                    }
+                                }).catch((err) => {
+                                    response.json({
+                                        message: err,
+                                        success: false
                                     });
-                                }
+                                });
                             }
                             else {
                                 response.json({
-                                    message: "Error al tomar laa orden",
-                                    success: false
+                                    message: 'Error al econtrar usuario',
+                                    data: update,
+                                    success: true
                                 });
                             }
                         }).catch((err) => {
                             response.json({
-                                message: err,
+                                message: err.message,
                                 success: false
                             });
                         });
@@ -1862,7 +1863,7 @@ class OrdersController {
                                 let _order = {
                                     uid: mongoose_1.default.Types.ObjectId(request.body.uid),
                                     state: mongoose_1.default.Types.ObjectId(stateId),
-                                    orderNumber: order.orderNumber,
+                                    orderNumber: order.orderNumber + "",
                                     products: order.products,
                                     service: mongoose_1.default.Types.ObjectId(findService._id),
                                     channel: order.channel,
@@ -1908,7 +1909,7 @@ class OrdersController {
                                                         serviceDesc = service.desc; });
                                                     let param = {
                                                         "CuentaCliente": companyName,
-                                                        "OrderTrabajo": order.orderNumber,
+                                                        "OrderTrabajo": order.orderNumber + "",
                                                         "NLocal": "",
                                                         "Local_Longitud": "-77.00000",
                                                         "Local_Latitud": "-33.77777",
@@ -1928,7 +1929,7 @@ class OrdersController {
                                                     };
                                                     let paramShop = {
                                                         "CuentaCliente": companyName,
-                                                        "OrderTrabajo": order.orderNumber,
+                                                        "OrderTrabajo": order.orderNumber + "",
                                                         "NLocal": "",
                                                         "Local_Longitud": "-77.00000",
                                                         "Local_Latitud": "-33.77777"
@@ -1959,7 +1960,7 @@ class OrdersController {
                                                             else {
                                                                 response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[IngresoOrder]", success: false });
                                                             }
-                                                        }).catch((err) => { response.json({ message: err, success: false, aqi: "Dsada" }); });
+                                                        }).catch((err) => { response.json({ message: err, success: false }); });
                                                     }
                                                     else {
                                                         response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory });
@@ -2006,7 +2007,54 @@ class OrdersController {
             success: true
         });
     }
-    async remove(request, response, next, app) {
+    async updateNamesInOrdes(request, response, next, app) {
+        findDocuments(Orders_1.default, {}, "", {}, '', '', 0, null, null).then((result) => {
+            if (result) {
+                result.map(async (order) => {
+                    console.log("Consultando orden: ", order.orderNumber);
+                    if (order.pickerId || order.deliveryId) {
+                        if (order.pickerId) {
+                            console.log("pickerId", order.pickerId);
+                            findDocuments(User_1.default, { "_id": mongoose_1.default.Types.ObjectId(order.pickerId._id) }, "", {}, '', '', 0, null, null).then((userResult) => {
+                                if (userResult.length) {
+                                    let updateOrder = { pickerName: userResult[0].name };
+                                    console.log(order._id);
+                                    let queryOrder = { "_id": mongoose_1.default.Types.ObjectId(order._id) };
+                                    findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
+                                        console.log(updateOrder.pickerName);
+                                    }).catch((err) => {
+                                        response.json({
+                                            message: err.message,
+                                        });
+                                    });
+                                }
+                            });
+                        }
+                        if (order.deliveryId) {
+                            console.log("deliveryId", order.deliveryId);
+                            findDocuments(User_1.default, { "_id": mongoose_1.default.Types.ObjectId(order.deliveryId._id) }, "", {}, '', '', 0, null, null).then((userResult) => {
+                                if (userResult.length) {
+                                    let updateOrder = { deliveryName: userResult[0].name };
+                                    console.log(order._id);
+                                    let queryOrder = { "_id": mongoose_1.default.Types.ObjectId(order._id) };
+                                    findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
+                                        console.log(updateOrder.deliveryName);
+                                    }).catch((err) => {
+                                        response.json({
+                                            message: err.message,
+                                        });
+                                    });
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+            response.json({
+                message: "Finalizo el proceso, algunas ordenes aun se estan ejecutando",
+            });
+        }).catch((err) => {
+        });
     }
 }
 exports.OrdersController = OrdersController;

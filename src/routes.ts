@@ -76,6 +76,12 @@ export const Routes = [
         action: "orders"
     },
     {
+        method: "post",
+        route: "/orders/upName",
+        controller: OrdersController,
+        action: "updateNamesInOrdes"
+    },
+    {
         method: "get",
         route: "/ordersTest",
         controller: OrdersController,
