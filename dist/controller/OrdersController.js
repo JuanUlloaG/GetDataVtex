@@ -15,6 +15,7 @@ const moment_1 = __importDefault(require("moment"));
 const History_1 = __importDefault(require("../entity/History"));
 const Company_1 = __importDefault(require("../entity/Company"));
 const User_1 = __importDefault(require("../entity/User"));
+const config_1 = require("../config/config");
 // mongoose.set('debug', true);
 class OrdersController {
     async all(request, response, next, app) {
@@ -32,6 +33,7 @@ class OrdersController {
             findDocuments(State_1.default, query, "", {}, '', '', 0, null, null).then((findResultState) => {
                 if (findResultState.length > 0) {
                     let stateId = findResultState[0]._id;
+                    const stateName = findResultState[0].desc;
                     let updateOrder = { state: mongoose_1.default.Types.ObjectId(stateId) };
                     if (state == 8) {
                         updateOrder['cancellDate'] = new Date();
@@ -40,12 +42,43 @@ class OrdersController {
                         updateOrder['realdatedelivery'] = new Date(date);
                         updateOrder['restocked'] = true;
                     }
-                    findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
-                        if (updateOrder) {
-                            response.json({
-                                message: 'Orden actualizada exitosamente',
-                                data: updateOrder,
-                                success: true
+                    findDocuments(Orders_1.default, queryOrder, "", {}, '', '', 0, null, null).then((OrderResult) => {
+                        if (OrderResult.length > 0) {
+                            findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
+                                if (updateOrder) {
+                                    let event = Object.assign({}, config_1.config.paramEvent);
+                                    event.CuentaCliente = OrderResult[0].uid.name;
+                                    event.OrderTrabajo = OrderResult[0].orderNumber.toString();
+                                    event.Estado = stateName;
+                                    event.FechaEventoOMS = new Date();
+                                    let orderEvent = [];
+                                    orderEvent.push(event);
+                                    console.log("Event", event);
+                                    let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event); });
+                                    Promise.all(promiseEvent).then((resultEvent) => {
+                                        if (resultEvent) {
+                                            response.json({
+                                                message: 'Orden actualizada exitosamente',
+                                                data: updateOrder,
+                                                success: true
+                                            });
+                                        }
+                                        else {
+                                            response.json({ message: "Error al ingresar el evento, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InsertEvento]", success: false });
+                                        }
+                                    }).catch((err) => { response.json({ message: err.message, success: false }); });
+                                }
+                                else {
+                                    response.json({
+                                        message: "Error al actualizar orden: " + updateOrder,
+                                        success: false
+                                    });
+                                }
+                            }).catch((err) => {
+                                response.json({
+                                    message: err,
+                                    success: false
+                                });
                             });
                         }
                         else {
@@ -54,12 +87,7 @@ class OrdersController {
                                 success: false
                             });
                         }
-                    }).catch((err) => {
-                        response.json({
-                            message: err,
-                            success: false
-                        });
-                    });
+                    }).catch((err) => { response.json({ message: err.message, success: false }); });
                 }
                 else {
                     response.json({
@@ -1709,6 +1737,7 @@ class OrdersController {
             findDocuments(State_1.default, query, "", {}, '', '', 0, null, null).then((findResultState) => {
                 if (findResultState.length > 0) {
                     let stateId = findResultState[0]._id;
+                    const stateName = findResultState[0].desc;
                     const { id, pickerId, shopId } = request.body;
                     if (id) {
                         let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
@@ -1742,11 +1771,26 @@ class OrdersController {
                                                     };
                                                     insertDB(History_1.default, historyObj).then((result) => {
                                                         if (result) {
-                                                            response.json({
-                                                                message: 'Orden Tomada',
-                                                                data: update,
-                                                                success: true
-                                                            });
+                                                            let event = Object.assign({}, config_1.config.paramEvent);
+                                                            event.CuentaCliente = findResult[0].uid.name;
+                                                            event.OrderTrabajo = findResult[0].orderNumber.toString();
+                                                            event.Estado = stateName;
+                                                            event.FechaEventoOMS = new Date();
+                                                            let orderEvent = [];
+                                                            orderEvent.push(event);
+                                                            let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event); });
+                                                            Promise.all(promiseEvent).then((resultEvent) => {
+                                                                if (resultEvent) {
+                                                                    response.json({
+                                                                        message: 'Orden Tomada',
+                                                                        data: update,
+                                                                        success: true
+                                                                    });
+                                                                }
+                                                                else {
+                                                                    response.json({ message: "Error al ingresar el evento, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InsertEvento]", success: false });
+                                                                }
+                                                            }).catch((err) => { response.json({ message: err.message, success: false }); });
                                                         }
                                                         else {
                                                             response.json({
@@ -1784,7 +1828,7 @@ class OrdersController {
                                     }
                                 }).catch((err) => {
                                     response.json({
-                                        message: err,
+                                        message: err.message,
                                         success: false
                                     });
                                 });
@@ -1943,8 +1987,8 @@ class OrdersController {
                                                         Promise.all(promisesOrders).then((resultPromises) => {
                                                             if (resultPromises) {
                                                                 let promisesOrdersShop = ordersShop.map((order) => { return executeProcedure("[OMS].[InfoLocal]", order); });
-                                                                Promise.all(promisesOrdersShop).then((resultPromises) => {
-                                                                    if (resultPromises) {
+                                                                Promise.all(promisesOrdersShop).then((resultPromisesOrderShops) => {
+                                                                    if (resultPromisesOrderShops) {
                                                                         response.json({
                                                                             message: 'orden(es) creada(s) exitosamente',
                                                                             ordersNotInsert: orderfinalToInsert,
@@ -1955,12 +1999,18 @@ class OrdersController {
                                                                     else {
                                                                         response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InfoLocal]", success: false });
                                                                     }
-                                                                }).catch((err) => { response.json({ message: err.message, success: false }); });
+                                                                }).catch((err) => {
+                                                                    console.log(err.message);
+                                                                    response.json({ message: err.message, success: false });
+                                                                });
                                                             }
                                                             else {
                                                                 response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[IngresoOrder]", success: false });
                                                             }
-                                                        }).catch((err) => { response.json({ message: err, success: false }); });
+                                                        }).catch((err) => {
+                                                            console.log(err);
+                                                            response.json({ message: err.message, success: false });
+                                                        });
                                                     }
                                                     else {
                                                         response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory });

@@ -119,6 +119,7 @@ class OrderBagsController {
             let queryState = {
                 "key": 4
             };
+            console.log("aqui???");
             if (shopId) {
                 findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResultState) => {
                     if (findResultState.length > 0) {
@@ -126,7 +127,7 @@ class OrderBagsController {
                         stateIds = findResultState[0]._id;
                         findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', '', 0, null, null).then((result) => {
                             if (result.length) {
-                                let bagsResult = result.filter((bag) => stateIds = bag.orderNumber.state._id);
+                                let bagsResult = result.filter((bag) => stateIds === bag.orderNumber.state._id);
                                 response.json({
                                     message: 'Listado de bolsas a despachar',
                                     data: bagsResult,

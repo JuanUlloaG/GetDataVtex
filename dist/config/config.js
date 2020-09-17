@@ -31,6 +31,12 @@ exports.config = {
             // If you are on Microsoft Azure, you need encryption:
             encrypt: true,
             database: 'SRReportPrimeDEV' //update me
-        }
+        },
+    },
+    paramEvent: {
+        "CuentaCliente": "companyName",
+        "OrderTrabajo": "",
+        "Estado": "",
+        "FechaEventoOMS": new Date()
     }
 };

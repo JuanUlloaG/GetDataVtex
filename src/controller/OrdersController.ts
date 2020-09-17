@@ -4,7 +4,7 @@ import xlsx from "xlsx";
 const jwt = require('jsonwebtoken');
 import Orders from "../entity/Orders";
 import { OrderInterface } from "../entity/Orders";
-import State from "../entity/State";
+import State, { StateInterface } from "../entity/State";
 import Service, { ServicesInterface } from "../entity/Services";
 const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, executeProcedure } = require("../config/db")
 import moment from 'moment'
@@ -14,6 +14,7 @@ import { OrderInsertInterface } from "../entity/Procedures";
 import Company, { CompanyInterface } from "../entity/Company";
 import { Client } from "@googlemaps/google-maps-services-js";
 import User, { UserInterface } from "../entity/User";
+import { config } from "../config/config";
 // mongoose.set('debug', true);
 
 
@@ -33,9 +34,10 @@ export class OrdersController {
       const { id, state, date } = request.body
       let queryOrder: any = { "_id": mongoose.Types.ObjectId(id) }
       let query = { "key": state }
-      findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
+      findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<StateInterface>) => {
         if (findResultState.length > 0) {
           let stateId = findResultState[0]._id;
+          const stateName = findResultState[0].desc
           let updateOrder: any = { state: mongoose.Types.ObjectId(stateId) }
           if (state == 8) {
             updateOrder['cancellDate'] = new Date()
@@ -44,12 +46,42 @@ export class OrdersController {
             updateOrder['realdatedelivery'] = new Date(date)
             updateOrder['restocked'] = true
           }
-          findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
-            if (updateOrder) {
-              response.json({
-                message: 'Orden actualizada exitosamente',
-                data: updateOrder,
-                success: true
+          findDocuments(Orders, queryOrder, "", {}, '', '', 0, null, null).then((OrderResult: Array<OrderInterface>) => {
+            if (OrderResult.length > 0) {
+              findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: OrderInterface) => {
+                if (updateOrder) {
+
+                  let event = Object.assign({}, config.paramEvent)
+                  event.CuentaCliente = OrderResult[0].uid.name
+                  event.OrderTrabajo = OrderResult[0].orderNumber.toString()
+                  event.Estado = stateName
+                  event.FechaEventoOMS = new Date()
+                  let orderEvent = [];
+                  orderEvent.push(event)
+                  console.log("Event", event)
+                  let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event) })
+                  Promise.all(promiseEvent).then((resultEvent) => {
+                    if (resultEvent) {
+                      response.json({
+                        message: 'Orden actualizada exitosamente',
+                        data: updateOrder,
+                        success: true
+                      });
+                    } else {
+                      response.json({ message: "Error al ingresar el evento, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InsertEvento]", success: false });
+                    }
+                  }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
+                } else {
+                  response.json({
+                    message: "Error al actualizar orden: " + updateOrder,
+                    success: false
+                  });
+                }
+              }).catch((err: Error) => {
+                response.json({
+                  message: err,
+                  success: false
+                });
               });
             } else {
               response.json({
@@ -57,12 +89,8 @@ export class OrdersController {
                 success: false
               });
             }
-          }).catch((err: Error) => {
-            response.json({
-              message: err,
-              success: false
-            });
-          });
+          }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
+
         } else {
           response.json({
             message: "Error al actualizar orden: " + findResultState,
@@ -1653,9 +1681,10 @@ export class OrdersController {
   async picked(request: Request, response: Response, next: NextFunction, app: any) {
     try {
       let query = { "key": 2 }
-      findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
+      findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<StateInterface>) => {
         if (findResultState.length > 0) {
           let stateId = findResultState[0]._id;
+          const stateName = findResultState[0].desc;
           const { id, pickerId, shopId } = request.body
           if (id) {
             let query = { "_id": mongoose.Types.ObjectId(id) }
@@ -1663,7 +1692,7 @@ export class OrdersController {
             let queryFind = { "_id": mongoose.Types.ObjectId(id) }
             findDocuments(User, { "_id": mongoose.Types.ObjectId(pickerId) }, "", {}, '', '', 0, null, null).then((userResult: Array<UserInterface>) => {
               if (userResult.length) {
-                findDocuments(Orders, queryFind, "", {}, '', '', 0, null, null).then((findResult: any) => {
+                findDocuments(Orders, queryFind, "", {}, '', '', 0, null, null).then((findResult: Array<OrderInterface>) => {
                   if (findResult.length > 0) {
                     if (findResult[0].pickerId) {
                       response.json({
@@ -1688,11 +1717,27 @@ export class OrdersController {
                           }
                           insertDB(History, historyObj).then((result: HistoryInterface) => {
                             if (result) {
-                              response.json({
-                                message: 'Orden Tomada',
-                                data: update,
-                                success: true
-                              });
+                              let event = Object.assign({}, config.paramEvent)
+                              event.CuentaCliente = findResult[0].uid.name
+                              event.OrderTrabajo = findResult[0].orderNumber.toString()
+                              event.Estado = stateName
+                              event.FechaEventoOMS = new Date()
+                              let orderEvent = [];
+                              orderEvent.push(event)
+
+                              let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event) })
+                              Promise.all(promiseEvent).then((resultEvent) => {
+                                if (resultEvent) {
+                                  response.json({
+                                    message: 'Orden Tomada',
+                                    data: update,
+                                    success: true
+                                  });
+                                } else {
+                                  response.json({ message: "Error al ingresar el evento, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InsertEvento]", success: false });
+                                }
+                              }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
+
                             } else {
                               response.json({
                                 message: 'Error al Tomar la orden',
@@ -1727,7 +1772,7 @@ export class OrdersController {
                   }
                 }).catch((err: Error) => {
                   response.json({
-                    message: err,
+                    message: err.message,
                     success: false
                   });
                 });
@@ -1889,8 +1934,8 @@ export class OrdersController {
                             Promise.all(promisesOrders).then((resultPromises) => {
                               if (resultPromises) {
                                 let promisesOrdersShop = ordersShop.map((order) => { return executeProcedure("[OMS].[InfoLocal]", order) })
-                                Promise.all(promisesOrdersShop).then((resultPromises) => {
-                                  if (resultPromises) {
+                                Promise.all(promisesOrdersShop).then((resultPromisesOrderShops) => {
+                                  if (resultPromisesOrderShops) {
                                     response.json({
                                       message: 'orden(es) creada(s) exitosamente',
                                       ordersNotInsert: orderfinalToInsert,
@@ -1900,11 +1945,17 @@ export class OrdersController {
                                   } else {
                                     response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InfoLocal]", success: false });
                                   }
-                                }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
+                                }).catch((err: Error) => {
+                                  console.log(err.message)
+                                  response.json({ message: err.message, success: false });
+                                });
                               } else {
                                 response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[IngresoOrder]", success: false });
                               }
-                            }).catch((err: Error) => { response.json({ message: err, success: false }); });
+                            }).catch((err: Error) => {
+                              console.log(err)
+                              response.json({ message: err.message, success: false });
+                            });
                           } else {
                             response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory });
                           }

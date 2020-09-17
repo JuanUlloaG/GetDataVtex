@@ -182,7 +182,6 @@ export class UserController {
     try {
 
       const { name, lastname = "", phone, email, profile, rut, password, company } = request.body
-      console.log(!name, !lastname, !phone, !email, !profile, !rut, !password)
       // if (!name || !lastname || !phone || !email || !profile || !rut || !password) {
       if (!name || !phone || !email || !profile || !rut || !password) {
         response.json({
@@ -211,7 +210,8 @@ export class UserController {
             let _user: any = {};
             if (findResult.length > 0) {
               let stateId = findResult[0]._id;
-              _user = { name, lastname, rut, email, password: hashedPassword, phone, profile: mongoose.Types.ObjectId(profile), condition: mongoose.Types.ObjectId(stateId), state: false }
+              let _name = name.replace(/[|&;$%@"<>()+,]/g, "").replace(/\s+/g, ' ')
+              _user = { name: _name, lastname, rut, email, password: hashedPassword, phone, profile: mongoose.Types.ObjectId(profile), condition: mongoose.Types.ObjectId(stateId), state: false }
               let queryPrevUser: any = { 'rut': rut }
               if (company) {
                 _user['company'] = mongoose.Types.ObjectId(company)

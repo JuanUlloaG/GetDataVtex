@@ -184,7 +184,6 @@ class UserController {
     async save(request, response, next, app) {
         try {
             const { name, lastname = "", phone, email, profile, rut, password, company } = request.body;
-            console.log(!name, !lastname, !phone, !email, !profile, !rut, !password);
             // if (!name || !lastname || !phone || !email || !profile || !rut || !password) {
             if (!name || !phone || !email || !profile || !rut || !password) {
                 response.json({
@@ -213,7 +212,8 @@ class UserController {
                         let _user = {};
                         if (findResult.length > 0) {
                             let stateId = findResult[0]._id;
-                            _user = { name, lastname, rut, email, password: hashedPassword, phone, profile: mongoose_1.default.Types.ObjectId(profile), condition: mongoose_1.default.Types.ObjectId(stateId), state: false };
+                            let _name = name.replace(/[|&;$%@"<>()+,]/g, "").replace(/\s+/g, ' ');
+                            _user = { name: _name, lastname, rut, email, password: hashedPassword, phone, profile: mongoose_1.default.Types.ObjectId(profile), condition: mongoose_1.default.Types.ObjectId(stateId), state: false };
                             let queryPrevUser = { 'rut': rut };
                             if (company) {
                                 _user['company'] = mongoose_1.default.Types.ObjectId(company);
