@@ -669,21 +669,20 @@ export class OrdersController {
 
       let queryState: any
       queryState = { "key": 8 }
-
-
+      console.log("ids", query.ids)
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<any>) => {
         if (findResult.length > 0) {
           let stateId = findResult[0]._id;
-          let arrayQuery = []
           if (query && Object.keys(query).length > 0) {
-            if (query.shopId) arrayQuery.push({ "shopId": mongoose.Types.ObjectId(query.shopId) })
-            if (query.name) arrayQuery.push({ "client.name": query.name })
-            if (query.address) arrayQuery.push({ "client.address": query.address })
+            if (query.ids) {
+              if (query.ids.length > 0)
+                query_["_id"] = { $in: [...query.ids] }
+            }
+            if (query.shopId) query_["shopId"] = mongoose.Types.ObjectId(query.shopId)
+            if (query.name) query_["client.name"] = query.name
+            if (query.address) query_["client.address"] = query.address
           }
-          if (stateId) arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
-
-          if (arrayQuery.length > 0)
-            query_['$and'] = [...arrayQuery]
+          if (stateId) query_["state"] = mongoose.Types.ObjectId(stateId)
 
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {

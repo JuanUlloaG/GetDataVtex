@@ -675,22 +675,24 @@ class OrdersController {
                 populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
             queryState = { "key": 8 };
+            console.log("ids", query.ids);
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
                 if (findResult.length > 0) {
                     let stateId = findResult[0]._id;
-                    let arrayQuery = [];
                     if (query && Object.keys(query).length > 0) {
+                        if (query.ids) {
+                            if (query.ids.length > 0)
+                                query_["_id"] = { $in: [...query.ids] };
+                        }
                         if (query.shopId)
-                            arrayQuery.push({ "shopId": mongoose_1.default.Types.ObjectId(query.shopId) });
+                            query_["shopId"] = mongoose_1.default.Types.ObjectId(query.shopId);
                         if (query.name)
-                            arrayQuery.push({ "client.name": query.name });
+                            query_["client.name"] = query.name;
                         if (query.address)
-                            arrayQuery.push({ "client.address": query.address });
+                            query_["client.address"] = query.address;
                     }
                     if (stateId)
-                        arrayQuery.push({ 'state': mongoose_1.default.Types.ObjectId(stateId) });
-                    if (arrayQuery.length > 0)
-                        query_['$and'] = [...arrayQuery];
+                        query_["state"] = mongoose_1.default.Types.ObjectId(stateId);
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
