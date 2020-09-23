@@ -72,7 +72,7 @@ module.exports = {
                 });
                 let Keys = Object.keys(params);
                 Keys.map((key) => {
-                    if (key == "FecAgendada" || key == "InicioPicking" || key == "FinPicking" || key == "FechaCompraCliente" || key == "FechaEventoOMS") {
+                    if (key == "FecAgendada" || key == "InicioPicking" || key == "FinPicking" || key == "FechaCompraCliente" || key == "FechaEventoOMS" || key == "FechaEntregaReal" || key == "FechaRecepcionDelivery") {
                         request.addParameter(key, tedious_1.TYPES.DateTime, params[key]);
                     }
                     else if (key == "UnSolicitadas" || key == "EsReagendamiento") {

@@ -597,6 +597,9 @@ class OrdersController {
                     if (state) {
                         query_['state'] = mongoose_1.default.Types.ObjectId(stateId);
                     }
+                    if (company) {
+                        query_['uid'] = mongoose_1.default.Types.ObjectId(company);
+                    }
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1743,7 +1746,7 @@ class OrdersController {
                     const { id, pickerId, shopId } = request.body;
                     if (id) {
                         let query = { "_id": mongoose_1.default.Types.ObjectId(id) };
-                        let update = { "pickerId": mongoose_1.default.Types.ObjectId(pickerId), pickerName: "", startPickingDate: new Date(), state: mongoose_1.default.Types.ObjectId(stateId), shopId: mongoose_1.default.Types.ObjectId(shopId) };
+                        let update = { "pickerId": mongoose_1.default.Types.ObjectId(pickerId), "pickerName": "", "startPickingDate": new Date(), "state": mongoose_1.default.Types.ObjectId(stateId), "shopId": mongoose_1.default.Types.ObjectId(shopId) };
                         let queryFind = { "_id": mongoose_1.default.Types.ObjectId(id) };
                         findDocuments(User_1.default, { "_id": mongoose_1.default.Types.ObjectId(pickerId) }, "", {}, '', '', 0, null, null).then((userResult) => {
                             if (userResult.length) {

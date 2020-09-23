@@ -12,6 +12,7 @@ import { ObjectId } from "mongodb";
 import History, { HistoryInterface } from "../entity/History";
 import User, { UserInterface } from "../entity/User";
 import { config } from "../config/config";
+import { OrderInsertInterface } from "../entity/Procedures";
 var ajv = new Ajv({ allErrors: true });
 
 
@@ -29,9 +30,9 @@ export class OrderBagsController {
             query = {
                 "bags.bagNumber": number,
             }
-            findDocuments(OrderBags, query, "", {}, 'orderNumber pickerId deliveryId', '', 0, null, null).then((result: any) => {
+            findDocuments(OrderBags, query, "", {}, 'orderNumber pickerId deliveryId', '', 0, null, null).then((result: Array<OrderBagsInterface>) => {
+
                 if (result.length > 0) {
-                    console.log(JSON.stringify(result))
                     response.json({
                         message: 'Detalle de consulta',
                         data: result[0],
@@ -125,6 +126,7 @@ export class OrderBagsController {
             let queryState = {
                 "key": 4
             }
+
             if (shopId) {
                 findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
                     if (findResultState.length > 0) {
@@ -132,7 +134,9 @@ export class OrderBagsController {
                         stateIds = findResultState[0]._id
                         findDocuments(OrderBags, query, "", {}, 'orderNumber', '', 0, null, null).then((result: Array<any>) => {
                             if (result.length) {
-                                let bagsResult = result.filter((bag) => stateIds === bag.orderNumber.state._id)
+                                let bagsResult = result.filter((bag) => {
+                                    return stateIds.toString() == bag.orderNumber.state._id.toString()
+                                })
                                 response.json({
                                     message: 'Listado de bolsas a despachar',
                                     data: bagsResult,
@@ -379,9 +383,9 @@ export class OrderBagsController {
                                                     orderNumber: updateOrder.orderNumber,
                                                     order: mongoose.Types.ObjectId(OrderResult._id),
                                                     bag: mongoose.Types.ObjectId(id),
-                                                    shop: mongoose.Types.ObjectId(OrderResult.shopId),
-                                                    picker: mongoose.Types.ObjectId(OrderResult.pickerId),
-                                                    delivery: mongoose.Types.ObjectId(OrderResult.deliveryId),
+                                                    shop: mongoose.Types.ObjectId(OrderResult.shopId._id),
+                                                    picker: mongoose.Types.ObjectId(OrderResult.pickerId._id),
+                                                    delivery: mongoose.Types.ObjectId(OrderResult.deliveryId._id),
                                                     orderSnapShot: Object.assign({}, OrderResult.toJSON()),
                                                     dateHistory: new Date()
                                                 }
@@ -413,7 +417,7 @@ export class OrderBagsController {
                                                                 Promise.all(promiseEvent).then((resultEvent) => {
                                                                     if (resultEvent) {
                                                                         response.json({
-                                                                            message: 'Orden Actualizada correctamente',
+                                                                            message: 'Orden entregada correctamente',
                                                                             data: update,
                                                                             success: true
                                                                         });
@@ -422,9 +426,6 @@ export class OrderBagsController {
                                                                     }
                                                                 }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
                                                                 // Fin
-
-
-
                                                             } else {
                                                                 response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false });
                                                             }

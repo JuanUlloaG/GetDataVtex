@@ -598,6 +598,8 @@ export class OrdersController {
         if (findResult.length > 0) {
           let stateId = findResult[0]._id;
           if (state) { query_['state'] = mongoose.Types.ObjectId(stateId) }
+          if (company) { query_['uid'] = mongoose.Types.ObjectId(company) }
+          
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1541,7 +1543,6 @@ export class OrdersController {
       }
 
       if (company) query_['uid'] = mongoose.Types.ObjectId(company)
-
       findDocuments(Orders, query_, "", {}, '', 0, null, null).then((result: Array<OrderInterface>) => {
         if (result.length) {
           let newOrders = result.map((order, index) => {
@@ -1687,7 +1688,7 @@ export class OrdersController {
           const { id, pickerId, shopId } = request.body
           if (id) {
             let query = { "_id": mongoose.Types.ObjectId(id) }
-            let update = { "pickerId": mongoose.Types.ObjectId(pickerId), pickerName: "", startPickingDate: new Date(), state: mongoose.Types.ObjectId(stateId), shopId: mongoose.Types.ObjectId(shopId) }
+            let update = { "pickerId": mongoose.Types.ObjectId(pickerId), "pickerName": "", "startPickingDate": new Date(), "state": mongoose.Types.ObjectId(stateId), "shopId": mongoose.Types.ObjectId(shopId) }
             let queryFind = { "_id": mongoose.Types.ObjectId(id) }
             findDocuments(User, { "_id": mongoose.Types.ObjectId(pickerId) }, "", {}, '', '', 0, null, null).then((userResult: Array<UserInterface>) => {
               if (userResult.length) {

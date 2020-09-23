@@ -30,7 +30,6 @@ class OrderBagsController {
             };
             findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber pickerId deliveryId', '', 0, null, null).then((result) => {
                 if (result.length > 0) {
-                    console.log(JSON.stringify(result));
                     response.json({
                         message: 'Detalle de consulta',
                         data: result[0],
@@ -127,7 +126,9 @@ class OrderBagsController {
                         stateIds = findResultState[0]._id;
                         findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', '', 0, null, null).then((result) => {
                             if (result.length) {
-                                let bagsResult = result.filter((bag) => stateIds === bag.orderNumber.state._id);
+                                let bagsResult = result.filter((bag) => {
+                                    return stateIds.toString() == bag.orderNumber.state._id.toString();
+                                });
                                 response.json({
                                     message: 'Listado de bolsas a despachar',
                                     data: bagsResult,
@@ -384,9 +385,9 @@ class OrderBagsController {
                                                     orderNumber: updateOrder.orderNumber,
                                                     order: mongoose_1.default.Types.ObjectId(OrderResult._id),
                                                     bag: mongoose_1.default.Types.ObjectId(id),
-                                                    shop: mongoose_1.default.Types.ObjectId(OrderResult.shopId),
-                                                    picker: mongoose_1.default.Types.ObjectId(OrderResult.pickerId),
-                                                    delivery: mongoose_1.default.Types.ObjectId(OrderResult.deliveryId),
+                                                    shop: mongoose_1.default.Types.ObjectId(OrderResult.shopId._id),
+                                                    picker: mongoose_1.default.Types.ObjectId(OrderResult.pickerId._id),
+                                                    delivery: mongoose_1.default.Types.ObjectId(OrderResult.deliveryId._id),
                                                     orderSnapShot: Object.assign({}, OrderResult.toJSON()),
                                                     dateHistory: new Date()
                                                 };
@@ -417,7 +418,7 @@ class OrderBagsController {
                                                                 Promise.all(promiseEvent).then((resultEvent) => {
                                                                     if (resultEvent) {
                                                                         response.json({
-                                                                            message: 'Orden Actualizada correctamente',
+                                                                            message: 'Orden entregada correctamente',
                                                                             data: update,
                                                                             success: true
                                                                         });
