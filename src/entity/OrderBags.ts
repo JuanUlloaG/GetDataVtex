@@ -29,7 +29,8 @@ export interface OrderBagsInterface extends Document {
                     unitsReplaced: number,
                     description: string,
                     image: string,
-                    location: number
+                    location: number,
+                    delivery?: boolean
                 }
             ]
         }
@@ -65,6 +66,7 @@ export const schemaBags = {
                     description: { type: "string" },
                     image: { type: "string" },
                     location: { type: "number" },
+                    delivery: { type: "boolean" },
                 }
             ]
         }
@@ -96,6 +98,7 @@ const OrderBagsSchema: Schema = new Schema({
                     description: { type: String, required: true },
                     image: { type: String, required: true },
                     location: { type: Number, required: true },
+                    delivery: { type: Boolean, required: false, default: false },
                 }
             ]
         }

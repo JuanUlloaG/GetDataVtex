@@ -95,6 +95,12 @@ export const Routes = [
     },
     {
         method: "post",
+        route: "/orders/list/pickUp",
+        controller: OrdersController,
+        action: "ordersStorePickUp"
+    },
+    {
+        method: "post",
         route: "/orders/list/cancelled",
         controller: OrdersController,
         action: "ordersForOmsCancelledSearch"

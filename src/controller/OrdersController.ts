@@ -157,7 +157,7 @@ export class OrdersController {
       findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<any>) => {
         if (findResultState.length > 0) {
           let stateId = findResultState[0]._id;
-          let updateOrder: any = { products: products }
+          let updateOrder: any = { products: products, state: mongoose.Types.ObjectId(stateId) }
           updateOrder['isInShop'] = true
           findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
             if (updateOrder) {
@@ -450,12 +450,13 @@ export class OrdersController {
 
   async getOrderDetailBynumber(request: Request, response: Response, next: NextFunction, app: any) {
     try {
-      const { orderNumber } = request.body
-      let query: object;
+      const { orderNumber, company } = request.body
+      let query: any;
       let query_: any = {};
       let populate: string = '';
 
       query = { "orderNumber": orderNumber }
+      if (company) query['uid'] = mongoose.Types.ObjectId(company)
       populate = 'bag pickerId deliveryId state service'
 
       let queryState = { $or: [{ "key": 6 }, { "key": 7 }] }
@@ -464,12 +465,11 @@ export class OrdersController {
         if (findResult.length > 0) {
           findResult.map((stat) => {
             let stateId = stat._id;
-            arrayQuery.push({ 'state': mongoose.Types.ObjectId(stateId) })
+            arrayQuery.push(mongoose.Types.ObjectId(stateId))
           })
-          query_['$or'] = [...arrayQuery]
-          query_['$and'] = [{ 'orderNumber': orderNumber }]
+          query['state'] = { $in: arrayQuery }
 
-          findDocuments(Orders, query_, "", {}, populate, '', 1, null, null).then((result: Array<OrderInterface>) => {
+          findDocuments(Orders, query, "", {}, populate, '', 1, null, null).then((result: Array<OrderInterface>) => {
             if (result.length > 0) {
               let newOrders = result.map((order, index) => {
                 if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
@@ -599,7 +599,7 @@ export class OrdersController {
           let stateId = findResult[0]._id;
           if (state) { query_['state'] = mongoose.Types.ObjectId(stateId) }
           if (company) { query_['uid'] = mongoose.Types.ObjectId(company) }
-          
+
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1373,8 +1373,6 @@ export class OrdersController {
 
           }
           if (company) query_['uid'] = mongoose.Types.ObjectId(company)
-          // if (arrayQuery.length > 0)
-          //   query_['$and'] = [...arrayQuery]
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1397,16 +1395,6 @@ export class OrdersController {
                 order.set('timeLine', [...rows], { strict: false })
                 return order
               })
-              // let filterOrders = newOrders.filter((orders) => {
-              //   if (pickerName) {
-              //     if (pickerName) {
-              //       if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
-              //         return orders
-              //     }
-              //   } else {
-              //     return orders
-              //   }
-              // })
               response.json({
                 message: 'Listado de ordenes para resetear',
                 data: newOrders,
@@ -1586,6 +1574,151 @@ export class OrdersController {
           data: []
         });
       });
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false,
+        data: []
+      });
+    }
+  }
+
+  async ordersStorePickUp(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { company, profile, query } = request.body
+      let _query;
+      let query_: any = {}
+      let _populate1: any = {}
+      let _populate2: any = {}
+      let namePicker: string = ""
+      let nameDelivery: string = ""
+      let populate: string = '';
+      let queryState: any
+      queryState = { "key": 3 }
+      let arrayQuery: Array<any> = []
+      if (Object.keys(query).length > 0) {
+
+        if (query.buyFromDate && query.buyToDate) {
+          let from = new Date(query.buyFromDate)
+          let to = new Date(query.buyToDate)
+          from.setHours(0)
+          from.setMinutes(0)
+          from.setSeconds(0)
+          to.setHours(23)
+          to.setMinutes(59)
+          to.setSeconds(59)
+
+          query_['date'] = {
+            $gte: from,
+            $lt: to
+          }
+        }
+
+        if (query.buyFromDate && !query.buyToDate) {
+          let from = new Date(query.buyFromDate)
+          let to = new Date()
+          from.setHours(0)
+          from.setMinutes(0)
+          from.setSeconds(0)
+          query_['date'] = {
+            $gte: from,
+            $lt: to
+          }
+        }
+
+        if (query.rutCliente) { query_['client.rut'] = { $regex: new RegExp(query.rutCliente, "i") } }
+
+        if (query.rutTercero) { query_['client.rutTercero'] = { $regex: new RegExp(query.rutTercero, "i") } }
+
+        if (query.boleta) { query_['boleta'] = { $regex: query.boleta } }
+
+        if (query.shopId) { query_['shopId'] = mongoose.Types.ObjectId(query.shopId) }
+
+      }
+
+      if (company) query_['uid'] = mongoose.Types.ObjectId(company)
+
+      findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((findResult: Array<StateInterface>) => {
+        if (findResult.length > 0) {
+          let stateId = findResult[0]._id;
+          query_['state'] = mongoose.Types.ObjectId(stateId)
+          findDocuments(Service, { key: "2" }, "", {}, '', '', 0, null, null).then((findResultSerives: Array<ServicesInterface>) => {
+            if (findResultSerives.length > 0) {
+              let serviceId = findResultSerives[0]._id;
+              query_['service'] = mongoose.Types.ObjectId(serviceId)
+              findDocuments(Orders, query_, "", {}, '', 0, null, null).then((result: Array<OrderInterface>) => {
+                if (result.length) {
+                  let newOrders = result.map((order, index) => {
+                    let pickername = ""
+                    let deliveryname = ""
+                    let pickingDate: any = ""
+                    let delilveryDateStart: any = ""
+                    let delilveryDateEnd: any = ""
+                    if (order.pickerId) pickername = order.pickerId.name
+                    if (order.deliveryId) deliveryname = order.deliveryId.name
+                    if (order.endPickingDate) pickingDate = order.endPickingDate
+                    if (order.starDeliveryDate) delilveryDateStart = order.starDeliveryDate
+                    if (order.endDeliveryDate) delilveryDateEnd = order.endDeliveryDate
+                    const rows = [
+                      this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                      this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                      this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                    ];
+                    if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
+                    order.set('timeLine', [...rows], { strict: false })
+                    return order
+                  })
+                  response.json({
+                    message: 'Listado de ordenes store pickup',
+                    data: newOrders,
+                    success: true,
+                    orders: result.length
+                  });
+                } else {
+                  response.json({
+                    message: 'Listado de ordenes store pickup',
+                    data: result,
+                    success: true,
+                    orders: result.length
+                  });
+                }
+              }).catch((err: Error) => {
+                response.json({
+                  message: err,
+                  success: false,
+                  data: []
+                });
+              });
+            } else {
+              response.json({
+                message: 'Error al listar los servicios',
+                data: [],
+                success: true,
+              });
+            }
+          }).catch((err: Error) => {
+            response.json({
+              message: err,
+              success: false,
+              data: []
+            });
+          });
+
+        } else {
+          response.json({
+            message: 'Error al listar los estados',
+            data: [],
+            success: true,
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false,
+          data: []
+        });
+      });
+
     } catch (error) {
       response.json({
         message: error,

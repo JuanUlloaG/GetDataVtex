@@ -49,6 +49,7 @@ exports.schemaBags = {
                     description: { type: "string" },
                     image: { type: "string" },
                     location: { type: "number" },
+                    delivery: { type: "boolean" },
                 }
             ]
         }
@@ -79,6 +80,7 @@ const OrderBagsSchema = new mongoose_1.Schema({
                     description: { type: String, required: true },
                     image: { type: String, required: true },
                     location: { type: Number, required: true },
+                    delivery: { type: Boolean, required: false, default: false },
                 }
             ]
         }

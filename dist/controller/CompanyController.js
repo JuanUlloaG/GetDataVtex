@@ -153,7 +153,7 @@ class CompanyControllers {
                         let update = { 'condition': mongoose_1.default.Types.ObjectId(stateId) };
                         findOneAndUpdateDB(Company_1.default, query, update, null, null).then((result) => {
                             if (result) {
-                                let state = { 'condition': mongoose_1.default.Types.ObjectId(stateId) };
+                                let state = { 'condition': mongoose_1.default.Types.ObjectId(stateId), state: false };
                                 let queryUser = { 'company': mongoose_1.default.Types.ObjectId(id) };
                                 updateManyDB(User_1.default, queryUser, state, null, null).then((result) => {
                                     if (result) {

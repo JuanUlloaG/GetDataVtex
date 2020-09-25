@@ -97,6 +97,12 @@ exports.Routes = [
     },
     {
         method: "post",
+        route: "/orders/list/pickUp",
+        controller: OrdersController_1.OrdersController,
+        action: "ordersStorePickUp"
+    },
+    {
+        method: "post",
         route: "/orders/list/cancelled",
         controller: OrdersController_1.OrdersController,
         action: "ordersForOmsCancelledSearch"

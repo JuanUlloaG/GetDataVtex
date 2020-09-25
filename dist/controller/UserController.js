@@ -305,99 +305,119 @@ class UserController {
     async auth(request, response, next, app) {
         try {
             const rut = request.body.user;
-            const query = { 'rut': request.body.user };
+            const query = { 'rut': request.body.user, condition: "" };
             const payload = {
                 check: true
             };
             const location = request.body.location;
-            findDocuments(User_1.default, query, "", {}, 'company profile', '', 0, null, null).then((result) => {
-                if (result.length > 0) {
-                    const profile = result[0].profile.key;
-                    if (location == 0 && config_1.config.profilesApp.includes(profile)) {
-                        response.json({
-                            message: 'Usuario no tiene acceso',
-                            success: false
-                        });
-                        return;
-                    }
-                    if (location == 1 && config_1.config.profilesOms.includes(profile)) {
-                        response.json({
-                            message: 'Usuario no tiene acceso',
-                            success: false
-                        });
-                        return;
-                    }
-                    let pass = result[0].password;
-                    bcryptjs_1.default.compare(request.body.password, pass, (err, match) => {
-                        if (err) {
-                            response.json({
-                                message: err,
-                                success: false,
-                                code: err
-                            });
-                        }
-                        if (match) {
-                            let query = { "_id": mongoose_1.default.Types.ObjectId(result[0]._id) };
-                            let update = { "state": true };
-                            findOneAndUpdateDB(User_1.default, query, update, null, null).then((update) => {
-                                if (update) {
-                                    const token = jwt.sign(payload, app.get('key'), {});
-                                    let company = {};
-                                    if (result[0].company) {
-                                        company = { id: result[0].company._id, name: result[0].company.name };
-                                    }
-                                    else {
-                                        company = { id: "", name: "N/A" };
-                                    }
+            let queryState = { "key": 9 };
+            findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((findResult) => {
+                let stateId = "";
+                if (findResult.length > 0) {
+                    query['condition'] = mongoose_1.default.Types.ObjectId(findResult[0]._id);
+                    findDocuments(User_1.default, query, "", {}, 'company profile', '', 0, null, null).then((result) => {
+                        if (result.length > 0) {
+                            const profile = result[0].profile.key;
+                            if (location == 0 && config_1.config.profilesApp.includes(profile)) {
+                                response.json({
+                                    message: 'Usuario no tiene acceso',
+                                    success: false
+                                });
+                                return;
+                            }
+                            if (location == 1 && config_1.config.profilesOms.includes(profile)) {
+                                response.json({
+                                    message: 'Usuario no tiene acceso',
+                                    success: false
+                                });
+                                return;
+                            }
+                            let pass = result[0].password;
+                            bcryptjs_1.default.compare(request.body.password, pass, (err, match) => {
+                                if (err) {
                                     response.json({
-                                        message: 'Login exitoso',
-                                        token: token,
-                                        profile: result[0].profile,
-                                        company: company,
-                                        name: update.name,
-                                        email: update.email,
-                                        id: update._id,
-                                        state: update.state,
-                                        success: true
+                                        message: err,
+                                        success: false,
+                                        code: err
+                                    });
+                                }
+                                if (match) {
+                                    let query = { "_id": mongoose_1.default.Types.ObjectId(result[0]._id) };
+                                    let update = { "state": true };
+                                    findOneAndUpdateDB(User_1.default, query, update, null, null).then((update) => {
+                                        if (update) {
+                                            const token = jwt.sign(payload, app.get('key'), {});
+                                            let company = {};
+                                            if (result[0].company) {
+                                                company = { id: result[0].company._id, name: result[0].company.name };
+                                            }
+                                            else {
+                                                company = { id: "", name: "N/A" };
+                                            }
+                                            response.json({
+                                                message: 'Login exitoso',
+                                                token: token,
+                                                profile: result[0].profile,
+                                                company: company,
+                                                name: update.name,
+                                                email: update.email,
+                                                id: update._id,
+                                                state: update.state,
+                                                success: true
+                                            });
+                                        }
+                                        else {
+                                            response.json({
+                                                message: "Ha ocurrido un error al iniciar sesión",
+                                                success: false,
+                                                code: config_1.config.errorCodes.E_0,
+                                                data: update
+                                            });
+                                        }
+                                    }).catch((err) => {
+                                        response.json({
+                                            message: "error: " + err,
+                                            success: false,
+                                            code: config_1.config.errorCodes.E_0
+                                        });
                                     });
                                 }
                                 else {
                                     response.json({
-                                        message: "Ha ocurrido un error al iniciar sesión",
+                                        message: "Error, Usuario o contraseña incorrecta",
                                         success: false,
-                                        code: config_1.config.errorCodes.E_0,
-                                        data: update
+                                        code: config_1.config.errorCodes.E_1
                                     });
                                 }
-                            }).catch((err) => {
-                                response.json({
-                                    message: "error: " + err,
-                                    success: false,
-                                    code: config_1.config.errorCodes.E_0
-                                });
                             });
                         }
                         else {
                             response.json({
-                                message: "Error, Usuario o contraseña incorrecta",
+                                message: `Error, el usuario ${rut} no se encuentra`,
                                 success: false,
-                                code: config_1.config.errorCodes.E_1
+                                code: config_1.config.errorCodes.E_2
                             });
                         }
+                    }).catch((err) => {
+                        response.json({
+                            message: err.message,
+                            success: false,
+                            code: config_1.config.errorCodes.E_3
+                        });
                     });
                 }
                 else {
                     response.json({
-                        message: `Error, el usuario ${rut} no esta registrado`,
+                        message: `Error, al iniciar sesión, intenta de nuevo`,
                         success: false,
                         code: config_1.config.errorCodes.E_2
                     });
                 }
             }).catch((err) => {
                 response.json({
-                    message: err.message,
+                    message: "error: " + err,
                     success: false,
-                    code: config_1.config.errorCodes.E_3
+                    code: config_1.config.errorCodes.E_0
                 });
             });
         }
