@@ -220,7 +220,6 @@ export class UserController {
               findDocuments(User, queryPrevUser, "", {}, '', '', 0, null, null).then((result: Array<UserInterface>) => {
                 if (!result.length) {
                   insertDB(User, _user).then((result: any) => {
-                    console.log("object", name)
                     response.json({
                       message: 'Usuario ' + name + " " + lastname + ' Creado exitosamente ',
                       data: result,
@@ -249,7 +248,7 @@ export class UserController {
               });
             } else {
               response.json({
-                message: 'Error Creacion de Usuario',
+                message: 'Error Creación de Usuario',
                 success: false
               });
             }
