@@ -295,6 +295,12 @@ exports.Routes = [
     },
     {
         method: "post",
+        route: "/orderBags/update/storepickup",
+        controller: OrderBagsController_1.OrderBagsController,
+        action: "updateBagStoreDelivery"
+    },
+    {
+        method: "post",
         route: "/bagNumber",
         controller: OrderBagsController_1.OrderBagsController,
         action: "getNumber"
