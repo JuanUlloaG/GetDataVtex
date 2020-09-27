@@ -512,6 +512,155 @@ export class OrderBagsController {
         }
     }
 
+    //metodo donde se finaliza el despacho de la orden  
+    async updateBagStoreDelivery(request: Request, response: Response, next: NextFunction, app: any) {
+        try {
+            let query = { "key": 5 }
+            findDocuments(State, query, "", {}, '', '', 0, null, null).then((findResultState: Array<StateInterface>) => {
+                if (findResultState.length > 0) {
+                    let stateId = findResultState[0]._id;
+                    let stateDesc = findResultState[0].desc;
+                    const { id, orderId, bags } = request.body
+                    if (id) {
+                        let queryOrder = { "_id": mongoose.Types.ObjectId(orderId) }
+                        let updateOrder = { state: mongoose.Types.ObjectId(stateId), endDeliveryDate: new Date() }
+                        let query = { "_id": mongoose.Types.ObjectId(id) }
+                        let update = { "delivery": true, bags }
+                        console.log(update)
+                        // findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: OrderInterface) => {
+                        //     if (updateOrder) {
+                        //         findOneAndUpdateDB(OrderBags, query, update, null, null).then((update: OrderBagsInterface) => {
+                        //             if (update) {
+                        //                 findOneDB(Orders, orderId, "", {}, '', '', 0, null, null).then((OrderResult: OrderInterface) => {
+                        //                     if (OrderResult) {
+                        //                         let historyObj = {
+                        //                             state: mongoose.Types.ObjectId(stateId),
+                        //                             orderNumber: updateOrder.orderNumber,
+                        //                             order: mongoose.Types.ObjectId(OrderResult._id),
+                        //                             bag: mongoose.Types.ObjectId(id),
+                        //                             shop: mongoose.Types.ObjectId(OrderResult.shopId._id),
+                        //                             picker: mongoose.Types.ObjectId(OrderResult.pickerId._id),
+                        //                             delivery: mongoose.Types.ObjectId(OrderResult.deliveryId._id),
+                        //                             orderSnapShot: Object.assign({}, OrderResult.toJSON()),
+                        //                             dateHistory: new Date()
+                        //                         }
+                        //                         let param: object = {
+                        //                             "CuentaCliente": OrderResult.uid.name,
+                        //                             "OrderTrabajo": OrderResult.orderNumber,
+                        //                             "FechaEntregaReal": OrderResult.endDeliveryDate ? new Date(OrderResult.endDeliveryDate) : null,
+                        //                             "RUT_Delivery": OrderResult.pickerId.rut,
+                        //                             "Nombre_Delivery": OrderResult.pickerId.name,
+                        //                             "Apellido_Delivery": OrderResult.pickerId.lastname,
+                        //                             "FechaRecepcionDelivery": null,
+                        //                             "Estado": stateDesc,
+                        //                         }
+                        //                         insertDB(History, historyObj).then((result: HistoryInterface) => {
+                        //                             if (result) {
+                        //                                 executeProcedure("[OMS].[Delivery]", param).then((result: any) => {
+                        //                                     if (result) {
+                        //                                         // Procedimientos 
+                        //                                         let event = Object.assign({}, config.paramEvent)
+                        //                                         event.CuentaCliente = OrderResult.uid.name
+                        //                                         event.OrderTrabajo = OrderResult.orderNumber.toString()
+                        //                                         event.Estado = stateDesc
+                        //                                         event.FechaEventoOMS = new Date()
+                        //                                         let orderEvent = [];
+                        //                                         orderEvent.push(event)
+                        //                                         console.log("Event", event)
+                        //                                         let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event) })
+                        //                                         Promise.all(promiseEvent).then((resultEvent) => {
+                        //                                             if (resultEvent) {
+                        //                                                 response.json({
+                        //                                                     message: 'Orden entregada correctamente',
+                        //                                                     data: update,
+                        //                                                     success: true
+                        //                                                 });
+                        //                                             } else {
+                        //                                                 response.json({ message: "Error al ingresar el evento, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InsertEvento]", success: false });
+                        //                                             }
+                        //                                         }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
+                        //                                         // Fin
+                        //                                     } else {
+                        //                                         response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false });
+                        //                                     }
+                        //                                 }).catch((err: any) => {
+                        //                                     response.json({ message: err, success: false });
+                        //                                 });
+                        //                             } else {
+                        //                                 response.json({
+                        //                                     message: 'Error al actualizar la orden',
+                        //                                     data: result,
+                        //                                     success: true
+                        //                                 });
+                        //                             }
+                        //                         }).catch((err: Error) => {
+                        //                             response.json({
+                        //                                 message: err.message,
+                        //                                 success: false
+                        //                             });
+                        //                         });
+                        //                     } else {
+                        //                         response.json({
+                        //                             message: 'Error al actualizar la orden',
+                        //                             success: true
+                        //                         });
+                        //                     }
+                        //                 }).catch((err: Error) => {
+                        //                     response.json({
+                        //                         message: err.message,
+                        //                         success: false
+                        //                     });
+                        //                 });
+                        //             } else {
+                        //                 response.json({
+                        //                     message: "Error al actualizar Bulto",
+                        //                     success: false
+                        //                 });
+                        //             }
+                        //         }).catch((err: Error) => {
+                        //             response.json({
+                        //                 message: err,
+                        //                 success: false
+                        //             });
+                        //         });
+                        //     } else {
+                        //         response.json({
+                        //             message: "Error al actualizar Bulto: " + updateOrder,
+                        //             success: false
+                        //         });
+                        //     }
+                        // }).catch((err: Error) => {
+                        //     response.json({
+                        //         message: err,
+                        //         success: false
+                        //     });
+                        // });
+                    } else {
+                        response.json({
+                            message: "Debe proporcionar el id del bulto",
+                            success: false
+                        });
+                    }
+                } else {
+                    response.json({
+                        message: "Error al tomar la orden, no se ha encontrado un estado valido",
+                        success: false
+                    });
+                }
+            }).catch((err: Error) => {
+                response.json({
+                    message: err,
+                    success: false
+                });
+            });
+        } catch (error) {
+            response.json({
+                message: error.message,
+                success: false
+            });
+        }
+    }
+
     /*
       Metodo que recibe un array de bolsas para guardarlas en la base de datos
    */
@@ -528,6 +677,7 @@ export class OrderBagsController {
                     let unitsPicked = 0
                     let unitsReplaced = 0
                     let unitsBroken = 0
+                    let unitsDelivery = 0
                     if (valid) {
                         bags.map((row: any) => {
                             row.products.map((bag: any) => {

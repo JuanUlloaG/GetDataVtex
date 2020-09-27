@@ -293,6 +293,12 @@ export const Routes = [
     },
     {
         method: "post",
+        route: "/orderBags/update/storepickup",
+        controller: OrderBagsController,
+        action: "updateBagStoreDelivery"
+    },
+    {
+        method: "post",
         route: "/bagNumber",
         controller: OrderBagsController,
         action: "getNumber"
