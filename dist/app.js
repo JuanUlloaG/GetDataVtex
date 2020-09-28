@@ -11,6 +11,7 @@ const routes_1 = require("./routes");
 const validation = require("./middleware/middleware");
 const { initDB, insertDB, conectionToSql, executeStatement } = require("./config/db");
 const cors = require('cors');
+const MailController_1 = require("./controller/MailController");
 let app = express_1.default();
 app.use(cors());
 // 1
@@ -63,6 +64,7 @@ routes_1.Routes.forEach(route => {
         }
     });
 });
+MailController_1.createMailer();
 // conectionToSql().then((result: any) => {
 // console.log("Picking server on! happy hacking 👨🏾‍💻")
 initDB().then((result) => {

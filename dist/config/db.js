@@ -55,38 +55,47 @@ module.exports = {
     },
     executeProcedure: function (procedureName, params) {
         return new Promise(function (resolve, reject) {
-            var connection;
-            connection = new tedious_1.Connection(config_1.config.sqlConfig);
-            connection.connect(function (errConn) {
-                if (errConn) {
-                    connection.close();
-                    reject(false);
-                }
-                var request = new tedious_1.Request(procedureName, function (err) {
-                    if (err) {
-                        console.log(err);
-                        reject(err);
-                    }
-                    connection.close();
-                    resolve(true);
+            try {
+                var conections = {};
+                var request = {};
+                params.map((data, index) => {
+                    var connection;
+                    conections[index] = new tedious_1.Connection(config_1.config.sqlConfig);
+                    // connection = new Connection(config.sqlConfig);
+                    conections[index].connect(function (errConn) {
+                        if (errConn) {
+                            conections[index].close();
+                            reject(errConn);
+                        }
+                        request[index] = new tedious_1.Request(procedureName, function (err) {
+                            if (err) {
+                                conections[index].close();
+                                reject(err);
+                            }
+                        });
+                        let Keys = Object.keys(data);
+                        Keys.map((key) => {
+                            if (key == "FecAgendada" || key == "InicioPicking" || key == "FinPicking" || key == "FechaCompraCliente" || key == "FechaEventoOMS" || key == "FechaEntregaReal" || key == "FechaRecepcionDelivery") {
+                                request[index].addParameter(key, tedious_1.TYPES.DateTime, data[key]);
+                            }
+                            else if (key == "UnSolicitadas" || key == "EsReagendamiento") {
+                                request[index].addParameter(key, tedious_1.TYPES.Int, data[key]);
+                            }
+                            else {
+                                request[index].addParameter(key, tedious_1.TYPES.VarChar, data[key]);
+                            }
+                        });
+                        conections[index].callProcedure(request[index]);
+                        request[index].on('doneProc', function () {
+                            conections[index].close();
+                        });
+                    });
                 });
-                let Keys = Object.keys(params);
-                Keys.map((key) => {
-                    if (key == "FecAgendada" || key == "InicioPicking" || key == "FinPicking" || key == "FechaCompraCliente" || key == "FechaEventoOMS" || key == "FechaEntregaReal" || key == "FechaRecepcionDelivery") {
-                        request.addParameter(key, tedious_1.TYPES.DateTime, params[key]);
-                    }
-                    else if (key == "UnSolicitadas" || key == "EsReagendamiento") {
-                        request.addParameter(key, tedious_1.TYPES.Int, params[key]);
-                    }
-                    else {
-                        request.addParameter(key, tedious_1.TYPES.VarChar, params[key]);
-                    }
-                });
-                request.on('requestCompleted', function () {
-                    connection.close();
-                });
-                connection.callProcedure(request);
-            });
+                resolve(true);
+            }
+            catch (error) {
+                console.log(error);
+            }
         });
     },
     insertDB: function (form, obj) {

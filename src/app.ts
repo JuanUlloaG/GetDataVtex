@@ -11,7 +11,7 @@ import { Routes } from "./routes";
 const validation = require("./middleware/middleware")
 const { initDB, insertDB, conectionToSql, executeStatement } = require("./config/db")
 const cors = require('cors')
-
+import { createMailer } from "./controller/MailController";
 let app = express();
 
 app.use(cors());
@@ -69,6 +69,8 @@ Routes.forEach(route => {
         }
     });
 });
+
+createMailer()
 
 
 // conectionToSql().then((result: any) => {

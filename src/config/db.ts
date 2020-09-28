@@ -50,40 +50,51 @@ module.exports = {
     executeStatement: function executeQuery() {
 
     },
-    executeProcedure: function (procedureName: string, params: any) {
+    executeProcedure: function (procedureName: string, params: Array<any>) {
         return new Promise(function (resolve, reject) {
-            var connection: any;
-            connection = new Connection(config.sqlConfig);
-            connection.connect(function (errConn: Error) {
-                if (errConn) {
-                    connection.close();
-                    reject(false)
-                }
-                var request = new TediusRequest(procedureName, function (err: Error) {
-                    if (err) {
-                        console.log(err)
-                        reject(err)
-                    }
-                    connection.close();
-                    resolve(true)
-                });
-                let Keys = Object.keys(params)
-                Keys.map((key: any) => {
-                    if (key == "FecAgendada" || key == "InicioPicking" || key == "FinPicking" || key == "FechaCompraCliente" || key == "FechaEventoOMS" || key == "FechaEntregaReal" || key == "FechaRecepcionDelivery") {
-                        request.addParameter(key, TYPES.DateTime, params[key])
-                    } else if (key == "UnSolicitadas" || key == "EsReagendamiento") {
-                        request.addParameter(key, TYPES.Int, params[key])
-                    } else {
-                        request.addParameter(key, TYPES.VarChar, params[key])
-                    }
+            try {
+                var conections: any = {}
+                var request: any = {}
+                params.map((data, index) => {
+                    var connection: any;
+                    conections[index] = new Connection(config.sqlConfig)
+                    // connection = new Connection(config.sqlConfig);
+                    conections[index].connect(function (errConn: Error) {
+                        if (errConn) {
+                            conections[index].close();
+                            reject(errConn)
+                        }
+
+                        request[index] = new TediusRequest(procedureName, function (err: Error) {
+                            if (err) {
+                                conections[index].close();
+                                reject(err)
+                            }
+                        });
+
+                        let Keys = Object.keys(data)
+                        Keys.map((key: any) => {
+                            if (key == "FecAgendada" || key == "InicioPicking" || key == "FinPicking" || key == "FechaCompraCliente" || key == "FechaEventoOMS" || key == "FechaEntregaReal" || key == "FechaRecepcionDelivery") {
+                                request[index].addParameter(key, TYPES.DateTime, data[key])
+                            } else if (key == "UnSolicitadas" || key == "EsReagendamiento") {
+                                request[index].addParameter(key, TYPES.Int, data[key])
+                            } else {
+                                request[index].addParameter(key, TYPES.VarChar, data[key])
+                            }
+                        })
+                        conections[index].callProcedure(request[index]);
+                        request[index].on('doneProc', function () {
+                            conections[index].close();
+                        });
+                    });
                 })
-                request.on('requestCompleted', function () {
-                    connection.close();
-                });
-                connection.callProcedure(request);
-            });
+                resolve(true)
+            } catch (error) {
+                console.log(error)
+            }
         })
     },
+    
     insertDB: function (form: any, obj: any) {
         return new Promise(function (resolve, reject) {
             const newObj = new form(obj)

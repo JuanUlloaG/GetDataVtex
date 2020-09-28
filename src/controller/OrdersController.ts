@@ -61,18 +61,24 @@ export class OrdersController {
                   let orderEvent = [];
                   orderEvent.push(event)
                   console.log("Event", event)
-                  let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event) })
-                  Promise.all(promiseEvent).then((resultEvent) => {
-                    if (resultEvent) {
-                      response.json({
-                        message: 'Orden actualizada exitosamente',
-                        data: updateOrder,
-                        success: true
-                      });
-                    } else {
-                      response.json({ message: "Error al ingresar el evento, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InsertEvento]", success: false });
-                    }
-                  }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
+                  executeProcedure("[OMS].[InsertEvento]", orderEvent)
+                  // let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event) })
+                  response.json({
+                    message: 'Orden actualizada exitosamente',
+                    data: updateOrder,
+                    success: true
+                  });
+                  // Promise.all(promiseEvent).then((resultEvent) => {
+                  //   if (resultEvent) {
+                  //     response.json({
+                  //       message: 'Orden actualizada exitosamente',
+                  //       data: updateOrder,
+                  //       success: true
+                  //     });
+                  //   } else {
+                  //     response.json({ message: "Error al ingresar el evento, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InsertEvento]", success: false });
+                  //   }
+                  // }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
                 } else {
                   response.json({
                     message: "Error al actualizar orden: " + updateOrder,
@@ -712,11 +718,11 @@ export class OrdersController {
               })
               try {
                 let data = newOrders;
-                let headers = ["Número de Pedido", "Nombre Cliente", "Télefono", "Correo", "Fecha de compra", "Fecha de cancelación", "Fecha de compromiso", "Canal", "Servicio", "Estado"];
+                let headers = ["Número de Orden", "Nombre Cliente", "Télefono", "Correo", "Fecha de compra", "Fecha de cancelación", "Fecha de compromiso", "Canal", "Servicio", "Estado"];
                 let reportdata = data.map(field => {
                   let file =
                     `{
-                      "Número de Pedido":"${field.orderNumber}",
+                      "Número de Orden":"${field.orderNumber}",
                       "Nombre Cliente":"${field.client.name}",
                       "Télefono":"${field.client.cellphone}",
                       "Correo":"${field.client.email}",
@@ -1859,19 +1865,20 @@ export class OrdersController {
                               event.FechaEventoOMS = new Date()
                               let orderEvent = [];
                               orderEvent.push(event)
+                              executeProcedure("[OMS].[InsertEvento]", orderEvent)
+                              // let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event) })
+                              response.json({
+                                message: 'Orden Tomada',
+                                data: update,
+                                success: true
+                              });
+                              // Promise.all(promiseEvent).then((resultEvent) => {
+                              //   if (resultEvent) {
 
-                              let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event) })
-                              Promise.all(promiseEvent).then((resultEvent) => {
-                                if (resultEvent) {
-                                  response.json({
-                                    message: 'Orden Tomada',
-                                    data: update,
-                                    success: true
-                                  });
-                                } else {
-                                  response.json({ message: "Error al ingresar el evento, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InsertEvento]", success: false });
-                                }
-                              }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
+                              //   } else {
+                              //     response.json({ message: "Error al ingresar el evento, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InsertEvento]", success: false });
+                              //   }
+                              // }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
 
                             } else {
                               response.json({
@@ -2014,7 +2021,7 @@ export class OrdersController {
                 history.push(historyObj)
                 _orders.push(_order)
               })
-              
+
               findDocuments(Orders, { 'uid': companyUID, orderNumber: { '$in': orderNumbers } }, "", {}, '', '', 0, null, null).then((OrdersFind: Array<OrderInterface>) => {
                 let orderfinalToInsert: Array<any> = _orders.filter((order) => !OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes a insertar
                 let orderfinalNotInsert: Array<any> = _orders.filter((order) => OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes que no vamos a insertar
@@ -2067,31 +2074,14 @@ export class OrdersController {
                           });
                           insertManyDB(History, historyToInsert).then((resultHistory: Array<HistoryInterface>) => {
                             if (resultHistory) {
-                              let promisesOrders = ordersProcedure.map((order) => { return executeProcedure("[OMS].[IngresoOrder]", order) })
-                              Promise.all(promisesOrders).then((resultPromises) => {
-                                if (resultPromises) {
-                                  let promisesOrdersShop = ordersShop.map((order) => { return executeProcedure("[OMS].[InfoLocal]", order) })
-                                  Promise.all(promisesOrdersShop).then((resultPromisesOrderShops) => {
-                                    if (resultPromisesOrderShops) {
-                                      response.json({
-                                        message: 'orden(es) creada(s) exitosamente',
-                                        ordersNotInsert: orderfinalToInsert,
-                                        data: resultHistory,
-                                        success: true
-                                      });
-                                    } else {
-                                      response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InfoLocal]", success: false });
-                                    }
-                                  }).catch((err: Error) => {
-                                    console.log(err.message)
-                                    response.json({ message: err.message, success: false });
-                                  });
-                                } else {
-                                  response.json({ message: "Error al ingresar las ordenes, Ha ocurrido un error al ejecutar el procedimiento [OMS].[IngresoOrder]", success: false });
-                                }
-                              }).catch((err: Error) => {
-                                console.log(err)
-                                response.json({ message: err.message, success: false });
+                              // let promisesOrders = ordersProcedure.map((order) => { return executeProcedure("[OMS].[IngresoOrder]", order) })
+                              let promisesOrders = executeProcedure("[OMS].[IngresoOrder]", ordersProcedure)
+                              let promisesOrdersShop = executeProcedure("[OMS].[InfoLocal]", ordersShop)
+                              response.json({
+                                message: 'orden(es) creada(s) exitosamente',
+                                ordersNotInsert: orderfinalToInsert,
+                                data: resultHistory,
+                                success: true
                               });
                             } else {
                               response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory });

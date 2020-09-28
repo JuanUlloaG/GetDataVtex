@@ -28,6 +28,7 @@ exports.config = {
             }
         },
         options: {
+            validateBulkLoadParameters: true,
             // If you are on Microsoft Azure, you need encryption:
             encrypt: true,
             database: 'SRReportPrimeDEV' //update me
