@@ -16,7 +16,6 @@ import { config } from "../config/config";
 import { OrderInsertInterface } from "../entity/Procedures";
 var ajv = new Ajv({ allErrors: true });
 
-
 var validate = ajv.compile(schemaBags)
 
 export class OrderBagsController {
