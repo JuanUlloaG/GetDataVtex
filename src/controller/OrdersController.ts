@@ -1640,12 +1640,11 @@ export class OrdersController {
 
         if (query.boleta) { query_['boleta'] = { $regex: query.boleta } }
 
-        if (query.shopId) { query_['shopId'] = mongoose.Types.ObjectId(query.shopId) }
+        // if (query.shopId) { query_['shopId'] = mongoose.Types.ObjectId(query.shopId) }
 
       }
 
       if (company) query_['uid'] = mongoose.Types.ObjectId(company)
-
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((stateResult: Array<StateInterface>) => {
         if (stateResult.length > 0) {
           let stateId = stateResult[0]._id;

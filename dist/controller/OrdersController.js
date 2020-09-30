@@ -1693,9 +1693,7 @@ class OrdersController {
                 if (query.boleta) {
                     query_['boleta'] = { $regex: query.boleta };
                 }
-                if (query.shopId) {
-                    query_['shopId'] = mongoose_1.default.Types.ObjectId(query.shopId);
-                }
+                // if (query.shopId) { query_['shopId'] = mongoose.Types.ObjectId(query.shopId) }
             }
             if (company)
                 query_['uid'] = mongoose_1.default.Types.ObjectId(company);
