@@ -44,6 +44,7 @@ export interface OrderInterface extends Document {
         comuna: string,
         comment: string,
         third: string,
+        rutTercero: string,
         ciudad: string,
         long: number,
         lat: number
@@ -97,6 +98,7 @@ const OrderSchema: Schema = new Schema({
         cellphone: { type: String, required: true },
         address: { type: String, required: true },
         third: { type: String, required: false, default: "" },
+        rutTercero: { type: String, required: false, default: "" },
         comment: { type: String, required: false, default: "" },
         comuna: { type: String, required: true },
         ciudad: { type: String, required: true },

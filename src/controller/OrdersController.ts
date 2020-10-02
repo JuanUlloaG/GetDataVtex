@@ -41,18 +41,37 @@ export class OrdersController {
           let stateId = findResultState[0]._id;
           const stateName = findResultState[0].desc
           let updateOrder: any = { state: mongoose.Types.ObjectId(stateId) }
+
           if (state == 8) {
             updateOrder['cancellDate'] = new Date()
+            updateOrder['deliveryId'] = null
+            updateOrder['bag'] = null
+            updateOrder['pickerName'] = ""
+            updateOrder['deliveryName'] = ""
+            updateOrder['pickerId'] = null
+            updateOrder['startPickingDate'] = null
+            updateOrder['endPickingDate'] = null
+            updateOrder['starDeliveryDate'] = null
+            updateOrder['endDeliveryDate'] = null
           }
           if (date) {
             updateOrder['realdatedelivery'] = new Date(date)
             updateOrder['restocked'] = true
+            updateOrder['deliveryId'] = null
+            updateOrder['bag'] = null
+            updateOrder['pickerName'] = ""
+            updateOrder['deliveryName'] = ""
+            updateOrder['pickerId'] = null
+            updateOrder['startPickingDate'] = null
+            updateOrder['endPickingDate'] = null
+            updateOrder['starDeliveryDate'] = null
+            updateOrder['endDeliveryDate'] = null
           }
+
           findDocuments(Orders, queryOrder, "", {}, '', '', 0, null, null).then((OrderResult: Array<OrderInterface>) => {
             if (OrderResult.length > 0) {
               findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: OrderInterface) => {
                 if (updateOrder) {
-
                   let event = Object.assign({}, config.paramEvent)
                   event.CuentaCliente = OrderResult[0].uid.name
                   event.OrderTrabajo = OrderResult[0].orderNumber.toString()
@@ -60,7 +79,6 @@ export class OrdersController {
                   event.FechaEventoOMS = new Date()
                   let orderEvent = [];
                   orderEvent.push(event)
-                  console.log("Event", event)
                   executeProcedure("[OMS].[InsertEvento]", orderEvent)
                   // let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event) })
                   response.json({
@@ -68,50 +86,48 @@ export class OrdersController {
                     data: updateOrder,
                     success: true
                   });
-                  // Promise.all(promiseEvent).then((resultEvent) => {
-                  //   if (resultEvent) {
-                  //     response.json({
-                  //       message: 'Orden actualizada exitosamente',
-                  //       data: updateOrder,
-                  //       success: true
-                  //     });
-                  //   } else {
-                  //     response.json({ message: "Error al ingresar el evento, Ha ocurrido un error al ejecutar el procedimiento [OMS].[InsertEvento]", success: false });
-                  //   }
-                  // }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
                 } else {
+                  console.log("object2")
                   response.json({
                     message: "Error al actualizar orden: " + updateOrder,
                     success: false
                   });
                 }
               }).catch((err: Error) => {
+                console.log("obje3213ct2", err)
                 response.json({
                   message: err,
                   success: false
                 });
               });
             } else {
+              console.log("object")
               response.json({
                 message: "Error al actualizar orden: " + updateOrder,
                 success: false
               });
             }
-          }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
+          }).catch((err: Error) => {
+            console.log("object231231")
+            response.json({ message: err.message, success: false });
+          });
 
         } else {
+          console.log("object32")
           response.json({
             message: "Error al actualizar orden: " + findResultState,
             success: false
           });
         }
       }).catch((err: Error) => {
+        console.log("object2ddddd")
         response.json({
           message: err,
           success: false
         });
       });
     } catch (error) {
+      console.log("object233333")
       response.json({
         message: error.message,
         success: false
@@ -1638,7 +1654,9 @@ export class OrdersController {
 
         if (query.rutTercero) { query_['client.rutTercero'] = { $regex: new RegExp(query.rutTercero, "i") } }
 
-        if (query.boleta) { query_['boleta'] = { $regex: query.boleta } }
+        if (query.orderNumber) { query_['orderNumber'] = { $regex: query.orderNumber } }
+
+        if (query.email) { query_['client.email'] = { $regex: query.email } }
 
         // if (query.shopId) { query_['shopId'] = mongoose.Types.ObjectId(query.shopId) }
 
