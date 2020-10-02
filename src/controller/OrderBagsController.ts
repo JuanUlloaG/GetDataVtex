@@ -14,6 +14,7 @@ import History, { HistoryInterface } from "../entity/History";
 import User, { UserInterface } from "../entity/User";
 import { config } from "../config/config";
 import { OrderInsertInterface } from "../entity/Procedures";
+import Service, { ServicesInterface } from "../entity/Services";
 var ajv = new Ajv({ allErrors: true });
 
 var validate = ajv.compile(schemaBags)
@@ -32,7 +33,10 @@ export class OrderBagsController {
             }
             findDocuments(OrderBags, query, "", {}, 'orderNumber pickerId deliveryId', '', 0, null, null).then((result: Array<OrderBagsInterface>) => {
                 let filterBag = result.filter((orderBag) => { return orderBag.orderNumber.uid._id == account })
-                if (result.length > 0) {
+                let orderres = {}
+
+                if (filterBag.length) orderres = Object.assign({}, filterBag[0])
+                if (filterBag.length > 0) {
                     response.json({
                         message: 'Detalle de consulta',
                         data: filterBag[0],
@@ -119,13 +123,13 @@ export class OrderBagsController {
                                     return stateIds.toString() == bag.orderNumber.state._id.toString()
                                 })
                                 response.json({
-                                    message: 'Listado de bolsas a despachar',
+                                    message: 'Listado de bultos a despachar',
                                     data: bagsResult,
                                     success: true
                                 });
                             } else {
                                 response.json({
-                                    message: 'Listado de bolsas a despachar',
+                                    message: 'Listado de bultos a despachar',
                                     data: result,
                                     success: true
                                 });
@@ -150,7 +154,7 @@ export class OrderBagsController {
                 })
             } else {
                 response.json({
-                    message: "Listado de bolsas necesita una tienda (Shop ID)",
+                    message: "Listado de bultos necesita una tienda (Shop ID)",
                     success: false
                 });
             }
@@ -172,17 +176,35 @@ export class OrderBagsController {
             }
 
             if (shopId) {
-                findDocuments(OrderBags, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result: Array<OrderBagsInterface>) => {
-                    if (result.length) {
-                        let filterBag = result.filter((orderBag) => { return orderBag.orderNumber.uid._id == account })
-                        response.json({
-                            message: 'Listado de bolsas a despachar',
-                            data: filterBag,
-                            success: true
+                findDocuments(Service, { key: "2" }, "", {}, '', '', 0, null, null).then((findResultSerives: Array<ServicesInterface>) => {
+                    if (findResultSerives.length > 0) {
+                        let serviceId = findResultSerives[0]._id;
+                        findDocuments(OrderBags, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result: Array<OrderBagsInterface>) => {
+                            if (result.length) {
+                                let filterBag = result.filter((orderBag) => {
+                                    return (orderBag.orderNumber.uid._id.toString() === account.toString() && orderBag.orderNumber.service._id.toString() !== serviceId.toString())
+                                })
+                                response.json({
+                                    message: 'Listado de bultos a despachar',
+                                    data: filterBag,
+                                    success: true
+                                });
+                            } else {
+                                response.json({
+                                    message: 'Listado de bultos a despachar',
+                                    data: [],
+                                    success: true
+                                });
+                            }
+                        }).catch((err: Error) => {
+                            response.json({
+                                message: err,
+                                success: false
+                            });
                         });
                     } else {
                         response.json({
-                            message: 'Listado de bolsas a despachar',
+                            message: 'Error al listar bultos',
                             data: [],
                             success: true
                         });
@@ -193,9 +215,10 @@ export class OrderBagsController {
                         success: false
                     });
                 });
+
             } else {
                 response.json({
-                    message: "Listado de bolsas necesita una tienda (Shop ID)",
+                    message: "Listado de bultos necesita una tienda (Shop ID)",
                     success: false
                 });
             }
@@ -393,7 +416,6 @@ export class OrderBagsController {
                                                         event.FechaEventoOMS = new Date()
                                                         let orderEvent = [];
                                                         orderEvent.push(event)
-                                                        console.log("Event", event)
                                                         executeProcedure("[OMS].[InsertEvento]", orderEvent)
                                                         response.json({
                                                             message: 'Orden entregada correctamente',
@@ -625,7 +647,7 @@ export class OrderBagsController {
     }
 
     /*
-      Metodo que recibe un array de bolsas para guardarlas en la base de datos
+      Metodo que recibe un array de bultos para guardarlas en la base de datos
    */
     async save(request: Request, response: Response, next: NextFunction, app: any) {
         try {
@@ -651,7 +673,7 @@ export class OrderBagsController {
                         })
                         bag.bags.map((bag: any) => {
                             return bag.products.map((bg: any) => {
-                                bg['unitsDelivery'] = bg.unitsPicked
+                                bg['unitsDelivery'] = 0
                                 return bg
                             })
                         })

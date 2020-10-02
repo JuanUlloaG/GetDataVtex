@@ -1654,12 +1654,9 @@ export class OrdersController {
 
         if (query.rutTercero) { query_['client.rutTercero'] = { $regex: new RegExp(query.rutTercero, "i") } }
 
-        if (query.orderNumber) { query_['orderNumber'] = { $regex: query.orderNumber } }
+        if (query.orderNumber) { query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") } }
 
-        if (query.email) { query_['client.email'] = { $regex: query.email } }
-
-        // if (query.shopId) { query_['shopId'] = mongoose.Types.ObjectId(query.shopId) }
-
+        if (query.email) { query_['client.email'] = { $regex: new RegExp(query.email, "i") } }
       }
 
       if (company) query_['uid'] = mongoose.Types.ObjectId(company)

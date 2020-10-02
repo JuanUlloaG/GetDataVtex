@@ -1706,12 +1706,11 @@ class OrdersController {
                     query_['client.rutTercero'] = { $regex: new RegExp(query.rutTercero, "i") };
                 }
                 if (query.orderNumber) {
-                    query_['orderNumber'] = { $regex: query.orderNumber };
+                    query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") };
                 }
                 if (query.email) {
-                    query_['client.email'] = { $regex: query.email };
+                    query_['client.email'] = { $regex: new RegExp(query.email, "i") };
                 }
-                // if (query.shopId) { query_['shopId'] = mongoose.Types.ObjectId(query.shopId) }
             }
             if (company)
                 query_['uid'] = mongoose_1.default.Types.ObjectId(company);
