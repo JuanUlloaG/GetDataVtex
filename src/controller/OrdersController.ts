@@ -54,6 +54,13 @@ export class OrdersController {
             updateOrder['starDeliveryDate'] = null
             updateOrder['endDeliveryDate'] = null
           }
+          if (state == 1) {
+            updateOrder['bag'] = null
+            updateOrder['pickerName'] = ""
+            updateOrder['pickerId'] = null
+            updateOrder['startPickingDate'] = null
+            updateOrder['endPickingDate'] = null
+          }
           if (date) {
             updateOrder['realdatedelivery'] = new Date(date)
             updateOrder['restocked'] = true
@@ -1074,7 +1081,7 @@ export class OrdersController {
       let populate: string = 'bag pickerId deliveryId state service shopId';
       let queryState: any
 
-      queryState = { $or: [{ "key": { $in: [1, 2] } }] }
+      queryState = { "key": { $in: [1, 2] } }
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((stateResult: Array<StateInterface>) => {
         let arrayQuery: Array<any> = []
         if (stateResult.length > 0) {
@@ -1316,7 +1323,7 @@ export class OrdersController {
       let populate: string = 'bag pickerId deliveryId state service shopId';
       let queryState: any
       let pickerName: string
-      queryState = { $or: [{ "key": 1 }] }
+      queryState = { "key": { $in: [1, 2] } }
       console.log("update", query)
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((stateResult: Array<any>) => {
         let arrayQuery: Array<any> = []
@@ -1389,7 +1396,7 @@ export class OrdersController {
               query_['pickerName'] = { $regex: new RegExp(pickerName, "i") }
             }
 
-            if (query.number) { query_['orderNumber'] = { $regex: query.number } }
+            if (query.number) { query_['orderNumber'] = { $regex: new RegExp(query.number, "i") } }
 
             if (query.service) { query_['service'] = mongoose.Types.ObjectId(query.service) }
 
@@ -1537,7 +1544,7 @@ export class OrdersController {
 
         if (query.rut) { query_['client.rut'] = { $regex: new RegExp(query.rut, "i") } }
 
-        if (query.orderNumber) { query_['orderNumber'] = { $regex: query.orderNumber } }
+        if (query.orderNumber) { query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") } }
 
         if (query.service) { query_['service'] = mongoose.Types.ObjectId(query.service) }
 

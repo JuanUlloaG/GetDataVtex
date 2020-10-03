@@ -47,6 +47,13 @@ class OrdersController {
                         updateOrder['starDeliveryDate'] = null;
                         updateOrder['endDeliveryDate'] = null;
                     }
+                    if (state == 1) {
+                        updateOrder['bag'] = null;
+                        updateOrder['pickerName'] = "";
+                        updateOrder['pickerId'] = null;
+                        updateOrder['startPickingDate'] = null;
+                        updateOrder['endPickingDate'] = null;
+                    }
                     if (date) {
                         updateOrder['realdatedelivery'] = new Date(date);
                         updateOrder['restocked'] = true;
@@ -1107,7 +1114,7 @@ class OrdersController {
             let query_ = {};
             let populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
-            queryState = { $or: [{ "key": { $in: [1, 2] } }] };
+            queryState = { "key": { $in: [1, 2] } };
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((stateResult) => {
                 let arrayQuery = [];
                 if (stateResult.length > 0) {
@@ -1364,7 +1371,7 @@ class OrdersController {
             let populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
             let pickerName;
-            queryState = { $or: [{ "key": 1 }] };
+            queryState = { "key": { $in: [1, 2] } };
             console.log("update", query);
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((stateResult) => {
                 let arrayQuery = [];
@@ -1432,7 +1439,7 @@ class OrdersController {
                             query_['pickerName'] = { $regex: new RegExp(pickerName, "i") };
                         }
                         if (query.number) {
-                            query_['orderNumber'] = { $regex: query.number };
+                            query_['orderNumber'] = { $regex: new RegExp(query.number, "i") };
                         }
                         if (query.service) {
                             query_['service'] = mongoose_1.default.Types.ObjectId(query.service);
@@ -1582,7 +1589,7 @@ class OrdersController {
                     query_['client.rut'] = { $regex: new RegExp(query.rut, "i") };
                 }
                 if (query.orderNumber) {
-                    query_['orderNumber'] = { $regex: query.orderNumber };
+                    query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") };
                 }
                 if (query.service) {
                     query_['service'] = mongoose_1.default.Types.ObjectId(query.service);
