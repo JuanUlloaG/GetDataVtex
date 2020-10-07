@@ -12,7 +12,7 @@ export interface OrderBagsInterface extends Document {
     deliveryId?: UserInterface['_id'],
     readyforDelivery: boolean,
     delivery?: boolean,
-    received?: string,
+    received?: string,//Rut de la persona que recibe la orden
     comment?: string,
     bags: [
         {

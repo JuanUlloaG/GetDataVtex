@@ -822,8 +822,6 @@ export class OrderBagsController {
                                 success: false,
                             });
                         });
-
-
                     } else {
                         response.json({
                             message: ajv.errorsText(validate.errors),
