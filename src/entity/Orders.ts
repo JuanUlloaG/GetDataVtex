@@ -9,8 +9,8 @@ import { ServicesInterface } from "./Services"
 
 
 export interface OrderInterface extends Document {
-    uid: CompanyInterface['_id'],
-    orderNumber: number,
+    uid: CompanyInterface['_id'],//identificador unico de la comñia/cliente/ 
+    orderNumber: number,//Numero de orden
     shopId?: ShopInterface['_id'],
     pickerId?: UserInterface['_id'],
     deliveryId?: UserInterface['_id'],
@@ -26,16 +26,16 @@ export interface OrderInterface extends Document {
         barcode: number,
         product: string,
         units: number,
+        image: string,
+        location: number,//1 o 0
+        description: string,
+        reception: Boolean,
         unitsPicked?: number,
         unitsSubstitutes?: number,
         unitsBroken?: number,
         unitsReplaced?: number,
-        description: string,
-        image: string,
-        location: number,
-        reception: Boolean,
     }],
-    client: {
+    client: {//Quien hizo la compra
         rut: string,
         name: string,
         cellphone: string,
@@ -55,7 +55,7 @@ export interface OrderInterface extends Document {
     endPickingDate?: Date,
     starDeliveryDate?: Date,
     endDeliveryDate?: Date,
-    realdatedelivery?: Date,
+    realdatedelivery?: Date,//fecha de promesa generada con el algoritmo de localizacion
     pickerWorkShift: string,
     cancellDate?: Date,
     isInShop: Boolean,

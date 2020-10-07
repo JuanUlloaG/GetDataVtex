@@ -87,14 +87,12 @@ class OrdersController {
                                     });
                                 }
                                 else {
-                                    console.log("object2");
                                     response.json({
                                         message: "Error al actualizar orden: " + updateOrder,
                                         success: false
                                     });
                                 }
                             }).catch((err) => {
-                                console.log("obje3213ct2", err);
                                 response.json({
                                     message: err,
                                     success: false
@@ -102,26 +100,22 @@ class OrdersController {
                             });
                         }
                         else {
-                            console.log("object");
                             response.json({
                                 message: "Error al actualizar orden: " + updateOrder,
                                 success: false
                             });
                         }
                     }).catch((err) => {
-                        console.log("object231231");
                         response.json({ message: err.message, success: false });
                     });
                 }
                 else {
-                    console.log("object32");
                     response.json({
                         message: "Error al actualizar orden: " + findResultState,
                         success: false
                     });
                 }
             }).catch((err) => {
-                console.log("object2ddddd");
                 response.json({
                     message: err,
                     success: false
@@ -129,7 +123,6 @@ class OrdersController {
             });
         }
         catch (error) {
-            console.log("object233333");
             response.json({
                 message: error.message,
                 success: false
@@ -605,6 +598,155 @@ class OrdersController {
             }
         }
         return { name, compra, picking, delivery, reception };
+    }
+    async ordersForOmsFindSearchHome(request, response, next, app) {
+        try {
+            const { company, profile, query } = request.body;
+            let _query;
+            let query_ = {};
+            let _populate1 = {};
+            let _populate2 = {};
+            let namePicker = "";
+            let nameDelivery = "";
+            let populate = '';
+            let queryState;
+            queryState = { $or: [{ "key": 2 }] };
+            let arrayQuery = [];
+            if (Object.keys(query).length > 0) {
+                if (query.buyFromDate && query.buyToDate) {
+                    let from = new Date(query.buyFromDate);
+                    let to = new Date(query.buyToDate);
+                    from.setHours(0);
+                    from.setMinutes(0);
+                    from.setSeconds(0);
+                    to.setHours(23);
+                    to.setMinutes(59);
+                    to.setSeconds(59);
+                    query_['date'] = {
+                        $gte: from,
+                        $lt: to
+                    };
+                }
+                if (query.buyFromDate && !query.buyToDate) {
+                    let from = new Date(query.buyFromDate);
+                    let to = new Date();
+                    from.setHours(0);
+                    from.setMinutes(0);
+                    from.setSeconds(0);
+                    query_['date'] = {
+                        $gte: from,
+                        $lt: to
+                    };
+                }
+                if (query.deliveryFromDate && query.deliveryToDate) {
+                    let from = new Date(query.deliveryFromDate);
+                    let to = new Date(query.deliveryToDate);
+                    from.setHours(0);
+                    from.setMinutes(0);
+                    from.setSeconds(0);
+                    to.setHours(23);
+                    to.setMinutes(59);
+                    to.setSeconds(59);
+                    query_['realdatedelivery'] = {
+                        $gte: from,
+                        $lt: to
+                    };
+                }
+                if (query.deliveryFromDate && !query.deliveryToDate) {
+                    let from = new Date(query.deliveryFromDate);
+                    let to = new Date();
+                    from.setHours(0);
+                    from.setMinutes(0);
+                    from.setSeconds(0);
+                    to.setHours(23);
+                    to.setMinutes(59);
+                    to.setSeconds(59);
+                    query_['realdatedelivery'] = {
+                        $gte: from,
+                        $lt: to
+                    };
+                }
+                if (query.rut) {
+                    query_['client.rut'] = { $regex: new RegExp(query.rut, "i") };
+                }
+                if (query.orderNumber) {
+                    query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") };
+                }
+                if (query.service) {
+                    query_['service'] = mongoose_1.default.Types.ObjectId(query.service);
+                }
+                if (query.shopId) {
+                    query_['shopId'] = mongoose_1.default.Types.ObjectId(query.shopId);
+                }
+                if (query.pickerName) {
+                    namePicker = query.pickerName;
+                    query_['pickerName'] = { $regex: new RegExp(namePicker, "i") };
+                }
+                if (query.deliveryName) {
+                    nameDelivery = query.deliveryName;
+                    query_['deliveryName'] = { $regex: new RegExp(nameDelivery, "i") };
+                }
+            }
+            if (company)
+                query_['uid'] = mongoose_1.default.Types.ObjectId(company);
+            findDocuments(Orders_1.default, query_, "", {}, '', 0, null, null).then((result) => {
+                if (result.length) {
+                    let newOrders = result.map((order, index) => {
+                        let pickername = "";
+                        let deliveryname = "";
+                        let pickingDate = "";
+                        let delilveryDateStart = "";
+                        let delilveryDateEnd = "";
+                        if (order.pickerId)
+                            pickername = order.pickerId.name;
+                        if (order.deliveryId)
+                            deliveryname = order.deliveryId.name;
+                        if (order.endPickingDate)
+                            pickingDate = order.endPickingDate;
+                        if (order.starDeliveryDate)
+                            delilveryDateStart = order.starDeliveryDate;
+                        if (order.endDeliveryDate)
+                            delilveryDateEnd = order.endDeliveryDate;
+                        const rows = [
+                            this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                            this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                            this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                        ];
+                        if (!order.client.comment)
+                            order.set('client.comment', "Sin Comentarios", { strict: false });
+                        order.set('timeLine', [...rows], { strict: false });
+                        return order;
+                    });
+                    response.json({
+                        message: 'Listado de ordenes home',
+                        data: newOrders,
+                        success: true,
+                        orders: result.length
+                    });
+                }
+                else {
+                    response.json({
+                        message: 'Listado de ordenes home',
+                        data: result,
+                        success: true,
+                        orders: result.length
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err,
+                    success: false,
+                    data: []
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false,
+                data: []
+            });
+        }
     }
     async ordersForOms(request, response, next, app) {
         try {
@@ -1518,155 +1660,6 @@ class OrdersController {
             });
         }
     }
-    async ordersForOmsFindSearchHome(request, response, next, app) {
-        try {
-            const { company, profile, query } = request.body;
-            let _query;
-            let query_ = {};
-            let _populate1 = {};
-            let _populate2 = {};
-            let namePicker = "";
-            let nameDelivery = "";
-            let populate = '';
-            let queryState;
-            queryState = { $or: [{ "key": 2 }] };
-            let arrayQuery = [];
-            if (Object.keys(query).length > 0) {
-                if (query.buyFromDate && query.buyToDate) {
-                    let from = new Date(query.buyFromDate);
-                    let to = new Date(query.buyToDate);
-                    from.setHours(0);
-                    from.setMinutes(0);
-                    from.setSeconds(0);
-                    to.setHours(23);
-                    to.setMinutes(59);
-                    to.setSeconds(59);
-                    query_['date'] = {
-                        $gte: from,
-                        $lt: to
-                    };
-                }
-                if (query.buyFromDate && !query.buyToDate) {
-                    let from = new Date(query.buyFromDate);
-                    let to = new Date();
-                    from.setHours(0);
-                    from.setMinutes(0);
-                    from.setSeconds(0);
-                    query_['date'] = {
-                        $gte: from,
-                        $lt: to
-                    };
-                }
-                if (query.deliveryFromDate && query.deliveryToDate) {
-                    let from = new Date(query.deliveryFromDate);
-                    let to = new Date(query.deliveryToDate);
-                    from.setHours(0);
-                    from.setMinutes(0);
-                    from.setSeconds(0);
-                    to.setHours(23);
-                    to.setMinutes(59);
-                    to.setSeconds(59);
-                    query_['realdatedelivery'] = {
-                        $gte: from,
-                        $lt: to
-                    };
-                }
-                if (query.deliveryFromDate && !query.deliveryToDate) {
-                    let from = new Date(query.deliveryFromDate);
-                    let to = new Date();
-                    from.setHours(0);
-                    from.setMinutes(0);
-                    from.setSeconds(0);
-                    to.setHours(23);
-                    to.setMinutes(59);
-                    to.setSeconds(59);
-                    query_['realdatedelivery'] = {
-                        $gte: from,
-                        $lt: to
-                    };
-                }
-                if (query.rut) {
-                    query_['client.rut'] = { $regex: new RegExp(query.rut, "i") };
-                }
-                if (query.orderNumber) {
-                    query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") };
-                }
-                if (query.service) {
-                    query_['service'] = mongoose_1.default.Types.ObjectId(query.service);
-                }
-                if (query.shopId) {
-                    query_['shopId'] = mongoose_1.default.Types.ObjectId(query.shopId);
-                }
-                if (query.pickerName) {
-                    namePicker = query.pickerName;
-                    query_['pickerName'] = { $regex: new RegExp(namePicker, "i") };
-                }
-                if (query.deliveryName) {
-                    nameDelivery = query.deliveryName;
-                    query_['deliveryName'] = { $regex: new RegExp(nameDelivery, "i") };
-                }
-            }
-            if (company)
-                query_['uid'] = mongoose_1.default.Types.ObjectId(company);
-            findDocuments(Orders_1.default, query_, "", {}, '', 0, null, null).then((result) => {
-                if (result.length) {
-                    let newOrders = result.map((order, index) => {
-                        let pickername = "";
-                        let deliveryname = "";
-                        let pickingDate = "";
-                        let delilveryDateStart = "";
-                        let delilveryDateEnd = "";
-                        if (order.pickerId)
-                            pickername = order.pickerId.name;
-                        if (order.deliveryId)
-                            deliveryname = order.deliveryId.name;
-                        if (order.endPickingDate)
-                            pickingDate = order.endPickingDate;
-                        if (order.starDeliveryDate)
-                            delilveryDateStart = order.starDeliveryDate;
-                        if (order.endDeliveryDate)
-                            delilveryDateEnd = order.endDeliveryDate;
-                        const rows = [
-                            this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
-                            this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
-                            this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
-                        ];
-                        if (!order.client.comment)
-                            order.set('client.comment', "Sin Comentarios", { strict: false });
-                        order.set('timeLine', [...rows], { strict: false });
-                        return order;
-                    });
-                    response.json({
-                        message: 'Listado de ordenes home',
-                        data: newOrders,
-                        success: true,
-                        orders: result.length
-                    });
-                }
-                else {
-                    response.json({
-                        message: 'Listado de ordenes home',
-                        data: result,
-                        success: true,
-                        orders: result.length
-                    });
-                }
-            }).catch((err) => {
-                response.json({
-                    message: err,
-                    success: false,
-                    data: []
-                });
-            });
-        }
-        catch (error) {
-            response.json({
-                message: error,
-                success: false,
-                data: []
-            });
-        }
-    }
     async ordersStorePickUp(request, response, next, app) {
         try {
             const { company, profile, query } = request.body;
@@ -2124,6 +2117,7 @@ class OrdersController {
                                                         let companyName = CompanyResult[0].name;
                                                         ServicesResult.map((service) => { if (service._id == order.service)
                                                             serviceDesc = service.desc; });
+                                                        //Aqui empieza creacion de data para el BI
                                                         let param = {
                                                             "CuentaCliente": companyName,
                                                             "OrderTrabajo": order.orderNumber + "",
