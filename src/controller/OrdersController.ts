@@ -832,6 +832,86 @@ export class OrdersController {
     }
   }
 
+  async ordersForOmsPrintLabel(request: Request, response: Response, next: NextFunction, app: any) {//Funcion que devuelve el total de ordenes en el home (sin filtros)
+
+    try {
+      const { company, profile, state, query } = request.body
+      let _query;
+      let query_: any = {}
+      let populate: string = 'bag pickerId deliveryId state service shopId';
+
+      let queryState: any
+      queryState = { "key": { $in: [0, 1] } }
+
+      findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((stateResult: Array<StateInterface>) => {
+        if (stateResult.length > 0) {
+          let states: any = []
+          stateResult.map((state) => {
+            states.push(mongoose.Types.ObjectId(state._id))
+          })
+          query_['state'] = { $in: states }
+          if (company) { query_['uid'] = mongoose.Types.ObjectId(company) }
+
+          findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+            if (result.length) {
+              let newOrders = result.map((order, index) => {
+                let pickername = ""
+                let deliveryname = ""
+                let pickingDate: any = ""
+                let delilveryDateStart: any = ""
+                let delilveryDateEnd: any = ""
+                if (order.pickerId) pickername = order.pickerId.name
+                if (order.deliveryId) deliveryname = order.deliveryId.name
+                if (order.endPickingDate) pickingDate = order.endPickingDate
+                if (order.starDeliveryDate) delilveryDateStart = order.starDeliveryDate
+                if (order.endDeliveryDate) delilveryDateEnd = order.endDeliveryDate
+                const rows = [
+                  this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                  this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                  this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                ];
+                if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
+                order.set('timeLine', [...rows], { strict: false })
+                return order
+              })
+              response.json({
+                message: 'Listado de ordenes',
+                data: newOrders,
+                success: true
+              });
+            } else {
+              response.json({
+                message: 'Listado de ordenes',
+                data: result,
+                success: true
+              });
+            }
+          }).catch((err: Error) => {
+            response.json({
+              message: err.message,
+              success: false
+            });
+          });
+        } else {
+          response.json({
+            message: 'Error al listar ordernes',
+            success: false
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err.message,
+          success: false
+        });
+      });
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+  }
+
   async ordersForOmsCancelledExport(request: Request, response: Response, next: NextFunction, app: any) {
     try {
       const { company, profile, state, query } = request.body
@@ -2197,7 +2277,6 @@ export class OrdersController {
     }).catch((err: Error) => {
 
     });
-
 
   }
 

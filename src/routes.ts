@@ -95,6 +95,12 @@ export const Routes = [
     },
     {
         method: "post",
+        route: "/orders/list/print",
+        controller: OrdersController,
+        action: "ordersForOmsPrintLabel"
+    },
+    {
+        method: "post",
         route: "/orders/list/pickUp",
         controller: OrdersController,
         action: "ordersStorePickUp"
