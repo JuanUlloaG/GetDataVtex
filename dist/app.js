@@ -9,10 +9,12 @@ const jwt = require('jsonwebtoken');
 const config_1 = require("./config/config");
 const routes_1 = require("./routes");
 const validation = require("./middleware/middleware");
+const OrdersController_1 = require("./controller/OrdersController");
 const { initDB, insertDB, conectionToSql, executeStatement } = require("./config/db");
 const cors = require('cors');
 const MailController_1 = require("./controller/MailController");
 let app = express_1.default();
+let orderController = new OrdersController_1.OrdersController();
 app.use(cors());
 // 1
 app.set('key', config_1.config.key);
@@ -68,8 +70,9 @@ MailController_1.createMailer();
 // conectionToSql().then((result: any) => {
 // console.log("Picking server on! happy hacking 👨🏾‍💻")
 initDB().then((result) => {
-    app.listen(3000, () => {
+    app.listen(3008, () => {
         console.log("Picking server on! happy hacking 👨🏾‍💻");
+        orderController.getOrdersClients();
     });
 }).catch((err) => {
     console.log(err);

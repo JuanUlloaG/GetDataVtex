@@ -9,13 +9,15 @@ import State, { StateInterface } from "../entity/State";
 import Service, { ServicesInterface } from "../entity/Services";
 const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, executeProcedure } = require("../config/db")
 import moment from 'moment'
-import { ObjectID, ObjectId } from "mongodb";
+import { Logger, ObjectID, ObjectId } from "mongodb";
 import History, { HistoryInterface } from "../entity/History";
 import { OrderInsertInterface } from "../entity/Procedures";
 import Company, { CompanyInterface } from "../entity/Company";
 import { Client } from "@googlemaps/google-maps-services-js";
 import User, { UserInterface } from "../entity/User";
 import { config } from "../config/config";
+import { CompanyControllers } from "./CompanyController";
+const requestify = require('requestify');
 
 // mongoose.set('debug', true);
 
@@ -2362,14 +2364,34 @@ export class OrdersController {
 
   async getOrdersClients() {
     //se podria hacer un llamado para obtener la configuracion del tiempo
-    let syncTime: number = 5;
+    //fetch('https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-07%2000:00:00,2020-10-08%2000:00:00]&output_format=JSON')
+      //.then((response) => response.json())
+      //.then((data) => console.log(data));
+      let ordersToSave: never[] = [] //array de ordenes devueltas por prestashop
+      setInterval(function () { 
+        let url: string='https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-07%2000:00:00,2020-10-08%2000:00:00]&output_format=JSON'
+        //requestify.get(url)
+        requestify.request(url, {    method: 'GET',    headers :{  Host :'sr1.ipxdigital.cl',  Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'   }})
+        .then(function (response: { getBody: () => any; }) {
+          console.log('ordenes extraidas con éxito' );
+          ordersToSave=response.getBody().orders;
+          
+        }).
+        catch((error:Error) => {console.log(error)});
+    }, 5000);
+
+    
+    //.fail(function (response: { getCode: () => any; }) {
+     // console.log('response Error', response);
+    //});
 
     // setInterval(() => {
-      //hacer el llamado a prestashop
-      let ordersToSave: never[] = [] //array de ordenes devueltas por prestashop
-      console.log("Entramos a validar las ordenes", new Date().toString())
-      // this.saveLocal(ordersToSave)
+    //hacer el llamado a prestashop
+
+    //console.log("Entramos a validar las ordenes", new Date().toString())
+    // this.saveLocal(ordersToSave)
     // }, 1000 * syncTime)
   }
+
 
 }

@@ -78,9 +78,9 @@ createMailer()
 // conectionToSql().then((result: any) => {
 // console.log("Picking server on! happy hacking 👨🏾‍💻")
 initDB().then((result: any) => {
-    app.listen(3000, () => {
-        orderController.getOrdersClients()
+    app.listen(3008, () => {
         console.log("Picking server on! happy hacking 👨🏾‍💻")
+        orderController.getOrdersClients()
     })
 }).catch((err: Error) => {
     console.log(err)
@@ -88,6 +88,7 @@ initDB().then((result: any) => {
 // }).catch((err: Error) => {
 //     console.log(err)
 // });
+
 
 
 
