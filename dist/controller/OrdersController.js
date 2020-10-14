@@ -18,12 +18,42 @@ const User_1 = __importDefault(require("../entity/User"));
 const config_1 = require("../config/config");
 // mongoose.set('debug', true);
 class OrdersController {
-    async all(request, response, next, app) {
-        response.json({
-            message: 'Listado de ordenes',
-            data: [],
-            success: true
-        });
+    async updatePrintedOrders(request, response, next, app) {
+        try {
+            const { orders } = request.body;
+            let ordersIds = [];
+            orders.map((order) => {
+                ordersIds.push(mongoose_1.default.Types.ObjectId(order));
+            });
+            let queryOrder = { '_id': { '$in': ordersIds } };
+            let updateOrder = { printed: true };
+            updateManyDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
+                if (updateOrder) {
+                    response.json({
+                        message: 'Ordenes actualizadas exitosamente',
+                        data: updateOrder,
+                        success: true
+                    });
+                }
+                else {
+                    response.json({
+                        message: "Error al actualizar orden: " + updateOrder,
+                        success: false
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
     }
     async updateState(request, response, next, app) {
         try {
@@ -846,6 +876,9 @@ class OrdersController {
             let populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
             queryState = { "key": { $in: [0, 1] } };
+            if (Object.keys(query).length > 0) {
+                query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") };
+            }
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((stateResult) => {
                 if (stateResult.length > 0) {
                     let states = [];

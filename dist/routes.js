@@ -84,6 +84,12 @@ exports.Routes = [
         action: "updateNamesInOrdes"
     },
     {
+        method: "post",
+        route: "/order/updatePrint",
+        controller: OrdersController_1.OrdersController,
+        action: "updatePrintedOrders"
+    },
+    {
         method: "get",
         route: "/ordersTest",
         controller: OrdersController_1.OrdersController,
@@ -274,6 +280,12 @@ exports.Routes = [
         route: "/orderBags/list",
         controller: OrderBagsController_1.OrderBagsController,
         action: "listBags"
+    },
+    {
+        method: "post",
+        route: "/orderBags/getNumber",
+        controller: OrderBagsController_1.OrderBagsController,
+        action: "getNumber"
     },
     {
         method: "post",

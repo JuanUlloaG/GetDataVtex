@@ -76,7 +76,7 @@ export class OrderBagsController {
                     })
                     let arrayBags2: Array<string> = []
                     for (var i = 1; i < 999999999; i++) {
-                        if (arrayBags2.length <= 30)
+                        if (arrayBags2.length <= cantidad)
                             if (!arrayBags.includes(i.toString())) {
                                 arrayBags2.push(i.toString());
                             }
@@ -90,7 +90,7 @@ export class OrderBagsController {
 
                     let arrayBags2: Array<string> = []
                     for (var i = 1; i < 999999999; i++) {
-                        if (arrayBags2.length <= 30)
+                        if (arrayBags2.length <= cantidad)
                             if (!arrayBags.includes(i.toString())) {
                                 arrayBags2.push(i.toString());
                             }

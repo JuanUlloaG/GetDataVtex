@@ -8,7 +8,6 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const jwt = require('jsonwebtoken');
 const OrderBags_1 = __importDefault(require("../entity/OrderBags"));
 const Orders_1 = __importDefault(require("../entity/Orders"));
-const Bagnumber_1 = __importDefault(require("../entity/Bagnumber"));
 const State_1 = __importDefault(require("../entity/State"));
 const OrderBags_2 = require("../entity/OrderBags");
 const { initDB, insertDB, insertManyDB, findDocuments, findOneAndUpdateDB, executeProcedure, findOneDB } = require("../config/db");
@@ -64,23 +63,40 @@ class OrderBagsController {
     }
     async getNumber(request, response, next, app) {
         try {
-            findDocuments(Bagnumber_1.default, {}, "", {}, '', '', 0, null, null).then((result) => {
+            const { cantidad } = request.body;
+            findDocuments(OrderBags_1.default, {}, "", {}, '', '', 0, null, null).then((result) => {
+                let arrayBags = [];
                 if (result.length) {
-                    let query = { "_id": mongoose_1.default.Types.ObjectId(result[0]._id) };
-                    let update = { "number": result[0].number + 1 };
+                    result.map((bag) => {
+                        bag.bags.map((bg) => {
+                            arrayBags.push(bg.bagNumber);
+                        });
+                    });
+                    let arrayBags2 = [];
+                    for (var i = 1; i < 999999999; i++) {
+                        if (arrayBags2.length <= cantidad)
+                            if (!arrayBags.includes(i.toString())) {
+                                arrayBags2.push(i.toString());
+                            }
+                    }
+                    response.json({
+                        message: 'Listado de bultos a despachar',
+                        data: arrayBags2,
+                        success: true
+                    });
                 }
                 else {
-                    insertDB(Bagnumber_1.default, { number: '000000001' }).then((result) => {
-                        response.json({
-                            message: 'Number',
-                            data: result,
-                            success: true
-                        });
-                    }).catch((err) => {
-                        response.json({
-                            message: err,
-                            success: false
-                        });
+                    let arrayBags2 = [];
+                    for (var i = 1; i < 999999999; i++) {
+                        if (arrayBags2.length <= cantidad)
+                            if (!arrayBags.includes(i.toString())) {
+                                arrayBags2.push(i.toString());
+                            }
+                    }
+                    response.json({
+                        message: 'Listado de bultos a despachar',
+                        data: arrayBags2,
+                        success: true
                     });
                 }
             }).catch((err) => {
@@ -91,6 +107,10 @@ class OrderBagsController {
             });
         }
         catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
         }
     }
     async listBags(request, response, next, app) {
