@@ -82,6 +82,12 @@ export const Routes = [
         action: "updateNamesInOrdes"
     },
     {
+        method: "post",
+        route: "/order/updatePrint",
+        controller: OrdersController,
+        action: "updatePrintedOrders"
+    },
+    {
         method: "get",
         route: "/ordersTest",
         controller: OrdersController,
@@ -272,6 +278,12 @@ export const Routes = [
         route: "/orderBags/list",
         controller: OrderBagsController,
         action: "listBags"
+    },
+    {
+        method: "post",
+        route: "/orderBags/getNumber",
+        controller: OrderBagsController,
+        action: "getNumber"
     },
     {
         method: "post",

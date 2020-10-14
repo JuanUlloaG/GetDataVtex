@@ -23,12 +23,41 @@ import { config } from "../config/config";
 
 export class OrdersController {
 
-  async all(request: Request, response: Response, next: NextFunction, app: any) {
-    response.json({
-      message: 'Listado de ordenes',
-      data: [],
-      success: true
-    });
+  async updatePrintedOrders(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { orders } = request.body
+      let ordersIds: any = []
+      orders.map((order: any) => {
+        ordersIds.push(mongoose.Types.ObjectId(order))
+      })
+      let queryOrder = { '_id': { '$in': ordersIds } }
+      let updateOrder: any = { printed: true }
+      updateManyDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
+        if (updateOrder) {
+          response.json({
+            message: 'Ordenes actualizadas exitosamente',
+            data: updateOrder,
+            success: true
+          });
+        } else {
+          response.json({
+            message: "Error al actualizar orden: " + updateOrder,
+            success: false
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false
+        });
+      });
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+
   }
 
   async updateState(request: Request, response: Response, next: NextFunction, app: any) {
@@ -833,7 +862,6 @@ export class OrdersController {
   }
 
   async ordersForOmsPrintLabel(request: Request, response: Response, next: NextFunction, app: any) {//Funcion que devuelve el total de ordenes en el home (sin filtros)
-
     try {
       const { company, profile, state, query } = request.body
       let _query;
@@ -842,6 +870,9 @@ export class OrdersController {
 
       let queryState: any
       queryState = { "key": { $in: [0, 1] } }
+      if (Object.keys(query).length > 0) {
+        query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") }
+      }
 
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((stateResult: Array<StateInterface>) => {
         if (stateResult.length > 0) {

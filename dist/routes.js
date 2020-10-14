@@ -97,6 +97,12 @@ exports.Routes = [
     },
     {
         method: "post",
+        route: "/orders/list/print",
+        controller: OrdersController_1.OrdersController,
+        action: "ordersForOmsPrintLabel"
+    },
+    {
+        method: "post",
         route: "/orders/list/pickUp",
         controller: OrdersController_1.OrdersController,
         action: "ordersStorePickUp"

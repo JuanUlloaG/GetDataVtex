@@ -65,28 +65,42 @@ export class OrderBagsController {
 
     async getNumber(request: Request, response: Response, next: NextFunction, app: any) {
         try {
-            findDocuments(BagNumber, {}, "", {}, '', '', 0, null, null).then((result: any) => {
-
+            const { cantidad } = request.body
+            findDocuments(OrderBags, {}, "", {}, '', '', 0, null, null).then((result: Array<OrderBagsInterface>) => {
+                let arrayBags: Array<string> = []
                 if (result.length) {
-                    let query = { "_id": mongoose.Types.ObjectId(result[0]._id) }
-                    let update = { "number": result[0].number + 1 }
+                    result.map((bag) => {
+                        bag.bags.map((bg) => {
+                            arrayBags.push(bg.bagNumber)
+                        })
+                    })
+                    let arrayBags2: Array<string> = []
+                    for (var i = 1; i < 999999999; i++) {
+                        if (arrayBags2.length <= 30)
+                            if (!arrayBags.includes(i.toString())) {
+                                arrayBags2.push(i.toString());
+                            }
+                    }
+                    response.json({
+                        message: 'Listado de bultos a despachar',
+                        data: arrayBags2,
+                        success: true
+                    });
                 } else {
-                    insertDB(BagNumber, { number: '000000001' }).then((result: any) => {
-                        response.json({
-                            message: 'Number',
-                            data: result,
-                            success: true
-                        });
-                    }).catch((err: Error) => {
-                        response.json({
-                            message: err,
-                            success: false
-                        });
+
+                    let arrayBags2: Array<string> = []
+                    for (var i = 1; i < 999999999; i++) {
+                        if (arrayBags2.length <= 30)
+                            if (!arrayBags.includes(i.toString())) {
+                                arrayBags2.push(i.toString());
+                            }
+                    }
+                    response.json({
+                        message: 'Listado de bultos a despachar',
+                        data: arrayBags2,
+                        success: true
                     });
                 }
-
-
-
             }).catch((err: Error) => {
                 response.json({
                     message: err,
@@ -94,7 +108,10 @@ export class OrderBagsController {
                 });
             });
         } catch (error) {
-
+            response.json({
+                message: error,
+                success: false
+            });
         }
     }
 

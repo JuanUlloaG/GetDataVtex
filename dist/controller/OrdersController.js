@@ -838,6 +838,92 @@ class OrdersController {
             });
         }
     }
+    async ordersForOmsPrintLabel(request, response, next, app) {
+        try {
+            const { company, profile, state, query } = request.body;
+            let _query;
+            let query_ = {};
+            let populate = 'bag pickerId deliveryId state service shopId';
+            let queryState;
+            queryState = { "key": { $in: [0, 1] } };
+            findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((stateResult) => {
+                if (stateResult.length > 0) {
+                    let states = [];
+                    stateResult.map((state) => {
+                        states.push(mongoose_1.default.Types.ObjectId(state._id));
+                    });
+                    query_['state'] = { $in: states };
+                    if (company) {
+                        query_['uid'] = mongoose_1.default.Types.ObjectId(company);
+                    }
+                    findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+                        if (result.length) {
+                            let newOrders = result.map((order, index) => {
+                                let pickername = "";
+                                let deliveryname = "";
+                                let pickingDate = "";
+                                let delilveryDateStart = "";
+                                let delilveryDateEnd = "";
+                                if (order.pickerId)
+                                    pickername = order.pickerId.name;
+                                if (order.deliveryId)
+                                    deliveryname = order.deliveryId.name;
+                                if (order.endPickingDate)
+                                    pickingDate = order.endPickingDate;
+                                if (order.starDeliveryDate)
+                                    delilveryDateStart = order.starDeliveryDate;
+                                if (order.endDeliveryDate)
+                                    delilveryDateEnd = order.endDeliveryDate;
+                                const rows = [
+                                    this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                                    this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                                    this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                                ];
+                                if (!order.client.comment)
+                                    order.set('client.comment', "Sin Comentarios", { strict: false });
+                                order.set('timeLine', [...rows], { strict: false });
+                                return order;
+                            });
+                            response.json({
+                                message: 'Listado de ordenes',
+                                data: newOrders,
+                                success: true
+                            });
+                        }
+                        else {
+                            response.json({
+                                message: 'Listado de ordenes',
+                                data: result,
+                                success: true
+                            });
+                        }
+                    }).catch((err) => {
+                        response.json({
+                            message: err.message,
+                            success: false
+                        });
+                    });
+                }
+                else {
+                    response.json({
+                        message: 'Error al listar ordernes',
+                        success: false
+                    });
+                }
+            }).catch((err) => {
+                response.json({
+                    message: err.message,
+                    success: false
+                });
+            });
+        }
+        catch (error) {
+            response.json({
+                message: error,
+                success: false
+            });
+        }
+    }
     async ordersForOmsCancelledExport(request, response, next, app) {
         try {
             const { company, profile, state, query } = request.body;
