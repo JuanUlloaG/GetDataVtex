@@ -202,6 +202,12 @@ export const Routes = [
         action: "ordersToDelivery"
     },
     {
+        method: "get",
+        route: "/orders/prestashop/clients",
+        controller: OrdersController,
+        action: "getOrdersClients"
+    },
+    {
         method: "post",
         route: "/account",
         controller: CompanyControllers,

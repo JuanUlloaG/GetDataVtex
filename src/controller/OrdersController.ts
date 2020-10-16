@@ -2362,25 +2362,43 @@ export class OrdersController {
 
   }
 
-  async getOrdersClients() {
+  async getOrdersClients(request: Request, responseJson: Response) {
+    //response.json({
+      //message: 'Usuario ' + ' Creado exitosamente ',
+      //data: 'result',
+     // success: true
+    //});
+    //return;
     //se podria hacer un llamado para obtener la configuracion del tiempo
     //fetch('https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-07%2000:00:00,2020-10-08%2000:00:00]&output_format=JSON')
       //.then((response) => response.json())
       //.then((data) => console.log(data));
-      let ordersToSave: never[] = [] //array de ordenes devueltas por prestashop
+      let ordersToSave: any[] = [] //array de ordenes devueltas por prestashop
       setInterval(function () { 
-        let url: string='https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-07%2000:00:00,2020-10-08%2000:00:00]&output_format=JSON'
+        let url: string='https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-13%2000:00:00,2020-10-14%2000:00:00]&output_format=JSON'
         //requestify.get(url)
         requestify.request(url, {    method: 'GET',    headers :{  Host :'sr1.ipxdigital.cl',  Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'   }})
         .then(function (response: { getBody: () => any; }) {
-          console.log('ordenes extraidas con éxito' );
+          console.log(ordersToSave );
           ordersToSave=response.getBody().orders;
+          ordersToSave = response.getBody().orders;
+
+          for(let i in ordersToSave){
+            console.log(ordersToSave[i]);
+            console.log(ordersToSave[i].id_address_delivery);
+            console.log(ordersToSave[i].id_customer);
+          }
+          responseJson.json({
+            message: 'Orders Prestashop',
+            data: ordersToSave,
+           success: true
+           });
           
         }).
         catch((error:Error) => {console.log(error)});
     }, 5000);
 
-    
+    //20 min
     //.fail(function (response: { getCode: () => any; }) {
      // console.log('response Error', response);
     //});

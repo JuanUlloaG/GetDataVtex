@@ -9,12 +9,12 @@ import Orders from "./entity/Orders";
 import OrderBags from "./entity/OrderBags";
 import { Routes } from "./routes";
 const validation = require("./middleware/middleware")
-import { OrdersController } from "./controller/OrdersController";
+//import { OrdersController } from "./controller/OrdersController";
 const { initDB, insertDB, conectionToSql, executeStatement } = require("./config/db")
 const cors = require('cors')
 import { createMailer } from "./controller/MailController";
 let app = express();
-let orderController = new OrdersController()
+//let orderController = new OrdersController()
 
 app.use(cors());
 // 1
@@ -80,7 +80,7 @@ createMailer()
 initDB().then((result: any) => {
     app.listen(3008, () => {
         console.log("Picking server on! happy hacking 👨🏾‍💻")
-        orderController.getOrdersClients()
+        //orderController.getOrdersClients()
     })
 }).catch((err: Error) => {
     console.log(err)
