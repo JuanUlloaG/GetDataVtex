@@ -877,7 +877,10 @@ class OrdersController {
             let queryState;
             queryState = { "key": { $in: [0, 1] } };
             if (Object.keys(query).length > 0) {
-                query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") };
+                if (query.orderNumber)
+                    query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") };
+                if (query.printed)
+                    query_['printed'] = query.printed;
             }
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((stateResult) => {
                 if (stateResult.length > 0) {

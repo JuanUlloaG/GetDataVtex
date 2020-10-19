@@ -59,6 +59,7 @@ export interface OrderInterface extends Document {
     pickerWorkShift: string,
     cancellDate?: Date,
     isInShop: Boolean,
+    checked: Boolean,
     restocked: Boolean,
     timeLine?: Array<any>,
 }
@@ -116,6 +117,7 @@ const OrderSchema: Schema = new Schema({
     isInShop: { type: Boolean, required: false, default: false },
     restocked: { type: Boolean, required: false, default: false },
     printed: { type: Boolean, required: false, default: false },
+    checked: { type: Boolean, required: false, default: false }
 });
 OrderSchema.plugin(require('mongoose-autopopulate'))
 const Order = mongoose.model<OrderInterface>("Order", OrderSchema, "orders");

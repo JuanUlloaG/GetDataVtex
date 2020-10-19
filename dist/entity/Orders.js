@@ -73,6 +73,7 @@ const OrderSchema = new mongoose_1.Schema({
     isInShop: { type: Boolean, required: false, default: false },
     restocked: { type: Boolean, required: false, default: false },
     printed: { type: Boolean, required: false, default: false },
+    checked: { type: Boolean, required: false, default: false }
 });
 OrderSchema.plugin(require('mongoose-autopopulate'));
 const Order = mongoose_1.default.model("Order", OrderSchema, "orders");

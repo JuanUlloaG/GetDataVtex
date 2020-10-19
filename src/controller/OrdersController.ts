@@ -871,7 +871,8 @@ export class OrdersController {
       let queryState: any
       queryState = { "key": { $in: [0, 1] } }
       if (Object.keys(query).length > 0) {
-        query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") }
+        if (query.orderNumber) query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") }
+        if (query.printed) query_['printed'] = query.printed
       }
 
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((stateResult: Array<StateInterface>) => {
