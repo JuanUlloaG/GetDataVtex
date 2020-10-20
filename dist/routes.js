@@ -79,6 +79,12 @@ exports.Routes = [
     },
     {
         method: "post",
+        route: "/orders/vtex",
+        controller: OrdersController_1.OrdersController,
+        action: "getOrdersForVtex"
+    },
+    {
+        method: "post",
         route: "/orders/upName",
         controller: OrdersController_1.OrdersController,
         action: "updateNamesInOrdes"

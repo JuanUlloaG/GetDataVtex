@@ -2161,6 +2161,9 @@ class OrdersController {
             });
         }
     }
+    async getOrdersForVtex(request, response, next, app) {
+        console.log(request.body);
+    }
     /*
       Metodo que recibe un array de ordenes para guardarlas en la base de datos
     */

@@ -77,6 +77,12 @@ export const Routes = [
     },
     {
         method: "post",
+        route: "/orders/vtex",
+        controller: OrdersController,
+        action: "getOrdersForVtex"
+    },
+    {
+        method: "post",
         route: "/orders/upName",
         controller: OrdersController,
         action: "updateNamesInOrdes"
