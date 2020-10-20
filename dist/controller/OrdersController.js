@@ -2163,6 +2163,9 @@ class OrdersController {
     }
     async getOrdersForVtex(request, response, next, app) {
         console.log("ALERT VTEX", request.body);
+        response.json({
+            success: true
+        });
     }
     /*
       Metodo que recibe un array de ordenes para guardarlas en la base de datos

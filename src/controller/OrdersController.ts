@@ -2091,6 +2091,9 @@ export class OrdersController {
 
   async getOrdersForVtex(request: Request, response: Response, next: NextFunction, app: any) {
     console.log("ALERT VTEX", request.body)
+    response.json({
+      success: true
+    });
   }
 
   /*
