@@ -10,6 +10,7 @@ import Service, { ServicesInterface } from "../entity/Services";
 const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, executeProcedure } = require("../config/db")
 import moment from 'moment'
 import requ from "request";
+const requestify = require('requestify');
 import { ObjectID, ObjectId } from "mongodb";
 import History, { HistoryInterface } from "../entity/History";
 import { OrderInsertInterface } from "../entity/Procedures";
@@ -2098,88 +2099,99 @@ export class OrdersController {
   }
 
   async getOrdersForVtex(request: Request, response: Response, next: NextFunction, app: any) {
-    // try {
-    //   console.log("ALERT VTEX", request.body)
-    //   const { OrderId } = request.body
+    try {
+      console.log("ALERT VTEX", request.body)
+      const { OrderId } = request.body
+      response.json({
+        code: 200,
+        message: request.body,
+        success: true
+      });
+      if (OrderId) {
+        const queryCompany = { name: "Pillin Test" }
+        findDocuments(Company, queryCompany, "", {}, '', '', 0, null, null).then((CompanyResult: Array<CompanyInterface>) => {
+          if (CompanyResult.length > 0) {
+            const companyUID = CompanyResult[0]._id
+            console.log(CompanyResult)
+            requestify.request(`https://srconsultores.vtexcommercestable.com.br/api/oms/pvt/orders/${OrderId}`, {
+              method: 'GET',
+              headers: {
+                'X-VTEX-API-AppToken': 'MRNIYXTVLTCWCVYWATKOOKYHHDEOXRGHYXHXLXALMKMPPMFVAJPJGRMBSGAUSEXTNVXFOALCTYCEYJSUYJNOBXBGLGEFWGTHMSBUPZHAYMQHPICJNGVJRJSQTRTHVFFM',
+                'X-VTEX-API-AppKey': 'vtexappkey-srconsultores-PPJDKQ',
+                'Content-Type': 'application/x-www-form-urlencoded'
+              }
+            }).then((respApiCall: any) => {
+              const { orderId, creationDate, items, origin, clientProfileData, shippingData } = respApiCall.getBody()
+              let ordersTemplate = Object.assign({}, config.ordersTemplate)
+              let orderTemplate = Object.assign({}, config.orderTemplate)
+              let productTemplate = Object.assign({}, config.productTemplate)
+              let products: any = []
+              let orders: any = []
+              orderTemplate.orderNumber = orderId
+              orderTemplate.date = moment(creationDate).format("YYYY-MM-DDTHH:mm:ss")
+              orderTemplate.channel = origin
+              orderTemplate.service = 0
+              if (shippingData.selectedAddresses.addressType == "residential") orderTemplate.service = 0
+              if (shippingData.selectedAddresses.addressType == "pickup") orderTemplate.service = 1
 
-    //   if (OrderId) {
-    //     const data = {
-    //       headers: {
-    //         'X-VTEX-API-AppToken': 'MRNIYXTVLTCWCVYWATKOOKYHHDEOXRGHYXHXLXALMKMPPMFVAJPJGRMBSGAUSEXTNVXFOALCTYCEYJSUYJNOBXBGLGEFWGTHMSBUPZHAYMQHPICJNGVJRJSQTRTHVFFM',
-    //         'X-VTEX-API-AppKey': 'vtexappkey-srconsultores-PPJDKQ',
-    //         'Content-Type': 'application/x-www-form-urlencoded'
-    //       },
-    //       uri: 'https://srconsultores.vtexcommercestable.com.br/api/oms/pvt/orders/1070533073147-01',
-    //       method: 'GET'
-    //     }
+              items.map((product: any) => {
+                productTemplate.id = product.id
+                productTemplate.units = product.quantity
+                productTemplate.name = product.name
+                productTemplate.location = 1
+                productTemplate.barcode = product.refId
+                productTemplate.product = product.name
+                productTemplate.image = product.imageUrl
+                productTemplate.description = product.name + " " + product.additionalInfo.brandName
+                products.push(productTemplate)
+              })
+
+              orderTemplate.products = [...products]
+              orderTemplate.client.address = shippingData.address.street + " " + shippingData.address.number
+              orderTemplate.client.comuna = shippingData.address.neighborhood
+              orderTemplate.client.ciudad = shippingData.address.state
+              orderTemplate.client.lat = ""
+              orderTemplate.client.long = ""
+              if (shippingData.address.geoCoordinates.length) {
+                orderTemplate.client.lat = shippingData.address.geoCoordinates[0]
+                orderTemplate.client.long = shippingData.address.geoCoordinates[1]
+              }
+              orderTemplate.client.rut = clientProfileData.document
+              orderTemplate.client.cellphone = clientProfileData.phone
+              orderTemplate.client.email = clientProfileData.email
+              orderTemplate.client.name = clientProfileData.firstName + " " + clientProfileData.lastName
+
+              orders.push(orderTemplate)
+              ordersTemplate.orders = [...orders]
+              ordersTemplate.uid = companyUID
+
+              console.log("Vtex order processing -->:", JSON.stringify(ordersTemplate))
+              // this.save(null, null, null, null, 1, ordersTemplate)
+
+            }).fail((response: any) => {
+              response.getCode(); // Some error code such as, for example, 404
+              response.json({
+                code: response.getCode(),
+                message: response,
+                error: response,
+                success: false
+              });
+            });
+          } else {
+            response.json({ message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false });
+          }
+        }).catch((err: Error) => { response.json({ message: err, success: false }); });
 
 
-    //     requ(data, function (errorApiCall, respApiCall, bodyApiCall) {
-    //       if (errorApiCall) {
-    //         response.json({
-    //           error: errorApiCall,
-    //           code: errorApiCall.code,
-    //           message: errorApiCall.message,
-    //           success: false
-    //         });
-    //       }
-    //       console.log("aqui", respApiCall)
-    //       const { orderId, creationDate, items, origin, clientProfileData, shippingData } = respApiCall.body
-    //       let ordersTemplate = Object.assign({}, config.ordersTemplate)
-    //       let orderTemplate = Object.assign({}, config.orderTemplate)
-    //       let productTemplate = Object.assign({}, config.productTemplate)
-    //       let products: any = []
-    //       let orders: any = []
-    //       orderTemplate.orderNumber = orderId
-    //       orderTemplate.date = creationDate
-    //       orderTemplate.channel = origin
-    //       orderTemplate.service = 1
-    //       items.map((product: any) => {
-    //         productTemplate.id = product.id
-    //         productTemplate.units = product.quantity
-    //         productTemplate.name = product.name
-    //         productTemplate.location = 1
-    //         productTemplate.barcode = product.refId
-    //         productTemplate.product = product.name
-    //         productTemplate.image = product.imageUrl
-    //         productTemplate.description = product.name + " " + product.additionalInfo.brandName
-    //         products.push(productTemplate)
-    //       })
-    //       orderTemplate.products = [...products]
-    //       orderTemplate.client.address = shippingData.address.street + " " + shippingData.address.number
-    //       orderTemplate.client.comuna = shippingData.address.neighborhood
-    //       orderTemplate.client.ciudad = shippingData.address.state
-    //       orderTemplate.client.lat = "-71.542969"
-    //       orderTemplate.client.long = "-71.542969"
-    //       orderTemplate.client.rut = clientProfileData.document
-    //       orderTemplate.client.cellphone = clientProfileData.phone
-    //       orderTemplate.client.email = clientProfileData.email
-    //       orderTemplate.client.name = clientProfileData.firstName + " " + clientProfileData.lastName
-
-    //       orders.push(orderTemplate)
-    //       ordersTemplate.orders = [...orders]
-    //       ordersTemplate.uid = "mis nalgas"
-
-    //       console.log("Vtex response -->:", ordersTemplate)
-
-    //     })
-
-    //   }
-    //   response.json({
-    //     code: 200,
-    //     message: "No se encontro Orden",
-    //     error: null,
-    //     success: false
-    //   });
-
-    // } catch (error) {
-    //   response.json({
-    //     error: error,
-    //     code: error.code,
-    //     message: error.message,
-    //     success: false
-    //   });
-    // }
+      }
+    } catch (error) {
+      response.json({
+        error: error,
+        code: error.code,
+        message: error.message,
+        success: false
+      });
+    }
 
   }
 
@@ -2427,9 +2439,14 @@ export class OrdersController {
   /*
     Metodo que recibe un array de ordenes para guardarlas en la base de datos
   */
-  async save(request: Request, response: Response, next: NextFunction, app: any) {
+  async save(request: Request, response: Response, next: NextFunction, app: any, type: number = 0, body: any) {
+    // async save(request: Request | null, response: Response | null, next: NextFunction | null, app: any, type: number = 0, body: any) {
     try {
-      // this.saveOrder(request.body, 1, response)
+      console.log(request)
+      console.log(type)
+      console.log(body)
+      // if (type == 1) return this.saveOrder(body, type, response)
+      // if (type == 0) return this.saveOrder(request.body, type, response)
       findDocuments(Service, {}, "", {}, '', '', 0, null, null).then((ServicesResult: Array<ServicesInterface>) => {
         if (ServicesResult.length > 0) {
           let query = { "key": 0 }
@@ -2581,7 +2598,11 @@ export class OrdersController {
         }
       }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
     } catch (error) {
-      response.json({ message: error.message, success: false });
+      if (response)
+        response.json({ message: error.message, success: false });
+      else {
+        return { message: error.message, success: false }
+      }
     }
   }
 
