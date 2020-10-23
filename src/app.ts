@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { request, response } from 'express';
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 import { config } from "./config/config";
@@ -12,7 +12,9 @@ const validation = require("./middleware/middleware")
 const { initDB, insertDB, conectionToSql, executeStatement } = require("./config/db")
 const cors = require('cors')
 import { createMailer } from "./controller/MailController";
+import { OrdersController } from './controller/OrdersController';
 let app = express();
+const orderCont = new OrdersController()
 
 app.use(cors());
 // 1

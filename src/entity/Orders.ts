@@ -60,6 +60,7 @@ export interface OrderInterface extends Document {
     cancellDate?: Date,
     isInShop: Boolean,
     checked: Boolean,
+    printed: Boolean,
     restocked: Boolean,
     timeLine?: Array<any>,
 }

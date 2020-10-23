@@ -12,7 +12,9 @@ const validation = require("./middleware/middleware");
 const { initDB, insertDB, conectionToSql, executeStatement } = require("./config/db");
 const cors = require('cors');
 const MailController_1 = require("./controller/MailController");
+const OrdersController_1 = require("./controller/OrdersController");
 let app = express_1.default();
+const orderCont = new OrdersController_1.OrdersController();
 app.use(cors());
 // 1
 app.set('key', config_1.config.key);

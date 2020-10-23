@@ -36,5 +36,38 @@ export const config = {
         "OrderTrabajo": "",
         "Estado": "",
         "FechaEventoOMS": new Date()
+    },
+    productTemplate: {
+        "id": "",
+        "barcode": "",
+        "product": "",
+        "units": 0,
+        "location": 0,
+        "description": "",
+        "name": "",
+        "image": ""
+    },
+    orderTemplate: {
+        "orderNumber": "",
+        "products": [Array],
+        "client": {
+            "rut": "",
+            "name": "",
+            "address": "",
+            "rutTercero": "",
+            "comuna": "",
+            "ciudad": "",
+            "long": "",
+            "lat": "",
+            "email": "",
+            "cellphone": ""
+        },
+        "channel": "",
+        "service": 1,
+        "date": ""
+    },
+    ordersTemplate: {
+        "uid": "",
+        "orders": [Array]
     }
 }
