@@ -2469,11 +2469,11 @@ export class OrdersController {
     //.then((response) => response.json())
     //.then((data) => console.log(data));
     let ordersToSave: Array<any> //array de ordenes devueltas por prestashop
-    setInterval(function () {
+    setInterval(() => {
       let url: string = 'https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-22%2000:00:00,2020-10-23%2000:00:00]&output_format=JSON'
       //requestify.get(url)
       requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
-        .then(function (response: { getBody: () => any; }) {
+        .then((response: { getBody: () => any; }) => {
           //console.log(ordersToSave);
           ordersToSave = response.getBody().orders;
           try {
@@ -2530,24 +2530,12 @@ export class OrdersController {
 
             ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
             ordersTemplate.orders = [...orders]
-
-
+            console.log(ordersTemplate)
+          } catch (error) {
+            console.log(error)
           }
-          catch ((error: Error) => { console.log(error) });
+        })
+
     }, 5000);
-
-    //20 min
-    //.fail(function (response: { getCode: () => any; }) {
-    // console.log('response Error', response);
-    //});
-
-    // setInterval(() => {
-    //hacer el llamado a prestashop
-
-    //console.log("Entramos a validar las ordenes", new Date().toString())
-    // this.saveLocal(ordersToSave)
-    // }, 1000 * syncTime)
   }
-
-
 }
