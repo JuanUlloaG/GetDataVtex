@@ -38,10 +38,7 @@
         "nodemailer": "^6.4.11",
         "nodemon": "^2.0.4",
         "reflect-metadata": "^0.1.13",
-<<<<<<< HEAD
-=======
         "request": "^2.88.2",
->>>>>>> development
         "requestify": "^0.2.5",
         "tedious": "^9.2.1",
         "ts-node": "^8.10.2",
