@@ -77,9 +77,21 @@ export const Routes = [
     },
     {
         method: "post",
+        route: "/orders/vtex",
+        controller: OrdersController,
+        action: "getOrdersForVtex"
+    },
+    {
+        method: "post",
         route: "/orders/upName",
         controller: OrdersController,
         action: "updateNamesInOrdes"
+    },
+    {
+        method: "post",
+        route: "/order/updatePrint",
+        controller: OrdersController,
+        action: "updatePrintedOrders"
     },
     {
         method: "get",
@@ -92,6 +104,12 @@ export const Routes = [
         route: "/orders/list",
         controller: OrdersController,
         action: "ordersForOms"
+    },
+    {
+        method: "post",
+        route: "/orders/list/print",
+        controller: OrdersController,
+        action: "ordersForOmsPrintLabel"
     },
     {
         method: "post",
@@ -272,6 +290,12 @@ export const Routes = [
         route: "/orderBags/list",
         controller: OrderBagsController,
         action: "listBags"
+    },
+    {
+        method: "post",
+        route: "/orderBags/getNumber",
+        controller: OrderBagsController,
+        action: "getNumber"
     },
     {
         method: "post",

@@ -10,6 +10,8 @@ import Service, { ServicesInterface } from "../entity/Services";
 const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, executeProcedure } = require("../config/db")
 import moment from 'moment'
 import { Logger, ObjectID, ObjectId } from "mongodb";
+//import requ from "request";
+const requestify = require('requestify');
 import History, { HistoryInterface } from "../entity/History";
 import { OrderInsertInterface } from "../entity/Procedures";
 import Company, { CompanyInterface } from "../entity/Company";
@@ -19,7 +21,7 @@ import { config } from "../config/config";
 import { CompanyControllers } from "./CompanyController";
 import Order from '../entity/Orders';
 import OrderBags from "../entity/OrderBags";
-const requestify = require('requestify');
+import axios, { AxiosError } from "axios";
 
 // mongoose.set('debug', true);
 
@@ -27,12 +29,41 @@ const requestify = require('requestify');
 
 export class OrdersController {
 
-  async all(request: Request, response: Response, next: NextFunction, app: any) {
-    response.json({
-      message: 'Listado de ordenes',
-      data: [],
-      success: true
-    });
+  async updatePrintedOrders(request: Request, response: Response, next: NextFunction, app: any) {
+    try {
+      const { orders } = request.body
+      let ordersIds: any = []
+      orders.map((order: any) => {
+        ordersIds.push(mongoose.Types.ObjectId(order))
+      })
+      let queryOrder = { '_id': { '$in': ordersIds } }
+      let updateOrder: any = { printed: true }
+      updateManyDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: any) => {
+        if (updateOrder) {
+          response.json({
+            message: 'Ordenes actualizadas exitosamente',
+            data: updateOrder,
+            success: true
+          });
+        } else {
+          response.json({
+            message: "Error al actualizar orden: " + updateOrder,
+            success: false
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err,
+          success: false
+        });
+      });
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+
   }
 
   async updateState(request: Request, response: Response, next: NextFunction, app: any) {
@@ -798,6 +829,95 @@ export class OrdersController {
                 order.set('timeLine', [...rows], { strict: false })
                 return order
               })
+              response.json({
+                message: 'Listado de ordenes',
+                data: newOrders,
+                success: true
+              });
+            } else {
+              response.json({
+                message: 'Listado de ordenes',
+                data: result,
+                success: true
+              });
+            }
+          }).catch((err: Error) => {
+            response.json({
+              message: err.message,
+              success: false
+            });
+          });
+        } else {
+          response.json({
+            message: 'Error al listar ordernes',
+            success: false
+          });
+        }
+      }).catch((err: Error) => {
+        response.json({
+          message: err.message,
+          success: false
+        });
+      });
+    } catch (error) {
+      response.json({
+        message: error,
+        success: false
+      });
+    }
+  }
+
+  async ordersForOmsPrintLabel(request: Request, response: Response, next: NextFunction, app: any) {//Funcion que devuelve el total de ordenes en el home (sin filtros)
+    try {
+      const { company, profile, state, query } = request.body
+      let _query;
+      let query_: any = {}
+      let populate: string = 'bag pickerId deliveryId state service shopId';
+
+      let queryState: any
+      queryState = { "key": { $in: [0, 1, 2, 3] } }
+      if (Object.keys(query).length > 0) {
+        if (query.orderNumber) query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") }
+      }
+      findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((stateResult: Array<StateInterface>) => {
+        if (stateResult.length > 0) {
+          let states: any = []
+          stateResult.map((state) => {
+            states.push(mongoose.Types.ObjectId(state._id))
+          })
+          query_['state'] = { $in: states }
+          if (company) { query_['uid'] = mongoose.Types.ObjectId(company) }
+
+          findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+            if (result.length) {
+              let newOrders = result.map((order, index) => {
+                let pickername = ""
+                let deliveryname = ""
+                let pickingDate: any = ""
+                let delilveryDateStart: any = ""
+                let delilveryDateEnd: any = ""
+                if (order.pickerId) pickername = order.pickerId.name
+                if (order.deliveryId) deliveryname = order.deliveryId.name
+                if (order.endPickingDate) pickingDate = order.endPickingDate
+                if (order.starDeliveryDate) delilveryDateStart = order.starDeliveryDate
+                if (order.endDeliveryDate) delilveryDateEnd = order.endDeliveryDate
+                const rows = [
+                  this.createData('DateRange', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 0),
+                  this.createData('AccessTime', order.date, pickingDate, delilveryDateStart, delilveryDateEnd, 1),
+                  this.createData('Person', "", pickername, deliveryname, deliveryname, 2)
+                ];
+                if (!order.client.comment) order.set('client.comment', "Sin Comentarios", { strict: false })
+                order.set('timeLine', [...rows], { strict: false })
+                return order
+              })
+
+              if (Object.keys(query).length > 0) {
+                if (query.hasOwnProperty('printed')) {
+                  newOrders = newOrders.filter((order) => {
+                    return order.printed == query.printed
+                  })
+                }
+              }
               response.json({
                 message: 'Listado de ordenes',
                 data: newOrders,
@@ -1981,20 +2101,104 @@ export class OrdersController {
     }
   }
 
-  /*
-    Metodo que recibe un array de ordenes para guardarlas en la base de datos
-  */
-  async save(request: Request, response: Response, next: NextFunction, app: any) {
+  async getOrdersForVtex(request: Request, response: Response, next: NextFunction, app: any) {
+    // try {
+    //   console.log("ALERT VTEX", request.body)
+    //   const { OrderId } = request.body
+    //   if (OrderId) {
+    //     const queryCompany = { name: "Pillin Test" }
+    //     findDocuments(Company, queryCompany, "", {}, '', '', 0, null, null).then((CompanyResult: Array<CompanyInterface>) => {
+    //       if (CompanyResult.length > 0) {
+    //         const companyUID = CompanyResult[0]._id
+    //         requestify.request(`https://srconsultores.vtexcommercestable.com.br/api/oms/pvt/orders/${OrderId}`, {
+    //           method: 'GET',
+    //           headers: {
+    //             'X-VTEX-API-AppToken': 'MRNIYXTVLTCWCVYWATKOOKYHHDEOXRGHYXHXLXALMKMPPMFVAJPJGRMBSGAUSEXTNVXFOALCTYCEYJSUYJNOBXBGLGEFWGTHMSBUPZHAYMQHPICJNGVJRJSQTRTHVFFM',
+    //             'X-VTEX-API-AppKey': 'vtexappkey-srconsultores-PPJDKQ',
+    //             'Content-Type': 'application/x-www-form-urlencoded'
+    //           }
+    //         }).then((respApiCall: any) => {
+    //           const { orderId, creationDate, items, origin, clientProfileData, shippingData } = respApiCall.getBody()
+    //           let ordersTemplate = Object.assign({}, config.ordersTemplate)
+    //           let orderTemplate = Object.assign({}, config.orderTemplate)
+    //           let productTemplate = Object.assign({}, config.productTemplate)
+    //           let products: any = []
+    //           let orders: any = []
+    //           orderTemplate.orderNumber = orderId
+    //           orderTemplate.date = moment(creationDate).format("YYYY-MM-DDTHH:mm:ss")
+    //           orderTemplate.channel = origin
+    //           orderTemplate.service = 0
+    //           if (shippingData.selectedAddresses.addressType == "residential") orderTemplate.service = 0
+    //           if (shippingData.selectedAddresses.addressType == "pickup") orderTemplate.service = 1
+
+    //           items.map((product: any) => {
+    //             productTemplate.id = product.id
+    //             productTemplate.units = product.quantity
+    //             productTemplate.name = product.name
+    //             productTemplate.location = 1
+    //             productTemplate.barcode = product.refId
+    //             productTemplate.product = product.name
+    //             productTemplate.image = product.imageUrl
+    //             productTemplate.description = product.name + " " + product.additionalInfo.brandName
+    //             products.push(productTemplate)
+    //           })
+
+    //           orderTemplate.products = [...products]
+    //           orderTemplate.client.address = shippingData.address.street + " " + shippingData.address.number
+    //           orderTemplate.client.comuna = shippingData.address.neighborhood
+    //           orderTemplate.client.ciudad = shippingData.address.state
+    //           orderTemplate.client.lat = "000"
+    //           orderTemplate.client.long = "000"
+    //           if (shippingData.address.geoCoordinates.length) {
+    //             orderTemplate.client.lat = shippingData.address.geoCoordinates[0]
+    //             orderTemplate.client.long = shippingData.address.geoCoordinates[1]
+    //           }
+    //           orderTemplate.client.rut = clientProfileData.document
+    //           orderTemplate.client.cellphone = clientProfileData.phone
+    //           orderTemplate.client.email = clientProfileData.email
+    //           orderTemplate.client.name = clientProfileData.firstName + " " + clientProfileData.lastName
+
+    //           orders.push(orderTemplate)
+    //           ordersTemplate.orders = [...orders]
+    //           ordersTemplate.uid = companyUID
+
+    //           this.save(null, response, null, null, 1, ordersTemplate)
+
+    //         }).fail((response: any) => {
+    //           response.getCode(); // Some error code such as, for example, 404
+    //           response.json({
+    //             code: response.getCode(),
+    //             message: response,
+    //             error: response,
+    //             success: false
+    //           });
+    //         });
+    //       } else {
+    //         response.json({ message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false });
+    //       }
+    //     }).catch((err: Error) => { response.json({ message: err, success: false }); });
+    //   }
+    // } catch (error) {
+    //   response.json({
+    //     error: error,
+    //     code: error.code,
+    //     message: error.message,
+    //     success: false
+    //   });
+    // }
+
+  }
+
+  async saveOrder(body: any, response: Response) {
     try {
+      let orders: Array<any>;
+      orders = body.orders;
+
       findDocuments(Service, {}, "", {}, '', '', 0, null, null).then((ServicesResult: Array<ServicesInterface>) => {
         if (ServicesResult.length > 0) {
-
           let query = { "key": 0 }
-
           findDocuments(State, query, "", {}, '', '', 0, null, null).then((stateResult: Array<StateInterface>) => {
             if (stateResult.length > 0) {
-              let orders: Array<any>;
-              orders = request.body.orders;
               let stateId = stateResult[0]._id;
               let stateDesc = stateResult[0].desc;
               let _orders: Array<any> = [];
@@ -2015,7 +2219,7 @@ export class OrdersController {
                   if (service.key == order.service) findService = Object.assign(service)
                 })
                 let _order = {
-                  uid: mongoose.Types.ObjectId(request.body.uid),//Indentificador de empresa
+                  uid: mongoose.Types.ObjectId(body.uid),//Indentificador de empresa
                   state: mongoose.Types.ObjectId(stateId),
                   orderNumber: order.orderNumber + "",//Numero de la orden
                   products: order.products,
@@ -2038,7 +2242,7 @@ export class OrdersController {
                   dateHistory: new Date()
                 }
                 orderNumbers.push(order.orderNumber)
-                companyUID = mongoose.Types.ObjectId(request.body.uid)
+                companyUID = mongoose.Types.ObjectId(body.uid)
                 history.push(historyObj)
                 _orders.push(_order)
               })
@@ -2047,6 +2251,7 @@ export class OrdersController {
                 let orderfinalToInsert: Array<any> = _orders.filter((order) => !OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes a insertar
                 let orderfinalNotInsert: Array<any> = _orders.filter((order) => OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes que no vamos a insertar
                 let historyToInsert: Array<any> = history.filter((history) => !OrdersFind.some((orders) => history.orderNumber == orders.orderNumber))
+
                 if (orderfinalToInsert.length) {
                   insertManyDB(Orders, orderfinalToInsert).then((result: Array<OrderInterface>) => {
                     if (result.length) {
@@ -2099,27 +2304,42 @@ export class OrdersController {
                               // let promisesOrders = ordersProcedure.map((order) => { return executeProcedure("[OMS].[IngresoOrder]", order) })
                               let promisesOrders = executeProcedure("[OMS].[IngresoOrder]", ordersProcedure)
                               let promisesOrdersShop = executeProcedure("[OMS].[InfoLocal]", ordersShop)
-                              response.json({
+                              let jsonResponse = {
                                 message: 'orden(es) creada(s) exitosamente',
                                 ordersNotInsert: orderfinalToInsert,
                                 data: resultHistory,
                                 success: true
-                              });
+                              }
+                              response.json(jsonResponse);
                             } else {
-                              response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory });
+                              let jsonResponse = { message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory }
+                              response.json(jsonResponse);
+                              // response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory });
                             }
-                          }).catch((err: Error) => { response.json({ message: err, success: false, aqi: "Dsdsada" }); });
+                          }).catch((err: Error) => {
+                            let jsonResponse = { message: err, success: false }
+                            response.json(jsonResponse);
+                          });
                         } else {
-                          response.json({ message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false });
+                          let jsonResponse = { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false }
+                          response.json(jsonResponse);
                         }
-                      }).catch((err: Error) => { response.json({ message: err, success: false }); });
+                      }).catch((err: Error) => {
+                        let jsonResponse = { message: err, success: false }
+                        response.json(jsonResponse);
+                      });
                     } else {
-                      response.json({ message: "Error al ingresar las ordenes", success: false });
+                      let jsonResponse = { message: "Error al ingresar las ordenes", success: false }
+                      response.json(jsonResponse);
                     }
 
-                  }).catch((err: Error) => { response.json({ message: err, success: false }); });
+                  }).catch((err: Error) => {
+                    console.log(err)
+                    let jsonResponse = { message: err, success: false }
+                    response.json(jsonResponse);
+                  });
                 } else {
-                  response.json({
+                  let jsonResponse = {
                     message: "Las ordenes que intentas agregar ya existen en el sistema",
                     ordersInsert: orderfinalToInsert,
                     ordersInsertCount: orderfinalToInsert.length,
@@ -2127,19 +2347,48 @@ export class OrdersController {
                     ordersRepeatCount: orderfinalNotInsert.length,
                     code: 'xxx',
                     success: false
-                  });
+                  }
+                  response.json(jsonResponse);
                 }
-              }).catch((err: Error) => { response.json({ message: err.message, success: false }); })
+              }).catch((err: Error) => {
+                let jsonResponse = { message: err.message, success: false }
+                response.json(jsonResponse);
+              })
             } else {
-              response.json({ message: "Error al ingresar las ordenes, no se ha encontrado un estado valido", success: false });
+              let jsonResponse = { message: "Error al ingresar las ordenes, no se ha encontrado un estado valido", success: false }
+              response.json(jsonResponse);
             }
-          }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
+          }).catch((err: Error) => {
+            let jsonResponse = { message: err.message, success: false }
+            response.json(jsonResponse);
+          });
         } else {
-          response.json({ message: "Error al ingresar las ordenes, no se ha encontrado un servicio valido", success: false });
+          let jsonResponse = { message: "Error al ingresar las ordenes, no se ha encontrado un servicio valido", success: false }
+          response.json(jsonResponse);
         }
-      }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
+      }).catch((err: Error) => {
+        let jsonResponse = { message: err.message, success: false }
+        response.json(jsonResponse);
+      });
     } catch (error) {
-      response.json({ message: error.message, success: false });
+      let jsonResponse = { message: error.message, success: false }
+      response.json(jsonResponse);
+    }
+  }
+
+  /*
+    Metodo que recibe un array de ordenes para guardarlas en la base de datos
+  */
+  async save(request: Request | null, response: Response, next: NextFunction | null, app: any, type: number = 0, body: any) {
+    try {
+      if (type == 1) return this.saveOrder(body, response)
+      if (type == 0) return this.saveOrder(request!.body, response)
+    } catch (error) {
+      if (response)
+        response.json({ message: error.message, success: false });
+      else {
+        return { message: error.message, success: false }
+      }
     }
   }
 
@@ -2206,7 +2455,6 @@ export class OrdersController {
 
     });
 
-
   }
 
   async getOrdersClients() {
@@ -2229,210 +2477,63 @@ export class OrdersController {
           //console.log(ordersToSave);
           ordersToSave = response.getBody().orders;
           try {
-            findDocuments(Service, {}, "", {}, '', '', 0, null, null).then((ServicesResult: Array<ServicesInterface>) => {
-              if (ServicesResult.length > 0) {
+            let ordersTemplate = Object.assign({}, config.ordersTemplate)
+            let orderTemplate = Object.assign({}, config.orderTemplate)
+            let productTemplate = Object.assign({}, config.productTemplate)
+            let products: any = []
+            let orders: any = []
+            orders.map((order: any, index: number) => {
+              let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
 
-                let query = { "key": 0 }
+              requestify.request(addressapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
+                .then(function (response: { getBody: () => any; }) {
 
-                findDocuments(State, query, "", {}, '', '', 0, null, null).then((stateResult: Array<StateInterface>) => {
-                  if (stateResult.length > 0) {
-                    let orders: Array<any>;
-                    orders = ordersToSave;
-                    let stateId = stateResult[0]._id;
-                    let stateDesc = stateResult[0].desc;
-                    let _orders: Array<any> = [];
-                    let history: Array<any> = [];
-                    let orderNumbers: Array<any> = [];
-                    let companyUID: any;
-                    let ordersProcedure: Array<any> = [];
-                    let ordersShop: Array<any> = [];
-                    let findService: any
-                    orders.map((order, index) => {
+                  orderTemplate.client.address = response.getBody().addresses[0].address1
+                  orderTemplate.client.ciudad = response.getBody().addresses[0].city
+                  orderTemplate.client.cellphone = response.getBody().addresses[0].phone_mobile
+                }).
+                catch((error: Error) => { console.log(error) });
 
-                      let client={
-                        rut : '_',
-                        name : '_',
-                        address : '_',
-                        rutTercero : '_',
-                        comuna : '_',
-                        ciudad : '_',
-                        long : '_',
-                        lat : '_',
-                        email : '_',
-                        cellphone : '_',
-                      }
-        
+              let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
 
-                      // Obtiene info del cliente
-                      let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
+              requestify.request(customerapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
+                .then(function (response: { getBody: () => any; }) {
+                  orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
+                  orderTemplate.client.email = response.getBody().customers.email
+                }).
+                catch((error: Error) => { console.log(error) });
+              for (let j = 0; j < order.associations.order_rows.length; j++) {
 
-                      requestify.request(addressapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
-                        .then(function (response: { getBody: () => any; }) {
-                          
-                          client.address=response.getBody().addresses[0].address1
-                          client.ciudad=response.getBody().addresses[0].city
-                          client.cellphone=response.getBody().addresses[0].phone_mobile
-                        }).
-                        catch((error: Error) => { console.log(error) });
+                productTemplate.barcode = '0'
+                productTemplate.product = order.associations.order_rows[j].product_name
+                productTemplate.id = order.associations.order_rows[j].id
+                productTemplate.image = '_'
+                productTemplate.location = 0
+                productTemplate.description = order.associations.order_rows[j].product_reference
+                productTemplate.name = order.associations.order_rows[j].product_name
+                productTemplate.units = order.associations.order_rows[j].product_quantity
 
-                      let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
-      
-                      requestify.request(customerapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
-                        .then(function (response: { getBody: () => any; }) {
-                          client.name=`${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
-                          client.email=response.getBody().customers.email
-                        }).
-                        catch((error: Error) => { console.log(error) });
-              
-                     
+                products.push(productTemplate)
 
-                      // Aqui la logica para determinar la mejor hora de despacho
-                      let deliveryDate = new Date()
-                      deliveryDate.setHours(new Date().getHours() + Math.floor(Math.random() * 6) + 1)
-                      // Fin logica para generar hora 
 
-                      ServicesResult.map((service) => {
-                        if (service.key == '1') findService = Object.assign(service)
-                      })
-
-                      let productarray: any[] = []
-                      for (let j = 0; j < order.associations.order_rows.length; j++) {
-                        let productObj = {
-                          id: Number(order.associations.order_rows[j].id),
-                          barcode: 0,
-                          product: order.associations.order_rows[j].product_name,
-                          units: order.associations.order_rows[j].product_quantity,
-                          image: '_',
-                          location: 0,//1 o 0
-                          description: order.associations.order_rows[j].product_reference,
-                          reception: true,
-                          unitsPicked: 0,
-                          unitsSubstitutes: 0,
-                          unitsBroken: 0,
-                          unitsReplaced: 0,
-                        }
-                        productarray.push(productObj)
-                      }
-
-                      let _order = {
-                        uid: mongoose.Types.ObjectId('5f8dfe714f9d03814ec77e1e'),//Indentificador de empresa
-                        state: mongoose.Types.ObjectId(stateId),
-                        orderNumber: order.id + "",//Numero de la orden
-                        products: productarray,
-                        service: mongoose.Types.ObjectId(findService._id),
-                        channel: 'Tienda ecommerce',
-                        client: client,
-                        date: new Date(order.date_add),
-                        realdatedelivery: deliveryDate,
-                        pickerWorkShift: "Mañana"
-                      }
-                      let historyObj = {
-                        state: mongoose.Types.ObjectId(stateId),
-                        orderNumber: order.id,
-                        order: null,
-                        bag: null,
-                        shop: null,
-                        picker: null,
-                        delivery: null,
-                        orderSnapShot: null,
-                        dateHistory: new Date()
-                      }
-                      orderNumbers.push(order.id)
-                      companyUID = mongoose.Types.ObjectId('5f8dfe714f9d03814ec77e1e')
-                      history.push(historyObj)
-                      _orders.push(_order)
-                    })
-
-                    findDocuments(Orders, { 'uid': companyUID, orderNumber: { '$in': orderNumbers } }, "", {}, '', '', 0, null, null).then((OrdersFind: Array<OrderInterface>) => {
-                      let orderfinalToInsert: Array<any> = _orders.filter((order) => !OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes a insertar
-                      let orderfinalNotInsert: Array<any> = _orders.filter((order) => OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes que no vamos a insertar
-                      let historyToInsert: Array<any> = history.filter((history) => !OrdersFind.some((orders) => history.orderNumber == orders.orderNumber))
-                      if (orderfinalToInsert.length) {
-                        insertManyDB(Orders, orderfinalToInsert).then((result: Array<OrderInterface>) => {
-                          if (result.length) {
-                            findDocuments(Company, { _id: companyUID }, "", {}, '', '', 0, null, null).then((CompanyResult: Array<CompanyInterface>) => {
-                              if (CompanyResult.length > 0) {
-                                result.map((order) => {
-                                  history.map((history: { state: ObjectId, orderNumber: number, order: ObjectId, bag: ObjectId, shop: ObjectId, picker: ObjectId, delivery: ObjectId, orderSnapShot: object, date: Date }) => {
-                                    if (order.orderNumber == history.orderNumber) {
-                                      history.order = mongoose.Types.ObjectId(order._id)
-                                      history.orderSnapShot = Object.assign({}, order.toJSON())
-                                    }
-                                  })
-                                  let serviceDesc = ""
-                                  let companyName = CompanyResult[0].name
-                                  ServicesResult.map((service) => { if (service._id == order.service) serviceDesc = service.desc })
-
-                                  //Aqui empieza creacion de data para el BI
-                                  let param = {
-                                    "CuentaCliente": companyName,
-                                    "OrderTrabajo": order.orderNumber + "",
-                                    "NLocal": "",
-                                    "Local_Longitud": "-77.00000",
-                                    "Local_Latitud": "-33.77777",
-                                    "FecAgendada": order.realdatedelivery,
-                                    "FechaCompraCliente": order.date,
-                                    "UnSolicitadas": 5,
-                                    "Supervisor": "",
-                                    "RUT_Cliente": order.client.rut,
-                                    "Comuna_Cliente": order.client.comuna,
-                                    "Region_Cliente": order.client.ciudad,
-                                    "Longitud": "-77.00000",
-                                    "Latitud": "-77.00000",
-                                    "Estado": stateDesc,
-                                    "EsReagendamiento": 0,
-                                    "CanalVenta": order.channel,
-                                    "TipoDespacho": serviceDesc,
-                                  }
-                                  let paramShop = {
-                                    "CuentaCliente": companyName,
-                                    "OrderTrabajo": order.orderNumber + "",
-                                    "NLocal": "",
-                                    "Local_Longitud": "-77.00000",
-                                    "Local_Latitud": "-33.77777"
-                                  }
-                                  ordersShop.push(paramShop)
-                                  ordersProcedure.push(param)
-                                });
-                                insertManyDB(History, historyToInsert).then((resultHistory: Array<HistoryInterface>) => {
-                                  if (resultHistory) {
-                                    // let promisesOrders = ordersProcedure.map((order) => { return executeProcedure("[OMS].[IngresoOrder]", order) })
-                                    let promisesOrders = executeProcedure("[OMS].[IngresoOrder]", ordersProcedure)
-                                    let promisesOrdersShop = executeProcedure("[OMS].[InfoLocal]", ordersShop)
-                                    console.log('orden(es) creada(s) exitosamente')
-                                  } else {
-                                    console.log('Error al ingresar las ordenes, Ha ocurrido algun error')
-                                  }
-                                }).catch((err: Error) => { console.log(err) });
-                              } else {
-                                console.log('Error al ingresar las ordenes, no se han encontrado cuentas validas')
-                              }
-                            }).catch((err: Error) => { console.log(err) });
-
-                          } else {
-                            console.log('Error al ingresar las ordenes')
-                          }
-
-                        }).catch((err: Error) => { console.log(err) });
-                      } else {
-                        console.log('Las ordenes que intentas agregar ya existen en el sistema')
-                      }
-                    }).catch((err: Error) => { console.log(err.message) })
-                  } else {
-                    console.log("Error al ingresar las ordenes, no se ha encontrado un estado valido")
-                  }
-                }).catch((err: Error) => { console.log(err.message) });
-              } else {
-                console.log('Error al ingresar las ordenes, no se ha encontrado un servicio valido')
               }
-            }).catch((err: Error) => { console.log(err.message) });
-          } catch (error) {
-            console.log(error.message)
+
+              orderTemplate.products = [...products]
+              orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
+              orderTemplate.service = 1
+              orderTemplate.channel = 'Marketplace'
+              orders.push(orderTemplate)
+
+
+
+            })
+
+            ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
+            ordersTemplate.orders = [...orders]
+
+
           }
-
-
-        }).
-        catch((error: Error) => { console.log(error) });
+          catch ((error: Error) => { console.log(error) });
     }, 5000);
 
     //20 min

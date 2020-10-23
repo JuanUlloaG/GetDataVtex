@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { request, response } from 'express';
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 import { config } from "./config/config";
@@ -36,7 +36,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 function checkUser(req: Request, res: Response, next: NextFunction) {
-    if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/" || req.path === "/ordersTest") {
+    if (req.path === "/users/auth" || req.path === "/users" || req.path === "/company" || req.path === "/order/save" || req.path === "/shop/save" || req.path === "/" || req.path === "/ordersTest" || req.path === "/orders/vtex") {
         next();
     } else {
         const token = (<any>req).headers['access-token'];
