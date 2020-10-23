@@ -19,6 +19,10 @@ const config_1 = require("../config/config");
 const requestify = require('requestify');
 // mongoose.set('debug', true);
 class OrdersController {
+    constructor() {
+        this.save_prestashop = async function (Orders) {
+        };
+    }
     async all(request, response, next, app) {
         response.json({
             message: 'Listado de ordenes',
@@ -2203,157 +2207,6 @@ class OrdersController {
             response.json({ message: error.message, success: false });
         }
     }
-    async saveLocal(body) {
-        // try {
-        //   findDocuments(Service, {}, "", {}, '', '', 0, null, null).then((ServicesResult: Array<ServicesInterface>) => {
-        //     if (ServicesResult.length > 0) {
-        //       let query = { "key": 0 }
-        //       findDocuments(State, query, "", {}, '', '', 0, null, null).then((stateResult: Array<StateInterface>) => {
-        //         if (stateResult.length > 0) {
-        //           let orders: Array<any>;
-        //           orders = request.body.orders;
-        //           let stateId = stateResult[0]._id;
-        //           let stateDesc = stateResult[0].desc;
-        //           let _orders: Array<any> = [];
-        //           let history: Array<any> = [];
-        //           let orderNumbers: Array<any> = [];
-        //           let companyUID: any;
-        //           let ordersProcedure: Array<any> = [];
-        //           let ordersShop: Array<any> = [];
-        //           let findService: any
-        //           orders.map((order, index) => {
-        //             // Aqui la logica para determinar la mejor hora de despacho
-        //             let deliveryDate = new Date()
-        //             deliveryDate.setHours(new Date(order.date).getHours() + Math.floor(Math.random() * 6) + 1)
-        //             // Fin logica para generar hora 
-        //             ServicesResult.map((service) => {
-        //               if (service.key == order.service) findService = Object.assign(service)
-        //             })
-        //             let _order = {
-        //               uid: mongoose.Types.ObjectId(request.body.uid),//Indentificador de empresa
-        //               state: mongoose.Types.ObjectId(stateId),
-        //               orderNumber: order.orderNumber + "",//Numero de la orden
-        //               products: order.products,
-        //               service: mongoose.Types.ObjectId(findService._id),
-        //               channel: order.channel,
-        //               client: order.client,
-        //               date: new Date(order.date),
-        //               realdatedelivery: deliveryDate,
-        //               pickerWorkShift: "Mañana"
-        //             }
-        //             let historyObj = {
-        //               state: mongoose.Types.ObjectId(stateId),
-        //               orderNumber: order.orderNumber,
-        //               order: null,
-        //               bag: null,
-        //               shop: null,
-        //               picker: null,
-        //               delivery: null,
-        //               orderSnapShot: null,
-        //               dateHistory: new Date()
-        //             }
-        //             orderNumbers.push(order.orderNumber)
-        //             companyUID = mongoose.Types.ObjectId(request.body.uid)
-        //             history.push(historyObj)
-        //             _orders.push(_order)
-        //           })
-        //           findDocuments(Orders, { 'uid': companyUID, orderNumber: { '$in': orderNumbers } }, "", {}, '', '', 0, null, null).then((OrdersFind: Array<OrderInterface>) => {
-        //             let orderfinalToInsert: Array<any> = _orders.filter((order) => !OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes a insertar
-        //             let orderfinalNotInsert: Array<any> = _orders.filter((order) => OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes que no vamos a insertar
-        //             let historyToInsert: Array<any> = history.filter((history) => !OrdersFind.some((orders) => history.orderNumber == orders.orderNumber))
-        //             if (orderfinalToInsert.length) {
-        //               insertManyDB(Orders, orderfinalToInsert).then((result: Array<OrderInterface>) => {
-        //                 if (result.length) {
-        //                   findDocuments(Company, { _id: companyUID }, "", {}, '', '', 0, null, null).then((CompanyResult: Array<CompanyInterface>) => {
-        //                     if (CompanyResult.length > 0) {
-        //                       result.map((order) => {
-        //                         history.map((history: { state: ObjectId, orderNumber: number, order: ObjectId, bag: ObjectId, shop: ObjectId, picker: ObjectId, delivery: ObjectId, orderSnapShot: object, date: Date }) => {
-        //                           if (order.orderNumber == history.orderNumber) {
-        //                             history.order = mongoose.Types.ObjectId(order._id)
-        //                             history.orderSnapShot = Object.assign({}, order.toJSON())
-        //                           }
-        //                         })
-        //                         let serviceDesc = ""
-        //                         let companyName = CompanyResult[0].name
-        //                         ServicesResult.map((service) => { if (service._id == order.service) serviceDesc = service.desc })
-        //                         //Aqui empieza creacion de data para el BI
-        //                         let param = {
-        //                           "CuentaCliente": companyName,
-        //                           "OrderTrabajo": order.orderNumber + "",
-        //                           "NLocal": "",
-        //                           "Local_Longitud": "-77.00000",
-        //                           "Local_Latitud": "-33.77777",
-        //                           "FecAgendada": order.realdatedelivery,
-        //                           "FechaCompraCliente": order.date,
-        //                           "UnSolicitadas": 5,
-        //                           "Supervisor": "",
-        //                           "RUT_Cliente": order.client.rut,
-        //                           "Comuna_Cliente": order.client.comuna,
-        //                           "Region_Cliente": order.client.ciudad,
-        //                           "Longitud": "-77.00000",
-        //                           "Latitud": "-77.00000",
-        //                           "Estado": stateDesc,
-        //                           "EsReagendamiento": 0,
-        //                           "CanalVenta": order.channel,
-        //                           "TipoDespacho": serviceDesc,
-        //                         }
-        //                         let paramShop = {
-        //                           "CuentaCliente": companyName,
-        //                           "OrderTrabajo": order.orderNumber + "",
-        //                           "NLocal": "",
-        //                           "Local_Longitud": "-77.00000",
-        //                           "Local_Latitud": "-33.77777"
-        //                         }
-        //                         ordersShop.push(paramShop)
-        //                         ordersProcedure.push(param)
-        //                       });
-        //                       insertManyDB(History, historyToInsert).then((resultHistory: Array<HistoryInterface>) => {
-        //                         if (resultHistory) {
-        //                           // let promisesOrders = ordersProcedure.map((order) => { return executeProcedure("[OMS].[IngresoOrder]", order) })
-        //                           let promisesOrders = executeProcedure("[OMS].[IngresoOrder]", ordersProcedure)
-        //                           let promisesOrdersShop = executeProcedure("[OMS].[InfoLocal]", ordersShop)
-        //                           response.json({
-        //                             message: 'orden(es) creada(s) exitosamente',
-        //                             ordersNotInsert: orderfinalToInsert,
-        //                             data: resultHistory,
-        //                             success: true
-        //                           });
-        //                         } else {
-        //                           response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory });
-        //                         }
-        //                       }).catch((err: Error) => { response.json({ message: err, success: false, aqi: "Dsdsada" }); });
-        //                     } else {
-        //                       response.json({ message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false });
-        //                     }
-        //                   }).catch((err: Error) => { response.json({ message: err, success: false }); });
-        //                 } else {
-        //                   response.json({ message: "Error al ingresar las ordenes", success: false });
-        //                 }
-        //               }).catch((err: Error) => { response.json({ message: err, success: false }); });
-        //             } else {
-        //               response.json({
-        //                 message: "Las ordenes que intentas agregar ya existen en el sistema",
-        //                 ordersInsert: orderfinalToInsert,
-        //                 ordersInsertCount: orderfinalToInsert.length,
-        //                 ordersRepeat: orderfinalNotInsert,
-        //                 ordersRepeatCount: orderfinalNotInsert.length,
-        //                 code: 'xxx',
-        //                 success: false
-        //               });
-        //             }
-        //           }).catch((err: Error) => { response.json({ message: err.message, success: false }); })
-        //         } else {
-        //           response.json({ message: "Error al ingresar las ordenes, no se ha encontrado un estado valido", success: false });
-        //         }
-        //       }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
-        //     } else {
-        //       response.json({ message: "Error al ingresar las ordenes, no se ha encontrado un servicio valido", success: false });
-        //     }
-        //   }).catch((err: Error) => { response.json({ message: err.message, success: false }); });
-        // } catch (error) {
-        //   response.json({ message: error.message, success: false });
-        // }
-    }
     async ordersToDelivery(request, response, next, app) {
         response.json({
             message: 'Listado de ordenes',
@@ -2411,18 +2264,215 @@ class OrdersController {
         });
     }
     async getOrdersClients() {
+        //response.json({
+        //message: 'Usuario ' + ' Creado exitosamente ',
+        //data: 'result',
+        // success: true
+        //});
+        //return;
         //se podria hacer un llamado para obtener la configuracion del tiempo
         //fetch('https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-07%2000:00:00,2020-10-08%2000:00:00]&output_format=JSON')
         //.then((response) => response.json())
         //.then((data) => console.log(data));
-        let ordersToSave = []; //array de ordenes devueltas por prestashop
+        let ordersToSave; //array de ordenes devueltas por prestashop
         setInterval(function () {
-            let url = 'https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-13%2000:00:00,2020-10-14%2000:00:00]&output_format=JSON';
+            let url = 'https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-22%2000:00:00,2020-10-23%2000:00:00]&output_format=JSON';
             //requestify.get(url)
             requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
                 .then(function (response) {
-                console.log(ordersToSave);
+                //console.log(ordersToSave);
                 ordersToSave = response.getBody().orders;
+                try {
+                    findDocuments(Services_1.default, {}, "", {}, '', '', 0, null, null).then((ServicesResult) => {
+                        if (ServicesResult.length > 0) {
+                            let query = { "key": 0 };
+                            findDocuments(State_1.default, query, "", {}, '', '', 0, null, null).then((stateResult) => {
+                                if (stateResult.length > 0) {
+                                    let orders;
+                                    orders = ordersToSave;
+                                    let stateId = stateResult[0]._id;
+                                    let stateDesc = stateResult[0].desc;
+                                    let _orders = [];
+                                    let history = [];
+                                    let orderNumbers = [];
+                                    let companyUID;
+                                    let ordersProcedure = [];
+                                    let ordersShop = [];
+                                    let findService;
+                                    orders.map((order, index) => {
+                                        let client = {
+                                            rut: '_',
+                                            name: '_',
+                                            address: '_',
+                                            rutTercero: '_',
+                                            comuna: '_',
+                                            ciudad: '_',
+                                            long: '_',
+                                            lat: '_',
+                                            email: '_',
+                                            cellphone: '_',
+                                        };
+                                        // Obtiene info del cliente
+                                        let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`;
+                                        requestify.request(addressapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
+                                            .then(function (response) {
+                                            client.address = response.getBody().addresses[0].address1;
+                                            client.ciudad = response.getBody().addresses[0].city;
+                                            client.cellphone = response.getBody().addresses[0].phone_mobile;
+                                        }).
+                                            catch((error) => { console.log(error); });
+                                        let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`;
+                                        requestify.request(customerapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
+                                            .then(function (response) {
+                                            client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`;
+                                            client.email = response.getBody().customers.email;
+                                        }).
+                                            catch((error) => { console.log(error); });
+                                        // Aqui la logica para determinar la mejor hora de despacho
+                                        let deliveryDate = new Date();
+                                        deliveryDate.setHours(new Date().getHours() + Math.floor(Math.random() * 6) + 1);
+                                        // Fin logica para generar hora 
+                                        ServicesResult.map((service) => {
+                                            if (service.key == '1')
+                                                findService = Object.assign(service);
+                                        });
+                                        let productarray = [];
+                                        for (let j = 0; j < order.associations.order_rows.length; j++) {
+                                            let productObj = {
+                                                id: Number(order.associations.order_rows[j].id),
+                                                barcode: 0,
+                                                product: order.associations.order_rows[j].product_name,
+                                                units: order.associations.order_rows[j].product_quantity,
+                                                image: '_',
+                                                location: 0,
+                                                description: order.associations.order_rows[j].product_reference,
+                                                reception: true,
+                                                unitsPicked: 0,
+                                                unitsSubstitutes: 0,
+                                                unitsBroken: 0,
+                                                unitsReplaced: 0,
+                                            };
+                                            productarray.push(productObj);
+                                        }
+                                        let _order = {
+                                            uid: mongoose_1.default.Types.ObjectId('5f8dfe714f9d03814ec77e1e'),
+                                            state: mongoose_1.default.Types.ObjectId(stateId),
+                                            orderNumber: order.id + "",
+                                            products: productarray,
+                                            service: mongoose_1.default.Types.ObjectId(findService._id),
+                                            channel: 'Tienda ecommerce',
+                                            client: client,
+                                            date: new Date(order.date_add),
+                                            realdatedelivery: deliveryDate,
+                                            pickerWorkShift: "Mañana"
+                                        };
+                                        let historyObj = {
+                                            state: mongoose_1.default.Types.ObjectId(stateId),
+                                            orderNumber: order.id,
+                                            order: null,
+                                            bag: null,
+                                            shop: null,
+                                            picker: null,
+                                            delivery: null,
+                                            orderSnapShot: null,
+                                            dateHistory: new Date()
+                                        };
+                                        orderNumbers.push(order.id);
+                                        companyUID = mongoose_1.default.Types.ObjectId('5f8dfe714f9d03814ec77e1e');
+                                        history.push(historyObj);
+                                        _orders.push(_order);
+                                    });
+                                    findDocuments(Orders_1.default, { 'uid': companyUID, orderNumber: { '$in': orderNumbers } }, "", {}, '', '', 0, null, null).then((OrdersFind) => {
+                                        let orderfinalToInsert = _orders.filter((order) => !OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber)); //filtramos ordenes para agregar, aqui obtenemos las ordenes a insertar
+                                        let orderfinalNotInsert = _orders.filter((order) => OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber)); //filtramos ordenes para agregar, aqui obtenemos las ordenes que no vamos a insertar
+                                        let historyToInsert = history.filter((history) => !OrdersFind.some((orders) => history.orderNumber == orders.orderNumber));
+                                        if (orderfinalToInsert.length) {
+                                            insertManyDB(Orders_1.default, orderfinalToInsert).then((result) => {
+                                                if (result.length) {
+                                                    findDocuments(Company_1.default, { _id: companyUID }, "", {}, '', '', 0, null, null).then((CompanyResult) => {
+                                                        if (CompanyResult.length > 0) {
+                                                            result.map((order) => {
+                                                                history.map((history) => {
+                                                                    if (order.orderNumber == history.orderNumber) {
+                                                                        history.order = mongoose_1.default.Types.ObjectId(order._id);
+                                                                        history.orderSnapShot = Object.assign({}, order.toJSON());
+                                                                    }
+                                                                });
+                                                                let serviceDesc = "";
+                                                                let companyName = CompanyResult[0].name;
+                                                                ServicesResult.map((service) => { if (service._id == order.service)
+                                                                    serviceDesc = service.desc; });
+                                                                //Aqui empieza creacion de data para el BI
+                                                                let param = {
+                                                                    "CuentaCliente": companyName,
+                                                                    "OrderTrabajo": order.orderNumber + "",
+                                                                    "NLocal": "",
+                                                                    "Local_Longitud": "-77.00000",
+                                                                    "Local_Latitud": "-33.77777",
+                                                                    "FecAgendada": order.realdatedelivery,
+                                                                    "FechaCompraCliente": order.date,
+                                                                    "UnSolicitadas": 5,
+                                                                    "Supervisor": "",
+                                                                    "RUT_Cliente": order.client.rut,
+                                                                    "Comuna_Cliente": order.client.comuna,
+                                                                    "Region_Cliente": order.client.ciudad,
+                                                                    "Longitud": "-77.00000",
+                                                                    "Latitud": "-77.00000",
+                                                                    "Estado": stateDesc,
+                                                                    "EsReagendamiento": 0,
+                                                                    "CanalVenta": order.channel,
+                                                                    "TipoDespacho": serviceDesc,
+                                                                };
+                                                                let paramShop = {
+                                                                    "CuentaCliente": companyName,
+                                                                    "OrderTrabajo": order.orderNumber + "",
+                                                                    "NLocal": "",
+                                                                    "Local_Longitud": "-77.00000",
+                                                                    "Local_Latitud": "-33.77777"
+                                                                };
+                                                                ordersShop.push(paramShop);
+                                                                ordersProcedure.push(param);
+                                                            });
+                                                            insertManyDB(History_1.default, historyToInsert).then((resultHistory) => {
+                                                                if (resultHistory) {
+                                                                    // let promisesOrders = ordersProcedure.map((order) => { return executeProcedure("[OMS].[IngresoOrder]", order) })
+                                                                    let promisesOrders = executeProcedure("[OMS].[IngresoOrder]", ordersProcedure);
+                                                                    let promisesOrdersShop = executeProcedure("[OMS].[InfoLocal]", ordersShop);
+                                                                    console.log('orden(es) creada(s) exitosamente');
+                                                                }
+                                                                else {
+                                                                    console.log('Error al ingresar las ordenes, Ha ocurrido algun error');
+                                                                }
+                                                            }).catch((err) => { console.log(err); });
+                                                        }
+                                                        else {
+                                                            console.log('Error al ingresar las ordenes, no se han encontrado cuentas validas');
+                                                        }
+                                                    }).catch((err) => { console.log(err); });
+                                                }
+                                                else {
+                                                    console.log('Error al ingresar las ordenes');
+                                                }
+                                            }).catch((err) => { console.log(err); });
+                                        }
+                                        else {
+                                            console.log('Las ordenes que intentas agregar ya existen en el sistema');
+                                        }
+                                    }).catch((err) => { console.log(err.message); });
+                                }
+                                else {
+                                    console.log("Error al ingresar las ordenes, no se ha encontrado un estado valido");
+                                }
+                            }).catch((err) => { console.log(err.message); });
+                        }
+                        else {
+                            console.log('Error al ingresar las ordenes, no se ha encontrado un servicio valido');
+                        }
+                    }).catch((err) => { console.log(err.message); });
+                }
+                catch (error) {
+                    console.log(error.message);
+                }
             }).
                 catch((error) => { console.log(error); });
         }, 5000);
