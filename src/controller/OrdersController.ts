@@ -2475,6 +2475,7 @@ export class OrdersController {
       requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
         .then((response: { getBody: () => any; }) => {
           //console.log(ordersToSave);
+  
           ordersToSave = response.getBody().orders;
           try {
             let ordersTemplate = Object.assign({}, config.ordersTemplate)
@@ -2482,7 +2483,8 @@ export class OrdersController {
             let productTemplate = Object.assign({}, config.productTemplate)
             let products: any = []
             let orders: any = []
-            orders.map((order: any, index: number) => {
+            console.log(orders)
+            ordersToSave.map((order: any, index: number) => {
               let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
 
               requestify.request(addressapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
@@ -2522,6 +2524,7 @@ export class OrdersController {
               orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
               orderTemplate.service = 1
               orderTemplate.channel = 'Marketplace'
+              orderTemplate.orderNumber = order.id
               orders.push(orderTemplate)
 
 
@@ -2531,6 +2534,7 @@ export class OrdersController {
             ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
             ordersTemplate.orders = [...orders]
             console.log(ordersTemplate)
+            this.save(null, response, null, null, 1, ordersTemplate)
           } catch (error) {
             console.log(error)
           }
