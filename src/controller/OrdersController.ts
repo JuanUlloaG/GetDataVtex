@@ -2310,33 +2310,39 @@ export class OrdersController {
                                 data: resultHistory,
                                 success: true
                               }
-                              response.json(jsonResponse);
+                              if (response)
+                                response.json(jsonResponse);
                             } else {
                               let jsonResponse = { message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory }
-                              response.json(jsonResponse);
+                              if (response)
+                                response.json(jsonResponse);
                               // response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory });
                             }
                           }).catch((err: Error) => {
                             let jsonResponse = { message: err, success: false }
-                            response.json(jsonResponse);
+                            if (response)
+                              response.json(jsonResponse);
                           });
                         } else {
                           let jsonResponse = { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false }
-                          response.json(jsonResponse);
+                          if (response)
+                            response.json(jsonResponse);
                         }
                       }).catch((err: Error) => {
                         let jsonResponse = { message: err, success: false }
-                        response.json(jsonResponse);
+                        if (response)
+                          response.json(jsonResponse);
                       });
                     } else {
                       let jsonResponse = { message: "Error al ingresar las ordenes", success: false }
-                      response.json(jsonResponse);
+                      if (response)
+                        response.json(jsonResponse);
                     }
 
                   }).catch((err: Error) => {
-                    console.log(err)
                     let jsonResponse = { message: err, success: false }
-                    response.json(jsonResponse);
+                    if (response)
+                      response.json(jsonResponse);
                   });
                 } else {
                   let jsonResponse = {
@@ -2348,41 +2354,48 @@ export class OrdersController {
                     code: 'xxx',
                     success: false
                   }
-                  response.json(jsonResponse);
+                  if (response)
+                    response.json(jsonResponse);
                 }
               }).catch((err: Error) => {
                 let jsonResponse = { message: err.message, success: false }
-                response.json(jsonResponse);
+                if (response)
+                  response.json(jsonResponse);
               })
             } else {
               let jsonResponse = { message: "Error al ingresar las ordenes, no se ha encontrado un estado valido", success: false }
-              response.json(jsonResponse);
+              if (response)
+                response.json(jsonResponse);
             }
           }).catch((err: Error) => {
             let jsonResponse = { message: err.message, success: false }
-            response.json(jsonResponse);
+            if (response)
+              response.json(jsonResponse);
           });
         } else {
           let jsonResponse = { message: "Error al ingresar las ordenes, no se ha encontrado un servicio valido", success: false }
-          response.json(jsonResponse);
+          if (response)
+            response.json(jsonResponse);
         }
       }).catch((err: Error) => {
         let jsonResponse = { message: err.message, success: false }
-        response.json(jsonResponse);
+        if (response)
+          response.json(jsonResponse);
       });
     } catch (error) {
       let jsonResponse = { message: error.message, success: false }
-      response.json(jsonResponse);
+      if (response)
+        response.json(jsonResponse);
     }
   }
 
   /*
     Metodo que recibe un array de ordenes para guardarlas en la base de datos
   */
-  async save(request: Request | null, response: Response, next: NextFunction | null, app: any, type: number = 0, body: any) {
+  async save(request: Request | null, response: Response | null, next: NextFunction | null, app: any, type: number = 0, body: any) {
     try {
-      if (type == 1) return this.saveOrder(body, response)
-      if (type == 0) return this.saveOrder(request!.body, response)
+      if (type == 1) return this.saveOrder(body, response!)
+      if (type == 0) return this.saveOrder(request!.body, response!)
     } catch (error) {
       if (response)
         response.json({ message: error.message, success: false });
@@ -2458,24 +2471,13 @@ export class OrdersController {
   }
 
   async getOrdersClients() {
-    //response.json({
-    //message: 'Usuario ' + ' Creado exitosamente ',
-    //data: 'result',
-    // success: true
-    //});
-    //return;
-    //se podria hacer un llamado para obtener la configuracion del tiempo
-    //fetch('https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-07%2000:00:00,2020-10-08%2000:00:00]&output_format=JSON')
-    //.then((response) => response.json())
-    //.then((data) => console.log(data));
+
     let ordersToSave: Array<any> //array de ordenes devueltas por prestashop
     setInterval(() => {
       let url: string = 'https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-22%2000:00:00,2020-10-23%2000:00:00]&output_format=JSON'
-      //requestify.get(url)
       requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
         .then((response: { getBody: () => any; }) => {
-          //console.log(ordersToSave);
-  
+
           ordersToSave = response.getBody().orders;
           try {
             let ordersTemplate = Object.assign({}, config.ordersTemplate)
@@ -2514,10 +2516,7 @@ export class OrdersController {
                 productTemplate.description = order.associations.order_rows[j].product_reference
                 productTemplate.name = order.associations.order_rows[j].product_name
                 productTemplate.units = order.associations.order_rows[j].product_quantity
-
                 products.push(productTemplate)
-
-
               }
 
               orderTemplate.products = [...products]
@@ -2527,14 +2526,12 @@ export class OrdersController {
               orderTemplate.orderNumber = order.id
               orders.push(orderTemplate)
 
-
-
             })
 
             ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
             ordersTemplate.orders = [...orders]
             console.log(ordersTemplate)
-            this.save(null, response, null, null, 1, ordersTemplate)
+            this.save(null, null, null, null, 1, ordersTemplate)
           } catch (error) {
             console.log(error)
           }
