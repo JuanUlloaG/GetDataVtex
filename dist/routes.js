@@ -222,6 +222,12 @@ exports.Routes = [
         action: "ordersToDelivery"
     },
     {
+        method: "get",
+        route: "/orders/prestashop/clients",
+        controller: OrdersController_1.OrdersController,
+        action: "getOrdersClients"
+    },
+    {
         method: "post",
         route: "/account",
         controller: CompanyController_1.CompanyControllers,

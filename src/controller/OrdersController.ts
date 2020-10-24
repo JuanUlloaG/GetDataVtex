@@ -2482,7 +2482,8 @@ export class OrdersController {
             let productTemplate = Object.assign({}, config.productTemplate)
             let products: any = []
             let orders: any = []
-            orders.map((order: any, index: number) => {
+            console.log(ordersToSave)
+            ordersToSave.map((order: any, index: number) => {
               let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
 
               requestify.request(addressapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
@@ -2491,11 +2492,11 @@ export class OrdersController {
                   orderTemplate.client.address = response.getBody().addresses[0].address1
                   orderTemplate.client.ciudad = response.getBody().addresses[0].city
                   orderTemplate.client.cellphone = response.getBody().addresses[0].phone_mobile
+
                 }).
                 catch((error: Error) => { console.log(error) });
 
               let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
-
               requestify.request(customerapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
                 .then(function (response: { getBody: () => any; }) {
                   orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
