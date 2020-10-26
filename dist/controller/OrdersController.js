@@ -2173,85 +2173,88 @@ class OrdersController {
         }
     }
     async getOrdersForVtex(request, response, next, app) {
-        // try {
-        //   console.log("ALERT VTEX", request.body)
-        //   const { OrderId } = request.body
-        //   if (OrderId) {
-        //     const queryCompany = { name: "Pillin Test" }
-        //     findDocuments(Company, queryCompany, "", {}, '', '', 0, null, null).then((CompanyResult: Array<CompanyInterface>) => {
-        //       if (CompanyResult.length > 0) {
-        //         const companyUID = CompanyResult[0]._id
-        //         requestify.request(`https://srconsultores.vtexcommercestable.com.br/api/oms/pvt/orders/${OrderId}`, {
-        //           method: 'GET',
-        //           headers: {
-        //             'X-VTEX-API-AppToken': 'MRNIYXTVLTCWCVYWATKOOKYHHDEOXRGHYXHXLXALMKMPPMFVAJPJGRMBSGAUSEXTNVXFOALCTYCEYJSUYJNOBXBGLGEFWGTHMSBUPZHAYMQHPICJNGVJRJSQTRTHVFFM',
-        //             'X-VTEX-API-AppKey': 'vtexappkey-srconsultores-PPJDKQ',
-        //             'Content-Type': 'application/x-www-form-urlencoded'
-        //           }
-        //         }).then((respApiCall: any) => {
-        //           const { orderId, creationDate, items, origin, clientProfileData, shippingData } = respApiCall.getBody()
-        //           let ordersTemplate = Object.assign({}, config.ordersTemplate)
-        //           let orderTemplate = Object.assign({}, config.orderTemplate)
-        //           let productTemplate = Object.assign({}, config.productTemplate)
-        //           let products: any = []
-        //           let orders: any = []
-        //           orderTemplate.orderNumber = orderId
-        //           orderTemplate.date = moment(creationDate).format("YYYY-MM-DDTHH:mm:ss")
-        //           orderTemplate.channel = origin
-        //           orderTemplate.service = 0
-        //           if (shippingData.selectedAddresses.addressType == "residential") orderTemplate.service = 0
-        //           if (shippingData.selectedAddresses.addressType == "pickup") orderTemplate.service = 1
-        //           items.map((product: any) => {
-        //             productTemplate.id = product.id
-        //             productTemplate.units = product.quantity
-        //             productTemplate.name = product.name
-        //             productTemplate.location = 1
-        //             productTemplate.barcode = product.refId
-        //             productTemplate.product = product.name
-        //             productTemplate.image = product.imageUrl
-        //             productTemplate.description = product.name + " " + product.additionalInfo.brandName
-        //             products.push(productTemplate)
-        //           })
-        //           orderTemplate.products = [...products]
-        //           orderTemplate.client.address = shippingData.address.street + " " + shippingData.address.number
-        //           orderTemplate.client.comuna = shippingData.address.neighborhood
-        //           orderTemplate.client.ciudad = shippingData.address.state
-        //           orderTemplate.client.lat = "000"
-        //           orderTemplate.client.long = "000"
-        //           if (shippingData.address.geoCoordinates.length) {
-        //             orderTemplate.client.lat = shippingData.address.geoCoordinates[0]
-        //             orderTemplate.client.long = shippingData.address.geoCoordinates[1]
-        //           }
-        //           orderTemplate.client.rut = clientProfileData.document
-        //           orderTemplate.client.cellphone = clientProfileData.phone
-        //           orderTemplate.client.email = clientProfileData.email
-        //           orderTemplate.client.name = clientProfileData.firstName + " " + clientProfileData.lastName
-        //           orders.push(orderTemplate)
-        //           ordersTemplate.orders = [...orders]
-        //           ordersTemplate.uid = companyUID
-        //           this.save(null, response, null, null, 1, ordersTemplate)
-        //         }).fail((response: any) => {
-        //           response.getCode(); // Some error code such as, for example, 404
-        //           response.json({
-        //             code: response.getCode(),
-        //             message: response,
-        //             error: response,
-        //             success: false
-        //           });
-        //         });
-        //       } else {
-        //         response.json({ message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false });
-        //       }
-        //     }).catch((err: Error) => { response.json({ message: err, success: false }); });
-        //   }
-        // } catch (error) {
-        //   response.json({
-        //     error: error,
-        //     code: error.code,
-        //     message: error.message,
-        //     success: false
-        //   });
-        // }
+        try {
+            const { OrderId } = request.body;
+            if (OrderId) {
+                const queryCompany = { name: "Pillin Test" };
+                findDocuments(Company_1.default, queryCompany, "", {}, '', '', 0, null, null).then((CompanyResult) => {
+                    if (CompanyResult.length > 0) {
+                        const companyUID = CompanyResult[0]._id;
+                        requestify.request(`https://srconsultores.vtexcommercestable.com.br/api/oms/pvt/orders/${OrderId}`, {
+                            method: 'GET',
+                            headers: {
+                                'X-VTEX-API-AppToken': 'MRNIYXTVLTCWCVYWATKOOKYHHDEOXRGHYXHXLXALMKMPPMFVAJPJGRMBSGAUSEXTNVXFOALCTYCEYJSUYJNOBXBGLGEFWGTHMSBUPZHAYMQHPICJNGVJRJSQTRTHVFFM',
+                                'X-VTEX-API-AppKey': 'vtexappkey-srconsultores-PPJDKQ',
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            }
+                        }).then((respApiCall) => {
+                            const { orderId, creationDate, items, origin, clientProfileData, shippingData } = respApiCall.getBody();
+                            let ordersTemplate = Object.assign({}, config_1.config.ordersTemplate);
+                            let orderTemplate = Object.assign({}, config_1.config.orderTemplate);
+                            let productTemplate = Object.assign({}, config_1.config.productTemplate);
+                            let products = [];
+                            let orders = [];
+                            orderTemplate.orderNumber = orderId;
+                            orderTemplate.date = moment_1.default(creationDate).format("YYYY-MM-DDTHH:mm:ss");
+                            orderTemplate.channel = origin;
+                            orderTemplate.service = 0;
+                            if (shippingData.selectedAddresses.addressType == "residential")
+                                orderTemplate.service = 0;
+                            if (shippingData.selectedAddresses.addressType == "pickup")
+                                orderTemplate.service = 1;
+                            items.map((product) => {
+                                productTemplate.id = product.id;
+                                productTemplate.units = product.quantity;
+                                productTemplate.name = product.name;
+                                productTemplate.location = 1;
+                                productTemplate.barcode = product.refId;
+                                productTemplate.product = product.name;
+                                productTemplate.image = product.imageUrl;
+                                productTemplate.description = product.name + " " + product.additionalInfo.brandName;
+                                products.push(productTemplate);
+                            });
+                            orderTemplate.products = [...products];
+                            orderTemplate.client.address = shippingData.address.street + " " + shippingData.address.number;
+                            orderTemplate.client.comuna = shippingData.address.neighborhood;
+                            orderTemplate.client.ciudad = shippingData.address.state;
+                            orderTemplate.client.lat = "000";
+                            orderTemplate.client.long = "000";
+                            if (shippingData.address.geoCoordinates.length) {
+                                orderTemplate.client.lat = shippingData.address.geoCoordinates[0];
+                                orderTemplate.client.long = shippingData.address.geoCoordinates[1];
+                            }
+                            orderTemplate.client.rut = clientProfileData.document;
+                            orderTemplate.client.cellphone = clientProfileData.phone;
+                            orderTemplate.client.email = clientProfileData.email;
+                            orderTemplate.client.name = clientProfileData.firstName + " " + clientProfileData.lastName;
+                            orders.push(orderTemplate);
+                            ordersTemplate.orders = [...orders];
+                            ordersTemplate.uid = companyUID;
+                            this.save(null, response, null, null, 1, ordersTemplate);
+                        }).fail((response) => {
+                            response.getCode(); // Some error code such as, for example, 404
+                            response.json({
+                                code: response.getCode(),
+                                message: response,
+                                error: response,
+                                success: false
+                            });
+                        });
+                    }
+                    else {
+                        response.json({ message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false });
+                    }
+                }).catch((err) => { response.json({ message: err, success: false }); });
+            }
+        }
+        catch (error) {
+            response.json({
+                error: error,
+                code: error.code,
+                message: error.message,
+                success: false
+            });
+        }
     }
     async saveOrder(body, response) {
         try {
@@ -2584,7 +2587,7 @@ class OrdersController {
                     console.log(error);
                 }
             });
-        }, 5000);
+        }, 25 * 60000);
     }
 }
 exports.OrdersController = OrdersController;
