@@ -2530,7 +2530,6 @@ export class OrdersController {
 
             ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
             ordersTemplate.orders = [...orders]
-            console.log(ordersTemplate)
             this.save(null, null, null, null, 1, ordersTemplate)
           } catch (error) {
             console.log(error)
