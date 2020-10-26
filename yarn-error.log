@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/bin/node /usr/local/Cellar/yarn/1.22.4/libexec/bin/yarn.js add @types/requestify
+  /usr/local/bin/node /usr/local/Cellar/yarn/1.22.4/libexec/bin/yarn.js remove requestify
 
 PATH: 
   /Users/carlospetit/google-cloud-sdk/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Users/carlospetit/google-cloud-sdk/bin:/Users/carlospetit/Library/Android/sdk/emulator:/Users/carlospetit/Library/Android/sdk/tools:/Users/carlospetit/Library/Android/sdk/tools/bin:/Users/carlospetit/Library/Android/sdk/platform-tools://flutter/bin:/Users/carlospetit/Library/Android/sdk/emulator:/Users/carlospetit/Library/Android/sdk/tools:/Users/carlospetit/Library/Android/sdk/tools/bin:/Users/carlospetit/Library/Android/sdk/platform-tools:/Users/carlospetit/Documents/proyectos/proyectosSR/midas-server/flutter/bin
@@ -14,17 +14,12 @@ Platform:
   darwin x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/@types%2frequestify: Not found
-      at Request.params.callback [as _callback] (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:66987:18)
-      at Request.self.callback (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:140748:22)
-      at Request.emit (events.js:315:20)
-      at Request.<anonymous> (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:141720:10)
-      at Request.emit (events.js:315:20)
-      at IncomingMessage.<anonymous> (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:141642:12)
-      at Object.onceWrapper (events.js:421:28)
-      at IncomingMessage.emit (events.js:327:22)
-      at endReadableNT (_stream_readable.js:1221:12)
-      at processTicksAndRejections (internal/process/task_queues.js:84:21)
+  SyntaxError: /Users/carlospetit/Documents/proyectos/proyectosSR/midas-server/package.json: Unexpected token / in JSON at position 1398
+      at JSON.parse (<anonymous>)
+      at /usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:310:30)
+      at /usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:321:13
 
 npm manifest: 
   {
@@ -53,6 +48,8 @@ npm manifest:
           "@types/node-geocoder": "^3.24.1",
           "@types/tedious": "^4.0.1",
           "ajv": "^6.12.3",
+          "asn1": "^0.2.4",
+          "assert-plus": "^1.0.0",
           "axios": "^0.20.0",
           "bcryptjs": "^2.4.3",
           "cors": "^2.8.5",
@@ -68,7 +65,7 @@ npm manifest:
           "nodemon": "^2.0.4",
           "reflect-metadata": "^0.1.13",
           "request": "^2.88.2",
-          "requestify": "^0.2.5",
+          // "requestify": "^0.2.5",
           "tedious": "^9.2.1",
           "ts-node": "^8.10.2",
           "typescript": "^3.9.6",
@@ -652,7 +649,7 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/arrify/-/arrify-2.0.1.tgz#c9655e9331e0abcd588d2a7cad7e9956f66701fa"
     integrity sha512-3duEwti880xqi4eAMN8AyR4a0ByT90zoYdLlevfrvU43vb0YZwZVfxOgxWrLXXXpyugL0hNZc9G6BiB5B3nUug==
   
-  asn1@~0.2.3:
+  asn1@^0.2.4, asn1@~0.2.3:
     version "0.2.4"
     resolved "https://registry.yarnpkg.com/asn1/-/asn1-0.2.4.tgz#8d2475dfab553bb33e77b54e59e880bb8ce23136"
     integrity sha512-jxwzQpLQjSmWXgwaCZE9Nz+glAG01yF1QnWgbhGwHI5A6FRIEY6IVqtHhIepHqI7/kyEyQEagBC5mBEFlIYvdg==

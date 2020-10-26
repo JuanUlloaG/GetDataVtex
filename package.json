@@ -41,7 +41,6 @@
         "nodemon": "^2.0.4",
         "reflect-metadata": "^0.1.13",
         "request": "^2.88.2",
-        "requestify": "^0.2.5",
         "tedious": "^9.2.1",
         "ts-node": "^8.10.2",
         "typescript": "^3.9.6",
