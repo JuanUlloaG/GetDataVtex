@@ -2164,6 +2164,7 @@ export class OrdersController {
               this.save(null, response, null, null, 1, ordersTemplate)
 
             }).fail((response: any) => {
+              console.log(response.getCode())
               response.getCode(); // Some error code such as, for example, 404
               response.json({
                 code: response.getCode(),
@@ -2178,6 +2179,7 @@ export class OrdersController {
         }).catch((err: Error) => { response.json({ message: err, success: false }); });
       }
     } catch (error) {
+      console.log("TyC error:", error)
       response.json({
         error: error,
         code: error.code,
