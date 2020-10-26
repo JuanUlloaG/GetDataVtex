@@ -72,7 +72,7 @@ Routes.forEach(route => {
     });
 });
 
-createMailer()
+// createMailer()
 
 
 // conectionToSql().then((result: any) => {
@@ -80,7 +80,7 @@ createMailer()
 initDB().then((result: any) => {
     app.listen(3008, () => {
         console.log("Picking server on! happy hacking 👨🏾‍💻")
-        orderController.getOrdersClients()
+        // orderController.getOrdersClients()
     })
 }).catch((err: Error) => {
     console.log(err)
