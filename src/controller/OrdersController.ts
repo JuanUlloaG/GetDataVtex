@@ -10,7 +10,7 @@ import Service, { ServicesInterface } from "../entity/Services";
 const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, executeProcedure } = require("../config/db")
 import moment from 'moment'
 import { Logger, ObjectID, ObjectId } from "mongodb";
-// const requestify = require('requestify');
+const requestify = require('requestify');
 import History, { HistoryInterface } from "../entity/History";
 import { OrderInsertInterface } from "../entity/Procedures";
 import Company, { CompanyInterface } from "../entity/Company";
@@ -2470,79 +2470,79 @@ export class OrdersController {
 
   }
 
-  // async getOrdersClients() {
+  async getOrdersClients() {
 
-  //   let ordersToSave: Array<any> //array de ordenes devueltas por prestashop
-  //   setInterval(() => {
-  //     let url: string = 'https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-22%2000:00:00,2020-10-23%2000:00:00]&output_format=JSON'
-  //     requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
-  //       .then((response: { getBody: () => any; }) => {
+    let ordersToSave: Array<any> //array de ordenes devueltas por prestashop
+    setInterval(() => {
+      let url: string = 'https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-22%2000:00:00,2020-10-23%2000:00:00]&output_format=JSON'
+      requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
+        .then((response: { getBody: () => any; }) => {
 
-  //         ordersToSave = response.getBody().orders;
-  //         try {
-  //           let ordersTemplate = Object.assign({}, config.ordersTemplate)
-  //           let orderTemplate = Object.assign({}, config.orderTemplate)
-  //           let productTemplate = Object.assign({}, config.productTemplate)
-  //           let products: any = []
-  //           let orders: any = []
-  //           ordersToSave.map((order: any, index: number) => {
-  //             let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
+          ordersToSave = response.getBody().orders;
+          try {
+            let ordersTemplate = Object.assign({}, config.ordersTemplate)
+            let orderTemplate = Object.assign({}, config.orderTemplate)
+            let productTemplate = Object.assign({}, config.productTemplate)
+            let products: any = []
+            let orders: any = []
+            ordersToSave.map((order: any, index: number) => {
+              let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
 
-  //             requestify.request(
-  //               addressapi,
-  //               {
-  //                 method: 'GET',
-  //                 headers: {
-  //                   Host: 'sr1.ipxdigital.cl',
-  //                   Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'
-  //                 }
-  //               }).then(function (response: { getBody: () => any; }) {
-  //                 orderTemplate.client.address = response.getBody().addresses[0].address1
-  //                 orderTemplate.client.ciudad = response.getBody().addresses[0].city
-  //                 orderTemplate.client.cellphone = response.getBody().addresses[0].phone_mobile
-  //               }).catch((error: Error) => {
-  //                 console.log("err:", error)
-  //               });
+              requestify.request(
+                addressapi,
+                {
+                  method: 'GET',
+                  headers: {
+                    Host: 'sr1.ipxdigital.cl',
+                    Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'
+                  }
+                }).then(function (response: { getBody: () => any; }) {
+                  orderTemplate.client.address = response.getBody().addresses[0].address1
+                  orderTemplate.client.ciudad = response.getBody().addresses[0].city
+                  orderTemplate.client.cellphone = response.getBody().addresses[0].phone_mobile
+                }).catch((error: Error) => {
+                  console.log("err:", error)
+                });
 
-  //             let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
-  //             requestify.request(
-  //               customerapi,
-  //               { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
-  //               .then(function (response: { getBody: () => any; }) {
-  //                 orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
-  //                 orderTemplate.client.email = response.getBody().customers.email
-  //               }).
-  //               catch((error: Error) => { console.log(error) });
-  //             for (let j = 0; j < order.associations.order_rows.length; j++) {
+              let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
+              requestify.request(
+                customerapi,
+                { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
+                .then(function (response: { getBody: () => any; }) {
+                  orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
+                  orderTemplate.client.email = response.getBody().customers.email
+                }).
+                catch((error: Error) => { console.log(error) });
+              for (let j = 0; j < order.associations.order_rows.length; j++) {
 
-  //               productTemplate.barcode = '0'
-  //               productTemplate.product = order.associations.order_rows[j].product_name
-  //               productTemplate.id = order.associations.order_rows[j].id
-  //               productTemplate.image = '_'
-  //               productTemplate.location = 0
-  //               productTemplate.description = order.associations.order_rows[j].product_reference
-  //               productTemplate.name = order.associations.order_rows[j].product_name
-  //               productTemplate.units = order.associations.order_rows[j].product_quantity
-  //               products.push(productTemplate)
-  //             }
+                productTemplate.barcode = '0'
+                productTemplate.product = order.associations.order_rows[j].product_name
+                productTemplate.id = order.associations.order_rows[j].id
+                productTemplate.image = '_'
+                productTemplate.location = 0
+                productTemplate.description = order.associations.order_rows[j].product_reference
+                productTemplate.name = order.associations.order_rows[j].product_name
+                productTemplate.units = order.associations.order_rows[j].product_quantity
+                products.push(productTemplate)
+              }
 
-  //             orderTemplate.products = [...products]
-  //             orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
-  //             orderTemplate.service = 1
-  //             orderTemplate.channel = 'Marketplace'
-  //             orderTemplate.orderNumber = order.id
-  //             orders.push(orderTemplate)
+              orderTemplate.products = [...products]
+              orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
+              orderTemplate.service = 1
+              orderTemplate.channel = 'Marketplace'
+              orderTemplate.orderNumber = order.id
+              orders.push(orderTemplate)
 
-  //           })
+            })
 
-  //           ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
-  //           ordersTemplate.orders = [...orders]
-  //           this.save(null, null, null, null, 1, ordersTemplate)
-  //         } catch (error) {
-  //           console.log(error)
-  //         }
-  //       })
+            ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
+            ordersTemplate.orders = [...orders]
+            this.save(null, null, null, null, 1, ordersTemplate)
+          } catch (error) {
+            console.log(error)
+          }
+        })
 
-  //   }, 25 * 60000);
-  // }
+    }, 25 * 60000);
+  }
 }

@@ -80,7 +80,7 @@ Routes.forEach(route => {
 initDB().then((result: any) => {
     app.listen(3000, () => {
         console.log("Picking server on! happy hacking 👨🏾‍💻")
-        // orderController.getOrdersClients()
+        orderController.getOrdersClients()
     })
 }).catch((err: Error) => {
     console.log(err)
