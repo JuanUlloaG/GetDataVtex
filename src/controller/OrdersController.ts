@@ -2104,6 +2104,7 @@ export class OrdersController {
     try {
       const { OrderId } = request.body
       if (OrderId) {
+        console.log(request.body)
         const queryCompany = { name: "Pillin Test" }
         findDocuments(Company, queryCompany, "", {}, '', '', 0, null, null).then((CompanyResult: Array<CompanyInterface>) => {
           if (CompanyResult.length > 0) {
