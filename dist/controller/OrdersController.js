@@ -2546,16 +2546,21 @@ class OrdersController {
                     let productTemplate = Object.assign({}, config_1.config.productTemplate);
                     let products = [];
                     let orders = [];
-                    console.log(orders);
                     ordersToSave.map((order, index) => {
                         let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`;
-                        requestify.request(addressapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
-                            .then(function (response) {
+                        requestify.request(addressapi, {
+                            method: 'GET',
+                            headers: {
+                                Host: 'sr1.ipxdigital.cl',
+                                Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'
+                            }
+                        }).then(function (response) {
                             orderTemplate.client.address = response.getBody().addresses[0].address1;
                             orderTemplate.client.ciudad = response.getBody().addresses[0].city;
                             orderTemplate.client.cellphone = response.getBody().addresses[0].phone_mobile;
-                        }).
-                            catch((error) => { console.log(error); });
+                        }).catch((error) => {
+                            console.log("err:", error);
+                        });
                         let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`;
                         requestify.request(customerapi, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
                             .then(function (response) {
