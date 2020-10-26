@@ -2232,6 +2232,7 @@ class OrdersController {
                             ordersTemplate.uid = companyUID;
                             this.save(null, response, null, null, 1, ordersTemplate);
                         }).fail((response) => {
+                            console.log(response.getCode());
                             response.getCode(); // Some error code such as, for example, 404
                             response.json({
                                 code: response.getCode(),
@@ -2248,6 +2249,7 @@ class OrdersController {
             }
         }
         catch (error) {
+            console.log("TyC error:", error);
             response.json({
                 error: error,
                 code: error.code,
