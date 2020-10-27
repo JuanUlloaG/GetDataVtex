@@ -71,7 +71,7 @@ routes_1.Routes.forEach(route => {
 initDB().then((result) => {
     app.listen(3000, () => {
         console.log("Picking server on! happy hacking 👨🏾‍💻");
-        // orderController.getOrdersClients()
+        orderController.getOrdersClients();
     });
 }).catch((err) => {
     console.log(err);

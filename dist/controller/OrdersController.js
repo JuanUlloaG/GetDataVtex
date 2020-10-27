@@ -12,83 +12,14 @@ const State_1 = __importDefault(require("../entity/State"));
 const Services_1 = __importDefault(require("../entity/Services"));
 const { insertDB, insertManyDB, findDocuments, findDocumentsMultiPopulate, findOneAndUpdateDB, findOneDB, updateManyDB, executeProcedure } = require("../config/db");
 const moment_1 = __importDefault(require("moment"));
-// const requestify = require('requestify');
+const requestify = require('requestify');
 const History_1 = __importDefault(require("../entity/History"));
 const Company_1 = __importDefault(require("../entity/Company"));
 const User_1 = __importDefault(require("../entity/User"));
 const config_1 = require("../config/config");
+let start = 0;
 // mongoose.set('debug', true);
 class OrdersController {
-    constructor() {
-        this.save_prestashop = async function (Orders) {
-        };
-        // async getOrdersClients() {
-        //   let ordersToSave: Array<any> //array de ordenes devueltas por prestashop
-        //   setInterval(() => {
-        //     let url: string = 'https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-22%2000:00:00,2020-10-23%2000:00:00]&output_format=JSON'
-        //     requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
-        //       .then((response: { getBody: () => any; }) => {
-        //         ordersToSave = response.getBody().orders;
-        //         try {
-        //           let ordersTemplate = Object.assign({}, config.ordersTemplate)
-        //           let orderTemplate = Object.assign({}, config.orderTemplate)
-        //           let productTemplate = Object.assign({}, config.productTemplate)
-        //           let products: any = []
-        //           let orders: any = []
-        //           ordersToSave.map((order: any, index: number) => {
-        //             let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
-        //             requestify.request(
-        //               addressapi,
-        //               {
-        //                 method: 'GET',
-        //                 headers: {
-        //                   Host: 'sr1.ipxdigital.cl',
-        //                   Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'
-        //                 }
-        //               }).then(function (response: { getBody: () => any; }) {
-        //                 orderTemplate.client.address = response.getBody().addresses[0].address1
-        //                 orderTemplate.client.ciudad = response.getBody().addresses[0].city
-        //                 orderTemplate.client.cellphone = response.getBody().addresses[0].phone_mobile
-        //               }).catch((error: Error) => {
-        //                 console.log("err:", error)
-        //               });
-        //             let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
-        //             requestify.request(
-        //               customerapi,
-        //               { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
-        //               .then(function (response: { getBody: () => any; }) {
-        //                 orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
-        //                 orderTemplate.client.email = response.getBody().customers.email
-        //               }).
-        //               catch((error: Error) => { console.log(error) });
-        //             for (let j = 0; j < order.associations.order_rows.length; j++) {
-        //               productTemplate.barcode = '0'
-        //               productTemplate.product = order.associations.order_rows[j].product_name
-        //               productTemplate.id = order.associations.order_rows[j].id
-        //               productTemplate.image = '_'
-        //               productTemplate.location = 0
-        //               productTemplate.description = order.associations.order_rows[j].product_reference
-        //               productTemplate.name = order.associations.order_rows[j].product_name
-        //               productTemplate.units = order.associations.order_rows[j].product_quantity
-        //               products.push(productTemplate)
-        //             }
-        //             orderTemplate.products = [...products]
-        //             orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
-        //             orderTemplate.service = 1
-        //             orderTemplate.channel = 'Marketplace'
-        //             orderTemplate.orderNumber = order.id
-        //             orders.push(orderTemplate)
-        //           })
-        //           ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
-        //           ordersTemplate.orders = [...orders]
-        //           this.save(null, null, null, null, 1, ordersTemplate)
-        //         } catch (error) {
-        //           console.log(error)
-        //         }
-        //       })
-        //   }, 25 * 60000);
-        // }
-    }
     async updatePrintedOrders(request, response, next, app) {
         try {
             const { orders } = request.body;
@@ -2237,88 +2168,93 @@ class OrdersController {
             });
         }
     }
-    // async getOrdersForVtex(request: Request, response: Response, next: NextFunction, app: any) {
-    //   try {
-    //     const { OrderId } = request.body
-    //     if (OrderId) {
-    //       const queryCompany = { name: "Pillin Test" }
-    //       findDocuments(Company, queryCompany, "", {}, '', '', 0, null, null).then((CompanyResult: Array<CompanyInterface>) => {
-    //         if (CompanyResult.length > 0) {
-    //           const companyUID = CompanyResult[0]._id
-    //           requestify.request(`https://srconsultores.vtexcommercestable.com.br/api/oms/pvt/orders/${OrderId}`, {
-    //             method: 'GET',
-    //             headers: {
-    //               'X-VTEX-API-AppToken': 'MRNIYXTVLTCWCVYWATKOOKYHHDEOXRGHYXHXLXALMKMPPMFVAJPJGRMBSGAUSEXTNVXFOALCTYCEYJSUYJNOBXBGLGEFWGTHMSBUPZHAYMQHPICJNGVJRJSQTRTHVFFM',
-    //               'X-VTEX-API-AppKey': 'vtexappkey-srconsultores-PPJDKQ',
-    //               'Content-Type': 'application/x-www-form-urlencoded'
-    //             }
-    //           }).then((respApiCall: any) => {
-    //             const { orderId, creationDate, items, origin, clientProfileData, shippingData } = respApiCall.getBody()
-    //             let ordersTemplate = Object.assign({}, config.ordersTemplate)
-    //             let orderTemplate = Object.assign({}, config.orderTemplate)
-    //             let productTemplate = Object.assign({}, config.productTemplate)
-    //             let products: any = []
-    //             let orders: any = []
-    //             orderTemplate.orderNumber = orderId
-    //             orderTemplate.date = moment(creationDate).format("YYYY-MM-DDTHH:mm:ss")
-    //             orderTemplate.channel = origin
-    //             orderTemplate.service = 0
-    //             if (shippingData.selectedAddresses.addressType == "residential") orderTemplate.service = 0
-    //             if (shippingData.selectedAddresses.addressType == "pickup") orderTemplate.service = 1
-    //             items.map((product: any) => {
-    //               productTemplate.id = product.id
-    //               productTemplate.units = product.quantity
-    //               productTemplate.name = product.name
-    //               productTemplate.location = 1
-    //               productTemplate.barcode = product.refId
-    //               productTemplate.product = product.name
-    //               productTemplate.image = product.imageUrl
-    //               productTemplate.description = product.name + " " + product.additionalInfo.brandName
-    //               products.push(productTemplate)
-    //             })
-    //             orderTemplate.products = [...products]
-    //             orderTemplate.client.address = shippingData.address.street + " " + shippingData.address.number
-    //             orderTemplate.client.comuna = shippingData.address.neighborhood
-    //             orderTemplate.client.ciudad = shippingData.address.state
-    //             orderTemplate.client.lat = "000"
-    //             orderTemplate.client.long = "000"
-    //             if (shippingData.address.geoCoordinates.length) {
-    //               orderTemplate.client.lat = shippingData.address.geoCoordinates[0]
-    //               orderTemplate.client.long = shippingData.address.geoCoordinates[1]
-    //             }
-    //             orderTemplate.client.rut = clientProfileData.document
-    //             orderTemplate.client.cellphone = clientProfileData.phone
-    //             orderTemplate.client.email = clientProfileData.email
-    //             orderTemplate.client.name = clientProfileData.firstName + " " + clientProfileData.lastName
-    //             orders.push(orderTemplate)
-    //             ordersTemplate.orders = [...orders]
-    //             ordersTemplate.uid = companyUID
-    //             this.save(null, response, null, null, 1, ordersTemplate)
-    //           }).fail((response: any) => {
-    //             console.log(response.getCode())
-    //             response.getCode(); // Some error code such as, for example, 404
-    //             response.json({
-    //               code: response.getCode(),
-    //               message: response,
-    //               error: response,
-    //               success: false
-    //             });
-    //           });
-    //         } else {
-    //           response.json({ message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false });
-    //         }
-    //       }).catch((err: Error) => { response.json({ message: err, success: false }); });
-    //     }
-    //   } catch (error) {
-    //     console.log("TyC error:", error)
-    //     response.json({
-    //       error: error,
-    //       code: error.code,
-    //       message: error.message,
-    //       success: false
-    //     });
-    //   }
-    // }
+    async getOrdersForVtex(request, response, next, app) {
+        try {
+            const { OrderId } = request.body;
+            if (OrderId) {
+                console.log(request.body);
+                const queryCompany = { name: "Pillin Test" };
+                findDocuments(Company_1.default, queryCompany, "", {}, '', '', 0, null, null).then((CompanyResult) => {
+                    if (CompanyResult.length > 0) {
+                        const companyUID = CompanyResult[0]._id;
+                        requestify.request(`https://srconsultores.vtexcommercestable.com.br/api/oms/pvt/orders/${OrderId}`, {
+                            method: 'GET',
+                            headers: {
+                                'X-VTEX-API-AppToken': 'MRNIYXTVLTCWCVYWATKOOKYHHDEOXRGHYXHXLXALMKMPPMFVAJPJGRMBSGAUSEXTNVXFOALCTYCEYJSUYJNOBXBGLGEFWGTHMSBUPZHAYMQHPICJNGVJRJSQTRTHVFFM',
+                                'X-VTEX-API-AppKey': 'vtexappkey-srconsultores-PPJDKQ',
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            }
+                        }).then((respApiCall) => {
+                            const { orderId, creationDate, items, origin, clientProfileData, shippingData } = respApiCall.getBody();
+                            let ordersTemplate = Object.assign({}, config_1.config.ordersTemplate);
+                            let orderTemplate = Object.assign({}, config_1.config.orderTemplate);
+                            let productTemplate = Object.assign({}, config_1.config.productTemplate);
+                            let products = [];
+                            let orders = [];
+                            orderTemplate.orderNumber = orderId;
+                            orderTemplate.date = moment_1.default(creationDate).format("YYYY-MM-DDTHH:mm:ss");
+                            orderTemplate.channel = origin;
+                            orderTemplate.service = 0;
+                            if (shippingData.selectedAddresses.addressType == "residential")
+                                orderTemplate.service = 0;
+                            if (shippingData.selectedAddresses.addressType == "pickup")
+                                orderTemplate.service = 1;
+                            items.map((product) => {
+                                productTemplate.id = product.id;
+                                productTemplate.units = product.quantity;
+                                productTemplate.name = product.name;
+                                productTemplate.location = 1;
+                                productTemplate.barcode = product.refId;
+                                productTemplate.product = product.name;
+                                productTemplate.image = product.imageUrl;
+                                productTemplate.description = product.name + " " + product.additionalInfo.brandName;
+                                products.push(productTemplate);
+                            });
+                            orderTemplate.products = [...products];
+                            orderTemplate.client.address = shippingData.address.street + " " + shippingData.address.number;
+                            orderTemplate.client.comuna = shippingData.address.neighborhood;
+                            orderTemplate.client.ciudad = shippingData.address.state;
+                            orderTemplate.client.lat = "000";
+                            orderTemplate.client.long = "000";
+                            if (shippingData.address.geoCoordinates.length) {
+                                orderTemplate.client.lat = shippingData.address.geoCoordinates[0];
+                                orderTemplate.client.long = shippingData.address.geoCoordinates[1];
+                            }
+                            orderTemplate.client.rut = clientProfileData.document;
+                            orderTemplate.client.cellphone = clientProfileData.phone;
+                            orderTemplate.client.email = clientProfileData.email;
+                            orderTemplate.client.name = clientProfileData.firstName + " " + clientProfileData.lastName;
+                            orders.push(orderTemplate);
+                            ordersTemplate.orders = [...orders];
+                            ordersTemplate.uid = companyUID;
+                            this.save(null, response, null, null, 1, ordersTemplate);
+                        }).fail((response) => {
+                            console.log(response.getCode());
+                            response.getCode(); // Some error code such as, for example, 404
+                            response.json({
+                                code: response.getCode(),
+                                message: response,
+                                error: response,
+                                success: false
+                            });
+                        });
+                    }
+                    else {
+                        response.json({ message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false });
+                    }
+                }).catch((err) => { response.json({ message: err, success: false }); });
+            }
+        }
+        catch (error) {
+            console.log("TyC error:", error);
+            response.json({
+                error: error,
+                code: error.code,
+                message: error.message,
+                success: false
+            });
+        }
+    }
     async saveOrder(body, response) {
         try {
             let orders;
@@ -2438,39 +2374,60 @@ class OrdersController {
                                                             };
                                                             if (response)
                                                                 response.json(jsonResponse);
+                                                            else {
+                                                                return jsonResponse;
+                                                            }
                                                         }
                                                         else {
                                                             let jsonResponse = { message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory };
                                                             if (response)
                                                                 response.json(jsonResponse);
+                                                            else {
+                                                                return jsonResponse;
+                                                            }
                                                             // response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory });
                                                         }
                                                     }).catch((err) => {
                                                         let jsonResponse = { message: err, success: false };
                                                         if (response)
                                                             response.json(jsonResponse);
+                                                        else {
+                                                            return jsonResponse;
+                                                        }
                                                     });
                                                 }
                                                 else {
                                                     let jsonResponse = { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false };
                                                     if (response)
                                                         response.json(jsonResponse);
+                                                    else {
+                                                        return jsonResponse;
+                                                    }
                                                 }
                                             }).catch((err) => {
                                                 let jsonResponse = { message: err, success: false };
                                                 if (response)
                                                     response.json(jsonResponse);
+                                                else {
+                                                    return jsonResponse;
+                                                }
                                             });
                                         }
                                         else {
                                             let jsonResponse = { message: "Error al ingresar las ordenes", success: false };
                                             if (response)
                                                 response.json(jsonResponse);
+                                            else {
+                                                return jsonResponse;
+                                            }
                                         }
                                     }).catch((err) => {
                                         let jsonResponse = { message: err, success: false };
                                         if (response)
                                             response.json(jsonResponse);
+                                        else {
+                                            return jsonResponse;
+                                        }
                                     });
                                 }
                                 else {
@@ -2485,39 +2442,60 @@ class OrdersController {
                                     };
                                     if (response)
                                         response.json(jsonResponse);
+                                    else {
+                                        return jsonResponse;
+                                    }
                                 }
                             }).catch((err) => {
                                 let jsonResponse = { message: err.message, success: false };
                                 if (response)
                                     response.json(jsonResponse);
+                                else {
+                                    return jsonResponse;
+                                }
                             });
                         }
                         else {
                             let jsonResponse = { message: "Error al ingresar las ordenes, no se ha encontrado un estado valido", success: false };
                             if (response)
                                 response.json(jsonResponse);
+                            else {
+                                return jsonResponse;
+                            }
                         }
                     }).catch((err) => {
                         let jsonResponse = { message: err.message, success: false };
                         if (response)
                             response.json(jsonResponse);
+                        else {
+                            return jsonResponse;
+                        }
                     });
                 }
                 else {
                     let jsonResponse = { message: "Error al ingresar las ordenes, no se ha encontrado un servicio valido", success: false };
                     if (response)
                         response.json(jsonResponse);
+                    else {
+                        return jsonResponse;
+                    }
                 }
             }).catch((err) => {
                 let jsonResponse = { message: err.message, success: false };
                 if (response)
                     response.json(jsonResponse);
+                else {
+                    return jsonResponse;
+                }
             });
         }
         catch (error) {
             let jsonResponse = { message: error.message, success: false };
             if (response)
                 response.json(jsonResponse);
+            else {
+                return jsonResponse;
+            }
         }
     }
     /*
@@ -2525,10 +2503,11 @@ class OrdersController {
     */
     async save(request, response, next, app, type = 0, body) {
         try {
+            console.log("object", type);
             if (type == 1)
-                return this.saveOrder(body, response);
+                return Promise.resolve(this.saveOrder(body, response));
             if (type == 0)
-                return this.saveOrder(request.body, response);
+                return await this.saveOrder(request.body, response);
         }
         catch (error) {
             if (response)
@@ -2556,7 +2535,6 @@ class OrdersController {
                             findDocuments(User_1.default, { "_id": mongoose_1.default.Types.ObjectId(order.pickerId._id) }, "", {}, '', '', 0, null, null).then((userResult) => {
                                 if (userResult.length) {
                                     let updateOrder = { pickerName: userResult[0].name };
-                                    console.log(order._id);
                                     let queryOrder = { "_id": mongoose_1.default.Types.ObjectId(order._id) };
                                     findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
                                         console.log(updateOrder.pickerName);
@@ -2593,6 +2571,95 @@ class OrdersController {
             });
         }).catch((err) => {
         });
+    }
+    async getOrdersClients() {
+        let ordersToSave; //array de ordenes devueltas por prestashop
+        setInterval(() => {
+            const start = moment_1.default().hour(0).minute(0).second(0);
+            const end = moment_1.default().hour(23).minute(59).second(59);
+            let url = `https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[${start.format("YYYY-MM-DD")}%20${start.format("HH:mm:ss")},${end.format("YYYY-MM-DD")}%20${end.format("HH:mm:ss")}]&output_format=JSON`;
+            requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } }).then((response) => {
+                try {
+                    const body = response.getBody();
+                    if (!Array.isArray(body)) {
+                        ordersToSave = response.getBody().orders;
+                        let ordersTemplate = Object.assign({}, config_1.config.ordersTemplate);
+                        let orderTemplate = Object.assign({}, config_1.config.orderTemplate);
+                        let productTemplate = Object.assign({}, config_1.config.productTemplate);
+                        let products = [];
+                        let orders = [];
+                        ordersToSave.map(async (order, index) => {
+                            let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`;
+                            const config = {
+                                method: 'GET',
+                                headers: {
+                                    Host: 'sr1.ipxdigital.cl',
+                                    Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'
+                                }
+                            };
+                            requestify.request(addressapi, config).then((response) => {
+                                const directions = response.getBody().addresses;
+                                orderTemplate.client.address = directions[0].address1;
+                                orderTemplate.client.ciudad = directions[0].city;
+                                orderTemplate.client.comuna = directions[0].city;
+                                orderTemplate.client.cellphone = directions[0].phone_mobile;
+                                let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`;
+                                const configSReques = {
+                                    method: 'GET',
+                                    headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' }
+                                };
+                                requestify.request(customerapi, configSReques).then((response) => {
+                                    orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`;
+                                    orderTemplate.client.email = response.getBody().customers.email;
+                                    for (let j = 0; j < order.associations.order_rows.length; j++) {
+                                        productTemplate.barcode = '0';
+                                        productTemplate.product = order.associations.order_rows[j].product_name;
+                                        productTemplate.id = order.associations.order_rows[j].id;
+                                        productTemplate.image = '_';
+                                        productTemplate.location = 0;
+                                        productTemplate.description = order.associations.order_rows[j].product_reference;
+                                        productTemplate.name = order.associations.order_rows[j].product_name;
+                                        productTemplate.units = order.associations.order_rows[j].product_quantity;
+                                        products.push(productTemplate);
+                                    }
+                                    // Datos temporales que deben ser migrados a data obtenida desde prestashop
+                                    orderTemplate.client.lat = "-70.454545";
+                                    orderTemplate.client.long = "-70.454545";
+                                    orderTemplate.client.email = "temporal@temporal.com";
+                                    orderTemplate.client.rut = "000000000-0";
+                                    // --------------------
+                                    orderTemplate.products = [...products];
+                                    orderTemplate.date = moment_1.default(order.date_add).format('YYYY-MM-DDTHH:mm:ss');
+                                    orderTemplate.service = 1;
+                                    orderTemplate.channel = 'Marketplace';
+                                    orderTemplate.orderNumber = order.id;
+                                    orders = orders.filter((order) => order.orderNumber !== orderTemplate.orderNumber);
+                                    orders.push(orderTemplate);
+                                    ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e';
+                                    ordersTemplate.orders = [...orders];
+                                    this.save(null, null, null, null, 1, ordersTemplate).then((result) => {
+                                        console.log("Result", result);
+                                    }).catch((err) => {
+                                        console.log("Err", err);
+                                    });
+                                }).catch((error) => {
+                                    console.log(error);
+                                });
+                            }).catch((error) => {
+                                console.log("err:", error);
+                            });
+                        });
+                    }
+                    else {
+                        console.log("No hay ordenes para descargar! ");
+                    }
+                }
+                catch (error) {
+                    console.log(error);
+                }
+            });
+        }, 6 * 60 * 1000);
+        // }, 5000);
     }
 }
 exports.OrdersController = OrdersController;

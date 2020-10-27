@@ -21,6 +21,7 @@ import { CompanyControllers } from "./CompanyController";
 import Order from '../entity/Orders';
 import OrderBags from "../entity/OrderBags";
 import axios, { AxiosError } from "axios";
+let start = 0
 
 // mongoose.set('debug', true);
 
@@ -2194,7 +2195,6 @@ export class OrdersController {
     try {
       let orders: Array<any>;
       orders = body.orders;
-
       findDocuments(Service, {}, "", {}, '', '', 0, null, null).then((ServicesResult: Array<ServicesInterface>) => {
         if (ServicesResult.length > 0) {
           let query = { "key": 0 }
@@ -2252,7 +2252,6 @@ export class OrdersController {
                 let orderfinalToInsert: Array<any> = _orders.filter((order) => !OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes a insertar
                 let orderfinalNotInsert: Array<any> = _orders.filter((order) => OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes que no vamos a insertar
                 let historyToInsert: Array<any> = history.filter((history) => !OrdersFind.some((orders) => history.orderNumber == orders.orderNumber))
-
                 if (orderfinalToInsert.length) {
                   insertManyDB(Orders, orderfinalToInsert).then((result: Array<OrderInterface>) => {
                     if (result.length) {
@@ -2311,39 +2310,40 @@ export class OrdersController {
                                 data: resultHistory,
                                 success: true
                               }
-                              if (response)
-                                response.json(jsonResponse);
+                              if (response) response.json(jsonResponse);
+                              else { return jsonResponse }
                             } else {
                               let jsonResponse = { message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory }
-                              if (response)
-                                response.json(jsonResponse);
+                              if (response) response.json(jsonResponse);
+                              else { return jsonResponse }
+
                               // response.json({ message: "Error al ingresar las ordenes, Ha ocurrido algun error", success: false, resultHistory: resultHistory });
                             }
                           }).catch((err: Error) => {
                             let jsonResponse = { message: err, success: false }
-                            if (response)
-                              response.json(jsonResponse);
+                            if (response) response.json(jsonResponse);
+                            else { return jsonResponse }
                           });
                         } else {
                           let jsonResponse = { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false }
-                          if (response)
-                            response.json(jsonResponse);
+                          if (response) response.json(jsonResponse);
+                          else { return jsonResponse }
                         }
                       }).catch((err: Error) => {
                         let jsonResponse = { message: err, success: false }
-                        if (response)
-                          response.json(jsonResponse);
+                        if (response) response.json(jsonResponse);
+                        else { return jsonResponse }
                       });
                     } else {
                       let jsonResponse = { message: "Error al ingresar las ordenes", success: false }
-                      if (response)
-                        response.json(jsonResponse);
+                      if (response) response.json(jsonResponse);
+                      else { return jsonResponse }
                     }
 
                   }).catch((err: Error) => {
                     let jsonResponse = { message: err, success: false }
-                    if (response)
-                      response.json(jsonResponse);
+                    if (response) response.json(jsonResponse);
+                    else { return jsonResponse }
                   });
                 } else {
                   let jsonResponse = {
@@ -2355,38 +2355,38 @@ export class OrdersController {
                     code: 'xxx',
                     success: false
                   }
-                  if (response)
-                    response.json(jsonResponse);
+                  if (response) response.json(jsonResponse);
+                  else { return jsonResponse }
                 }
               }).catch((err: Error) => {
                 let jsonResponse = { message: err.message, success: false }
-                if (response)
-                  response.json(jsonResponse);
+                if (response) response.json(jsonResponse);
+                else { return jsonResponse }
               })
             } else {
               let jsonResponse = { message: "Error al ingresar las ordenes, no se ha encontrado un estado valido", success: false }
-              if (response)
-                response.json(jsonResponse);
+              if (response) response.json(jsonResponse);
+              else { return jsonResponse }
             }
           }).catch((err: Error) => {
             let jsonResponse = { message: err.message, success: false }
-            if (response)
-              response.json(jsonResponse);
+            if (response) response.json(jsonResponse);
+            else { return jsonResponse }
           });
         } else {
           let jsonResponse = { message: "Error al ingresar las ordenes, no se ha encontrado un servicio valido", success: false }
-          if (response)
-            response.json(jsonResponse);
+          if (response) response.json(jsonResponse);
+          else { return jsonResponse }
         }
       }).catch((err: Error) => {
         let jsonResponse = { message: err.message, success: false }
-        if (response)
-          response.json(jsonResponse);
+        if (response) response.json(jsonResponse);
+        else { return jsonResponse }
       });
     } catch (error) {
       let jsonResponse = { message: error.message, success: false }
-      if (response)
-        response.json(jsonResponse);
+      if (response) response.json(jsonResponse);
+      else { return jsonResponse }
     }
   }
 
@@ -2395,8 +2395,9 @@ export class OrdersController {
   */
   async save(request: Request | null, response: Response | null, next: NextFunction | null, app: any, type: number = 0, body: any) {
     try {
-      if (type == 1) return this.saveOrder(body, response!)
-      if (type == 0) return this.saveOrder(request!.body, response!)
+      console.log("object", type)
+      if (type == 1) return Promise.resolve(this.saveOrder(body, response!))
+      if (type == 0) return await this.saveOrder(request!.body, response!)
     } catch (error) {
       if (response)
         response.json({ message: error.message, success: false });
@@ -2406,9 +2407,6 @@ export class OrdersController {
     }
   }
 
-  save_prestashop = async function (Orders: Array<any>) {
-
-  }
 
   async ordersToDelivery(request: Request, response: Response, next: NextFunction, app: any) {
     response.json({
@@ -2430,7 +2428,6 @@ export class OrdersController {
               findDocuments(User, { "_id": mongoose.Types.ObjectId(order.pickerId._id) }, "", {}, '', '', 0, null, null).then((userResult: Array<UserInterface>) => {
                 if (userResult.length) {
                   let updateOrder = { pickerName: userResult[0].name }
-                  console.log(order._id)
                   let queryOrder = { "_id": mongoose.Types.ObjectId(order._id) }
                   findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: OrderInterface) => {
                     console.log(updateOrder.pickerName)
@@ -2475,75 +2472,92 @@ export class OrdersController {
 
     let ordersToSave: Array<any> //array de ordenes devueltas por prestashop
     setInterval(() => {
-      let url: string = 'https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[2020-10-22%2000:00:00,2020-10-23%2000:00:00]&output_format=JSON'
-      requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
-        .then((response: { getBody: () => any; }) => {
-
-          ordersToSave = response.getBody().orders;
-          try {
+      const start = moment().hour(0).minute(0).second(0)
+      const end = moment().hour(23).minute(59).second(59)
+      let url: string = `https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[${start.format("YYYY-MM-DD")}%20${start.format("HH:mm:ss")},${end.format("YYYY-MM-DD")}%20${end.format("HH:mm:ss")}]&output_format=JSON`
+      requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } }).then((response: any) => {
+        try {
+          const body = response.getBody()
+          if (!Array.isArray(body)) {
+            ordersToSave = response.getBody().orders;
             let ordersTemplate = Object.assign({}, config.ordersTemplate)
             let orderTemplate = Object.assign({}, config.orderTemplate)
             let productTemplate = Object.assign({}, config.productTemplate)
             let products: any = []
             let orders: any = []
-            ordersToSave.map((order: any, index: number) => {
+
+            ordersToSave.map(async (order: any, index: number) => {
               let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
-
-              requestify.request(
-                addressapi,
-                {
+              const config = {
+                method: 'GET',
+                headers: {
+                  Host: 'sr1.ipxdigital.cl',
+                  Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'
+                }
+              }
+              requestify.request(addressapi, config).then((response: any) => {
+                const directions: Array<any> = response.getBody().addresses
+                orderTemplate.client.address = directions[0].address1
+                orderTemplate.client.ciudad = directions[0].city
+                orderTemplate.client.comuna = directions[0].city
+                orderTemplate.client.cellphone = directions[0].phone_mobile
+                let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
+                const configSReques = {
                   method: 'GET',
-                  headers: {
-                    Host: 'sr1.ipxdigital.cl',
-                    Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'
-                  }
-                }).then(function (response: { getBody: () => any; }) {
-                  orderTemplate.client.address = response.getBody().addresses[0].address1
-                  orderTemplate.client.ciudad = response.getBody().addresses[0].city
-                  orderTemplate.client.cellphone = response.getBody().addresses[0].phone_mobile
-                }).catch((error: Error) => {
-                  console.log("err:", error)
-                });
-
-              let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
-              requestify.request(
-                customerapi,
-                { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } })
-                .then(function (response: { getBody: () => any; }) {
+                  headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' }
+                }
+                requestify.request(customerapi, configSReques).then((response: any) => {
                   orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
                   orderTemplate.client.email = response.getBody().customers.email
-                }).
-                catch((error: Error) => { console.log(error) });
-              for (let j = 0; j < order.associations.order_rows.length; j++) {
+                  for (let j = 0; j < order.associations.order_rows.length; j++) {
 
-                productTemplate.barcode = '0'
-                productTemplate.product = order.associations.order_rows[j].product_name
-                productTemplate.id = order.associations.order_rows[j].id
-                productTemplate.image = '_'
-                productTemplate.location = 0
-                productTemplate.description = order.associations.order_rows[j].product_reference
-                productTemplate.name = order.associations.order_rows[j].product_name
-                productTemplate.units = order.associations.order_rows[j].product_quantity
-                products.push(productTemplate)
-              }
+                    productTemplate.barcode = '0'
+                    productTemplate.product = order.associations.order_rows[j].product_name
+                    productTemplate.id = order.associations.order_rows[j].id
+                    productTemplate.image = '_'
+                    productTemplate.location = 0
+                    productTemplate.description = order.associations.order_rows[j].product_reference
+                    productTemplate.name = order.associations.order_rows[j].product_name
+                    productTemplate.units = order.associations.order_rows[j].product_quantity
+                    products.push(productTemplate)
+                  }
 
-              orderTemplate.products = [...products]
-              orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
-              orderTemplate.service = 1
-              orderTemplate.channel = 'Marketplace'
-              orderTemplate.orderNumber = order.id
-              orders.push(orderTemplate)
+                  // Datos temporales que deben ser migrados a data obtenida desde prestashop
+                  orderTemplate.client.lat = "-70.454545"
+                  orderTemplate.client.long = "-70.454545"
+                  orderTemplate.client.email = "temporal@temporal.com"
+                  orderTemplate.client.rut = "000000000-0"
+                  // --------------------
 
+                  orderTemplate.products = [...products]
+                  orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
+                  orderTemplate.service = 1
+                  orderTemplate.channel = 'Marketplace'
+                  orderTemplate.orderNumber = order.id
+                  orders = orders.filter((order: any) => order.orderNumber !== orderTemplate.orderNumber)
+                  orders.push(orderTemplate)
+                  ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
+                  ordersTemplate.orders = [...orders]
+                  this.save(null, null, null, null, 1, ordersTemplate).then((result) => {
+                    console.log("Result", result)
+                  }).catch((err) => {
+                    console.log("Err", err)
+                  });
+                }).catch((error: Error) => {
+                  console.log(error)
+                });
+              }).catch((error: Error) => {
+                console.log("err:", error)
+              });
             })
-
-            ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
-            ordersTemplate.orders = [...orders]
-            this.save(null, null, null, null, 1, ordersTemplate)
-          } catch (error) {
-            console.log(error)
+          } else {
+            console.log("No hay ordenes para descargar! ")
           }
-        })
-
-    }, 25 * 60000);
+        } catch (error) {
+          console.log(error)
+        }
+      })
+    }, 6 * 60 * 1000);
+    // }, 5000);
   }
 }
