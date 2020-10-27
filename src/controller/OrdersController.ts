@@ -2468,6 +2468,14 @@ export class OrdersController {
 
   }
 
+  uniqueValues = (data: Array<any>, key: any) => {
+    return [
+      ...new Map(
+        data.map(x => [key(x), x])
+      ).values()
+    ]
+  }
+
   async getOrdersClients() {
 
     let ordersToSave: Array<any> //array de ordenes devueltas por prestashop
@@ -2539,7 +2547,9 @@ export class OrdersController {
                   orders = orders.filter((order: any) => order.orderNumber !== orderTemplate.orderNumber)
                   orders.push(orderTemplate)
                   ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
-                  ordersTemplate.orders = [...orders]
+                  const uniqueOrders = this.uniqueValues(orders, (it: any) => it.orderNumber)
+                  console.log(uniqueOrders)
+                  ordersTemplate.orders = [...uniqueOrders]
                   this.save(null, null, null, null, 1, ordersTemplate).then((result) => {
                     console.log("Result", result)
                   }).catch((err) => {
@@ -2560,7 +2570,7 @@ export class OrdersController {
           console.log(error)
         }
       })
-    }, 6 * 60 * 1000);
-    // }, 5000);
+    // }, 6 * 60 * 1000);
+    }, 5000);
   }
 }
