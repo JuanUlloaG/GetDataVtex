@@ -2570,7 +2570,7 @@ export class OrdersController {
           console.log(error)
         }
       })
-    }, 6 * 60 * 1000);
+    }, 2 * 60 * 1000);
     // }, 5000);
   }
 }
