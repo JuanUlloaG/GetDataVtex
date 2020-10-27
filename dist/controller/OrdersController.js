@@ -2610,7 +2610,6 @@ class OrdersController {
                                 };
                                 requestify.request(customerapi, configSReques).then((response) => {
                                     orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`;
-                                    orderTemplate.client.email = response.getBody().customers.email;
                                     for (let j = 0; j < order.associations.order_rows.length; j++) {
                                         productTemplate.barcode = '0';
                                         productTemplate.product = order.associations.order_rows[j].product_name;
@@ -2627,6 +2626,8 @@ class OrdersController {
                                     orderTemplate.client.long = "-70.454545";
                                     orderTemplate.client.email = "temporal@temporal.com";
                                     orderTemplate.client.rut = "000000000-0";
+                                    if (response.getBody().customers.email)
+                                        orderTemplate.client.email = response.getBody().customers.email;
                                     // --------------------
                                     orderTemplate.products = [...products];
                                     orderTemplate.date = moment_1.default(order.date_add).format('YYYY-MM-DDTHH:mm:ss');
