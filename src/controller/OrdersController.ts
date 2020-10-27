@@ -2552,7 +2552,8 @@ export class OrdersController {
                     }
 
                     orderTemplate.products = [...products]
-                    orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
+                    console.log(order.date_add)
+                    orderTemplate.date = moment(order.date_add, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DDTHH:mm:ss')
                     orderTemplate.service = 1
                     orderTemplate.channel = 'Marketplace'
                     orderTemplate.orderNumber = order.id
