@@ -702,7 +702,7 @@ class OrdersController {
                     query_['client.rut'] = { $regex: new RegExp(query.rut, "i") };
                 }
                 if (query.orderNumber) {
-                    query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") };
+                    query_['orderNumber'] = query.orderNumber;
                 }
                 if (query.service) {
                     query_['service'] = mongoose_1.default.Types.ObjectId(query.service);
@@ -880,7 +880,7 @@ class OrdersController {
             queryState = { "key": { $in: [0, 1, 2, 3] } };
             if (Object.keys(query).length > 0) {
                 if (query.orderNumber)
-                    query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") };
+                    query_['orderNumber'] = query.orderNumber;
             }
             findDocuments(State_1.default, queryState, "", {}, '', '', 0, null, null).then((stateResult) => {
                 if (stateResult.length > 0) {
@@ -1309,7 +1309,7 @@ class OrdersController {
                     if (shopId)
                         query_['shopId'] = mongoose_1.default.Types.ObjectId(shopId);
                     if (orderNumber)
-                        query_['orderNumber'] = { $regex: orderNumber };
+                        query_['orderNumber'] = orderNumber;
                     findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
@@ -1834,9 +1834,8 @@ class OrdersController {
                 if (query.rutTercero) {
                     query_['client.rutTercero'] = { $regex: new RegExp(query.rutTercero, "i") };
                 }
-                if (query.orderNumber) {
-                    query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") };
-                }
+                if (query.orderNumber)
+                    query_['orderNumber'] = query.orderNumber;
                 if (query.email) {
                     query_['client.email'] = { $regex: new RegExp(query.email, "i") };
                 }

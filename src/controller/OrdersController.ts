@@ -716,7 +716,9 @@ export class OrdersController {
 
         if (query.rut) { query_['client.rut'] = { $regex: new RegExp(query.rut, "i") } }
 
-        if (query.orderNumber) { query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") } }
+        if (query.orderNumber) {
+          query_['orderNumber'] = query.orderNumber
+        }
 
         if (query.service) { query_['service'] = mongoose.Types.ObjectId(query.service) }
 
@@ -877,7 +879,7 @@ export class OrdersController {
       let queryState: any
       queryState = { "key": { $in: [0, 1, 2, 3] } }
       if (Object.keys(query).length > 0) {
-        if (query.orderNumber) query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") }
+        if (query.orderNumber) query_['orderNumber'] = query.orderNumber
       }
       findDocuments(State, queryState, "", {}, '', '', 0, null, null).then((stateResult: Array<StateInterface>) => {
         if (stateResult.length > 0) {
@@ -1277,7 +1279,7 @@ export class OrdersController {
           query_['state'] = { $in: arrayQuery }
           if (company) query_['uid'] = mongoose.Types.ObjectId(company)
           if (shopId) query_['shopId'] = mongoose.Types.ObjectId(shopId)
-          if (orderNumber) query_['orderNumber'] = { $regex: orderNumber }
+          if (orderNumber) query_['orderNumber'] = orderNumber
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
@@ -1781,7 +1783,7 @@ export class OrdersController {
 
         if (query.rutTercero) { query_['client.rutTercero'] = { $regex: new RegExp(query.rutTercero, "i") } }
 
-        if (query.orderNumber) { query_['orderNumber'] = { $regex: new RegExp(query.orderNumber, "i") } }
+        if (query.orderNumber) query_['orderNumber'] = query.orderNumber
 
         if (query.email) { query_['client.email'] = { $regex: new RegExp(query.email, "i") } }
       }
@@ -2557,6 +2559,7 @@ export class OrdersController {
                     orders.push(orderTemplate)
                     ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
                     ordersTemplate.orders = [...this.removeDuplicates(orders)]
+                    console.log(order.id)
                     resolve(ordersTemplate)
 
                   }).catch((error: Error) => {
