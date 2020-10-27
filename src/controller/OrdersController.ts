@@ -2501,70 +2501,82 @@ export class OrdersController {
             let productTemplate = Object.assign({}, config.productTemplate)
             let products: any = []
             let orders: any = []
-            ordersToSave.map((order: any, index: number) => {
-              let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
-              const config = {
-                method: 'GET',
-                headers: {
-                  Host: 'sr1.ipxdigital.cl',
-                  Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'
-                }
-              }
-              requestify.request(addressapi, config).then((response: any) => {
-                const directions: Array<any> = response.getBody().addresses
-                orderTemplate.client.address = directions[0].address1
-                orderTemplate.client.ciudad = directions[0].city
-                orderTemplate.client.comuna = directions[0].city
-                orderTemplate.client.cellphone = directions[0].phone_mobile
-
-                let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
-                const configSReques = {
+            const promises = ordersToSave.map((order: any, index: number) => {
+              return new Promise((resolve, reject) => {
+                let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
+                const config = {
                   method: 'GET',
-                  headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' }
+                  headers: {
+                    Host: 'sr1.ipxdigital.cl',
+                    Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6'
+                  }
                 }
-                requestify.request(customerapi, configSReques).then((response: any) => {
-                  orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
-                  // Datos temporales que deben ser migrados a data obtenida desde prestashop
-                  orderTemplate.client.lat = "-70.454545"
-                  orderTemplate.client.long = "-70.454545"
-                  orderTemplate.client.email = "temporal@temporal.com"
-                  orderTemplate.client.rut = "000000000-0"
-                  if (response.getBody().customers.email)
-                    orderTemplate.client.email = response.getBody().customers.email
-                  // --------------------
 
-                  for (let j = 0; j < order.associations.order_rows.length; j++) {
+                requestify.request(addressapi, config).then((response: any) => {
+                  const directions: Array<any> = response.getBody().addresses
+                  orderTemplate.client.address = directions[0].address1
+                  orderTemplate.client.ciudad = directions[0].city
+                  orderTemplate.client.comuna = directions[0].city
+                  orderTemplate.client.cellphone = directions[0].phone_mobile
 
-                    productTemplate.barcode = '0'
-                    productTemplate.product = order.associations.order_rows[j].product_name
-                    productTemplate.id = order.associations.order_rows[j].id
-                    productTemplate.image = '_'
-                    productTemplate.location = 0
-                    productTemplate.description = order.associations.order_rows[j].product_reference
-                    productTemplate.name = order.associations.order_rows[j].product_name
-                    productTemplate.units = order.associations.order_rows[j].product_quantity
-                    products.push(productTemplate)
+                  let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
+                  const configSReques = {
+                    method: 'GET',
+                    headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' }
                   }
 
-                  orderTemplate.products = [...products]
-                  orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
-                  orderTemplate.service = 1
-                  orderTemplate.channel = 'Marketplace'
-                  orderTemplate.orderNumber = order.id
-                  orders.push(orderTemplate)
-                  ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
-                  ordersTemplate.orders = [...this.removeDuplicates(orders)]
-                  // this.save(null, null, null, null, 1, ordersTemplate).then((result) => {
-                  //   console.log("Result", result)
-                  // }).catch((err) => {
-                  //   console.log("Err", err)
-                  // });
-                }).catch((error: Error) => {
-                  console.log(error)
-                });
+                  requestify.request(customerapi, configSReques).then((response: any) => {
+                    orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
+                    // Datos temporales que deben ser migrados a data obtenida desde prestashop
+                    orderTemplate.client.lat = "-70.454545"
+                    orderTemplate.client.long = "-70.454545"
+                    orderTemplate.client.email = "temporal@temporal.com"
+                    orderTemplate.client.rut = "000000000-0"
+                    if (response.getBody().customers.email)
+                      orderTemplate.client.email = response.getBody().customers.email
+                    // --------------------
+
+                    for (let j = 0; j < order.associations.order_rows.length; j++) {
+
+                      productTemplate.barcode = '0'
+                      productTemplate.product = order.associations.order_rows[j].product_name
+                      productTemplate.id = order.associations.order_rows[j].id
+                      productTemplate.image = '_'
+                      productTemplate.location = 0
+                      productTemplate.description = order.associations.order_rows[j].product_reference
+                      productTemplate.name = order.associations.order_rows[j].product_name
+                      productTemplate.units = order.associations.order_rows[j].product_quantity
+                      products.push(productTemplate)
+                    }
+
+                    orderTemplate.products = [...products]
+                    orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
+                    orderTemplate.service = 1
+                    orderTemplate.channel = 'Marketplace'
+                    orderTemplate.orderNumber = order.id
+                    orders.push(orderTemplate)
+                    ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
+                    ordersTemplate.orders = [...this.removeDuplicates(orders)]
+                    resolve(ordersTemplate)
+
+                  }).catch((error: Error) => {
+                    console.log(error)
+                    reject(error)
+                  })
+                })
               }).catch((error: Error) => { console.log("err:", error) });
 
             })
+            Promise.all(promises).then((response: any) => {
+              if (response.length) {
+                this.save(null, null, null, null, 1, response[0]).then((result) => {
+                  console.log("Result", result)
+                }).catch((err) => {
+                  console.log("Err", err)
+                });
+              }
+            })
+
           } else {
             console.log("No hay ordenes para descargar! ")
           }
@@ -2574,7 +2586,7 @@ export class OrdersController {
       })
 
 
-      }, 6 * 60 * 1000);
-    // }, 5000);
+    }, 6 * 60 * 1000);
+    // }, 10000);
   }
 }
