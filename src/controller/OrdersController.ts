@@ -2554,11 +2554,11 @@ export class OrdersController {
                   orders.push(orderTemplate)
                   ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
                   ordersTemplate.orders = [...this.removeDuplicates(orders)]
-                  this.save(null, null, null, null, 1, ordersTemplate).then((result) => {
-                    console.log("Result", result)
-                  }).catch((err) => {
-                    console.log("Err", err)
-                  });
+                  // this.save(null, null, null, null, 1, ordersTemplate).then((result) => {
+                  //   console.log("Result", result)
+                  // }).catch((err) => {
+                  //   console.log("Err", err)
+                  // });
                 }).catch((error: Error) => {
                   console.log(error)
                 });
