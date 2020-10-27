@@ -2468,12 +2468,18 @@ export class OrdersController {
 
   }
 
-  uniqueValues = (data: Array<any>, key: any) => {
-    return [
-      ...new Map(
-        data.map(x => [key(x), x])
-      ).values()
-    ]
+  removeDuplicates(arrayIn: any) {
+    var arrayOut: any = [];
+    arrayIn.forEach((item: any) => {
+      try {
+        if (JSON.stringify(arrayOut[arrayOut.length - 1].zone) !== JSON.stringify(item.zone)) {
+          arrayOut.push(item);
+        }
+      } catch (err) {
+        arrayOut.push(item);
+      }
+    })
+    return arrayOut;
   }
 
   async getOrdersClients() {
@@ -2482,6 +2488,8 @@ export class OrdersController {
     setInterval(() => {
       const start = moment().hour(0).minute(0).second(0)
       const end = moment().hour(23).minute(59).second(59)
+      let ordersresponse: Array<any> = []
+
       let url: string = `https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[${start.format("YYYY-MM-DD")}%20${start.format("HH:mm:ss")},${end.format("YYYY-MM-DD")}%20${end.format("HH:mm:ss")}]&output_format=JSON`
       requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } }).then((response: any) => {
         try {
@@ -2493,8 +2501,7 @@ export class OrdersController {
             let productTemplate = Object.assign({}, config.productTemplate)
             let products: any = []
             let orders: any = []
-
-            ordersToSave.map(async (order: any, index: number) => {
+            ordersToSave.map((order: any, index: number) => {
               let addressapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/addresses?display=full&filter[id]=[${order.id_address_delivery}]&output_format=JSON`
               const config = {
                 method: 'GET',
@@ -2509,6 +2516,7 @@ export class OrdersController {
                 orderTemplate.client.ciudad = directions[0].city
                 orderTemplate.client.comuna = directions[0].city
                 orderTemplate.client.cellphone = directions[0].phone_mobile
+
                 let customerapi = `https://TXQQ1LZU2RJ9ZMDME9X9L4LC7JT1FXTA@sr1.ipxdigital.cl/api/customers?display=full&filter[id]=[${order.id_customer}]&output_format=JSON`
                 const configSReques = {
                   method: 'GET',
@@ -2516,6 +2524,14 @@ export class OrdersController {
                 }
                 requestify.request(customerapi, configSReques).then((response: any) => {
                   orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
+                  // Datos temporales que deben ser migrados a data obtenida desde prestashop
+                  orderTemplate.client.lat = "-70.454545"
+                  orderTemplate.client.long = "-70.454545"
+                  orderTemplate.client.email = "temporal@temporal.com"
+                  orderTemplate.client.rut = "000000000-0"
+                  if (response.getBody().customers.email)
+                    orderTemplate.client.email = response.getBody().customers.email
+                  // --------------------
 
                   for (let j = 0; j < order.associations.order_rows.length; j++) {
 
@@ -2530,26 +2546,14 @@ export class OrdersController {
                     products.push(productTemplate)
                   }
 
-                  // Datos temporales que deben ser migrados a data obtenida desde prestashop
-                  orderTemplate.client.lat = "-70.454545"
-                  orderTemplate.client.long = "-70.454545"
-                  orderTemplate.client.email = "temporal@temporal.com"
-                  orderTemplate.client.rut = "000000000-0"
-                  if (response.getBody().customers.email)
-                    orderTemplate.client.email = response.getBody().customers.email
-                  // --------------------
-
                   orderTemplate.products = [...products]
                   orderTemplate.date = moment(order.date_add).format('YYYY-MM-DDTHH:mm:ss')
                   orderTemplate.service = 1
                   orderTemplate.channel = 'Marketplace'
                   orderTemplate.orderNumber = order.id
-                  orders = orders.filter((order: any) => order.orderNumber !== orderTemplate.orderNumber)
                   orders.push(orderTemplate)
                   ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
-                  const uniqueOrders = this.uniqueValues(orders, (it: any) => it.orderNumber)
-                  console.log(uniqueOrders)
-                  ordersTemplate.orders = [...uniqueOrders]
+                  ordersTemplate.orders = [...this.removeDuplicates(orders)]
                   this.save(null, null, null, null, 1, ordersTemplate).then((result) => {
                     console.log("Result", result)
                   }).catch((err) => {
@@ -2558,10 +2562,8 @@ export class OrdersController {
                 }).catch((error: Error) => {
                   console.log(error)
                 });
-              }).catch((error: Error) => {
-                //
-                console.log("err:", error)
-              });
+              }).catch((error: Error) => { console.log("err:", error) });
+
             })
           } else {
             console.log("No hay ordenes para descargar! ")
@@ -2570,7 +2572,9 @@ export class OrdersController {
           console.log(error)
         }
       })
-    }, 2 * 60 * 1000);
+
+
+      }, 6 * 60 * 1000);
     // }, 5000);
   }
 }
