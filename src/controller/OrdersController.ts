@@ -1532,16 +1532,6 @@ export class OrdersController {
                 order.set('timeLine', [...rows], { strict: false })
                 return order
               })
-              // let filterOrders = newOrders.filter((orders) => {
-              //   if (pickerName) {
-              //     if (pickerName) {
-              //       if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
-              //         return orders
-              //     }
-              //   } else {
-              //     return orders
-              //   }
-              // })
               response.json({
                 message: 'Listado de ordenes para resetear',
                 data: newOrders,
@@ -2131,7 +2121,7 @@ export class OrdersController {
               orderTemplate.channel = origin
               orderTemplate.service = 0
               if (shippingData.selectedAddresses.addressType == "residential") orderTemplate.service = 0
-              if (shippingData.selectedAddresses.addressType == "pickup") orderTemplate.service = 1
+              if (shippingData.selectedAddresses.addressType == "pickup") orderTemplate.service = 2
 
               items.map((product: any) => {
                 productTemplate.id = product.id
@@ -2249,16 +2239,18 @@ export class OrdersController {
                 history.push(historyObj)
                 _orders.push(_order)
               })
-
-              findDocuments(Orders, { 'uid': companyUID, orderNumber: { '$in': orderNumbers } }, "", {}, '', '', 0, null, null).then((OrdersFind: Array<OrderInterface>) => {
-                let orderfinalToInsert: Array<any> = _orders.filter((order) => !OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes a insertar
-                let orderfinalNotInsert: Array<any> = _orders.filter((order) => OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes que no vamos a insertar
-                let historyToInsert: Array<any> = history.filter((history) => !OrdersFind.some((orders) => history.orderNumber == orders.orderNumber))
-                if (orderfinalToInsert.length) {
-                  insertManyDB(Orders, orderfinalToInsert).then((result: Array<OrderInterface>) => {
-                    if (result.length) {
-                      findDocuments(Company, { _id: companyUID }, "", {}, '', '', 0, null, null).then((CompanyResult: Array<CompanyInterface>) => {
-                        if (CompanyResult.length > 0) {
+              let orderfinalToInsert: Array<any>;
+              let orderfinalNotInsert: Array<any>;
+              let historyToInsert: Array<any>;
+              findDocuments(Company, { _id: companyUID }, "", {}, '', '', 0, null, null).then((CompanyResult: Array<CompanyInterface>) => {
+                if (CompanyResult.length > 0) {
+                  findDocuments(Orders, { 'uid': companyUID, orderNumber: { '$in': orderNumbers } }, "", {}, '', '', 0, null, null).then((OrdersFind: Array<OrderInterface>) => {
+                    orderfinalToInsert = _orders.filter((order) => !OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes a insertar
+                    orderfinalNotInsert = _orders.filter((order) => OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber))//filtramos ordenes para agregar, aqui obtenemos las ordenes que no vamos a insertar
+                    historyToInsert = history.filter((history) => !OrdersFind.some((orders) => history.orderNumber == orders.orderNumber))
+                    if (orderfinalToInsert.length) {
+                      insertManyDB(Orders, orderfinalToInsert).then((result: Array<OrderInterface>) => {
+                        if (result.length) {
                           result.map((order) => {
                             history.map((history: { state: ObjectId, orderNumber: number, order: ObjectId, bag: ObjectId, shop: ObjectId, picker: ObjectId, delivery: ObjectId, orderSnapShot: object, date: Date }) => {
                               if (order.orderNumber == history.orderNumber) {
@@ -2573,11 +2565,11 @@ export class OrdersController {
             })
             Promise.all(promises).then((response: any) => {
               if (response.length) {
-                this.save(null, null, null, null, 1, response[0]).then((result) => {
-                  console.log("Result", result)
-                }).catch((err) => {
-                  console.log("Err", err)
-                });
+                // this.save(null, null, null, null, 1, response[0]).then((result) => {
+                //   console.log("Result", result)
+                // }).catch((err) => {
+                //   console.log("Err", err)
+                // });
               }
             })
 
