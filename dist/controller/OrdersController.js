@@ -2327,8 +2327,10 @@ class OrdersController {
                                                         });
                                                         let serviceDesc = "";
                                                         let companyName = CompanyResult[0].name;
-                                                        ServicesResult.map((service) => { if (service._id == order.service)
-                                                            serviceDesc = service.desc; });
+                                                        ServicesResult.map((service) => {
+                                                            if (service._id == order.service)
+                                                                serviceDesc = service.desc;
+                                                        });
                                                         //Aqui empieza creacion de data para el BI
                                                         let param = {
                                                             "CuentaCliente": companyName,
@@ -2502,9 +2504,8 @@ class OrdersController {
     */
     async save(request, response, next, app, type = 0, body) {
         try {
-            console.log("object", type);
             if (type == 1)
-                return Promise.resolve(this.saveOrder(body, response));
+                return await this.saveOrder(body, response);
             if (type == 0)
                 return await this.saveOrder(request.body, response);
         }

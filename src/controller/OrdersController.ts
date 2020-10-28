@@ -2388,8 +2388,7 @@ export class OrdersController {
   */
   async save(request: Request | null, response: Response | null, next: NextFunction | null, app: any, type: number = 0, body: any) {
     try {
-      console.log("object", type)
-      if (type == 1) return Promise.resolve(this.saveOrder(body, response!))
+      if (type == 1) return await this.saveOrder(body, response!)
       if (type == 0) return await this.saveOrder(request!.body, response!)
     } catch (error) {
       if (response)
@@ -2564,11 +2563,11 @@ export class OrdersController {
             })
             Promise.all(promises).then((response: any) => {
               if (response.length) {
-                // this.save(null, null, null, null, 1, response[0]).then((result) => {
-                //   console.log("Result", result)
-                // }).catch((err) => {
-                //   console.log("Err", err)
-                // });
+                this.save(null, null, null, null, 1, response[0]).then((result) => {
+                  console.log("Result", result)
+                }).catch((err) => {
+                  console.log("Err", err)
+                });
               }
             })
 
