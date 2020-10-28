@@ -2319,7 +2319,7 @@ export class OrdersController {
                             else { return jsonResponse }
                           });
                         } else {
-                          let jsonResponse = { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false }
+                          let jsonResponse = { message: "Error al ingresar las ordenes", success: false }
                           if (response) response.json(jsonResponse);
                           else { return jsonResponse }
                         }
@@ -2329,28 +2329,27 @@ export class OrdersController {
                         else { return jsonResponse }
                       });
                     } else {
-                      let jsonResponse = { message: "Error al ingresar las ordenes", success: false }
+                      let jsonResponse = {
+                        message: "Las ordenes que intentas agregar ya existen en el sistema",
+                        ordersInsert: orderfinalToInsert,
+                        ordersInsertCount: orderfinalToInsert.length,
+                        ordersRepeat: orderfinalNotInsert,
+                        ordersRepeatCount: orderfinalNotInsert.length,
+                        success: false
+                      }
                       if (response) response.json(jsonResponse);
                       else { return jsonResponse }
                     }
-
                   }).catch((err: Error) => {
                     let jsonResponse = { message: err, success: false }
                     if (response) response.json(jsonResponse);
                     else { return jsonResponse }
                   });
                 } else {
-                  let jsonResponse = {
-                    message: "Las ordenes que intentas agregar ya existen en el sistema",
-                    ordersInsert: orderfinalToInsert,
-                    ordersInsertCount: orderfinalToInsert.length,
-                    ordersRepeat: orderfinalNotInsert,
-                    ordersRepeatCount: orderfinalNotInsert.length,
-                    code: 'xxx',
-                    success: false
-                  }
+                  let jsonResponse = { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false }
                   if (response) response.json(jsonResponse);
                   else { return jsonResponse }
+
                 }
               }).catch((err: Error) => {
                 let jsonResponse = { message: err.message, success: false }
