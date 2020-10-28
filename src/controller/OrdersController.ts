@@ -112,23 +112,39 @@ export class OrdersController {
             updateOrder['endDeliveryDate'] = null
           }
 
+          let updateBag = { orderNumber: null }
+          let queryBag = { orderNumber: null }
+
           findDocuments(Orders, queryOrder, "", {}, '', '', 0, null, null).then((OrderResult: Array<OrderInterface>) => {
             if (OrderResult.length > 0) {
-              findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: OrderInterface) => {
-                if (updateOrder) {
-                  let event = Object.assign({}, config.paramEvent)
-                  event.CuentaCliente = OrderResult[0].uid.name
-                  event.OrderTrabajo = OrderResult[0].orderNumber.toString()
-                  event.Estado = stateName
-                  event.FechaEventoOMS = new Date()
-                  let orderEvent = [];
-                  orderEvent.push(event)
-                  executeProcedure("[OMS].[InsertEvento]", orderEvent)
-                  // let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event) })
-                  response.json({
-                    message: 'Orden actualizada exitosamente',
-                    data: updateOrder,
-                    success: true
+              findOneAndUpdateDB(OrderBags, queryBag, updateBag, null, null).then((updateOrderBag: OrderInterface) => {
+                if (updateOrderBag) {
+                  findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: OrderInterface) => {
+                    if (updateOrder) {
+                      let event = Object.assign({}, config.paramEvent)
+                      event.CuentaCliente = OrderResult[0].uid.name
+                      event.OrderTrabajo = OrderResult[0].orderNumber.toString()
+                      event.Estado = stateName
+                      event.FechaEventoOMS = new Date()
+                      let orderEvent = [];
+                      orderEvent.push(event)
+                      executeProcedure("[OMS].[InsertEvento]", orderEvent)
+                      response.json({
+                        message: 'Orden actualizada exitosamente',
+                        data: updateOrder,
+                        success: true
+                      });
+                    } else {
+                      response.json({
+                        message: "Error al actualizar orden: " + updateOrder,
+                        success: false
+                      });
+                    }
+                  }).catch((err: Error) => {
+                    response.json({
+                      message: err,
+                      success: false
+                    });
                   });
                 } else {
                   response.json({
@@ -142,6 +158,7 @@ export class OrdersController {
                   success: false
                 });
               });
+
             } else {
               response.json({
                 message: "Error al actualizar orden: " + updateOrder,
@@ -2548,7 +2565,7 @@ export class OrdersController {
                     orderTemplate.channel = 'Marketplace'
                     orderTemplate.orderNumber = order.id
                     orders.push(orderTemplate)
-                    ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e'
+                    ordersTemplate.uid = '5f99e61bfaf267793bea8947'
                     ordersTemplate.orders = [...this.removeDuplicates(orders)]
                     console.log(order.id)
                     resolve(ordersTemplate)
@@ -2559,7 +2576,6 @@ export class OrdersController {
                   })
                 })
               }).catch((error: Error) => { console.log("err:", error) });
-
             })
             Promise.all(promises).then((response: any) => {
               if (response.length) {

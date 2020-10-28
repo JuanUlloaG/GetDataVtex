@@ -34,6 +34,8 @@ const OrderSchema = new mongoose_1.Schema({
     channel: { type: String, required: true },
     received: { type: String, required: false, default: "" },
     comment: { type: String, required: false, default: "" },
+    partialBroken: { type: Boolean, required: false, default: false },
+    totalBroken: { type: Boolean, required: false, default: false },
     products: [{
             id: { type: String, required: true },
             barcode: { type: String, required: true },

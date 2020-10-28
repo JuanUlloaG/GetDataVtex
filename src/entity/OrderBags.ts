@@ -6,7 +6,7 @@ import { OrderInterface } from "./Orders"
 
 
 export interface OrderBagsInterface extends Document {
-    orderNumber: OrderInterface['_id'],
+    orderNumber?: OrderInterface['_id'],
     shopId: ShopInterface['_id'],
     pickerId?: UserInterface['_id'],
     deliveryId?: UserInterface['_id'],
@@ -43,7 +43,7 @@ export interface OrderBagsInterface extends Document {
     
 */
 export const schemaBags = {
-    orderNumber: { type: "string" },
+    orderNumber: { type: "string", required: "false" },
     shopId: { type: "string" },
     pickerId: { type: "string", required: "false" },
     deliveryId: { type: "string", required: "false" },
@@ -76,7 +76,7 @@ export const schemaBags = {
 }
 
 const OrderBagsSchema: Schema = new Schema({
-    orderNumber: { type: Schema.Types.ObjectId, required: true, ref: "Order", autopopulate: true },
+    orderNumber: { type: Schema.Types.ObjectId, required: false, ref: "Order", autopopulate: true },
     shopId: { type: Schema.Types.ObjectId, required: true, ref: "Shop", autopopulate: true },
     pickerId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
     deliveryId: { type: Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },

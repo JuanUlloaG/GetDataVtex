@@ -1584,16 +1584,6 @@ class OrdersController {
                                 order.set('timeLine', [...rows], { strict: false });
                                 return order;
                             });
-                            // let filterOrders = newOrders.filter((orders) => {
-                            //   if (pickerName) {
-                            //     if (pickerName) {
-                            //       if (orders.pickerId.name.toLowerCase().includes(pickerName.toLowerCase()))
-                            //         return orders
-                            //     }
-                            //   } else {
-                            //     return orders
-                            //   }
-                            // })
                             response.json({
                                 message: 'Listado de ordenes para resetear',
                                 data: newOrders,
@@ -2197,7 +2187,7 @@ class OrdersController {
                             if (shippingData.selectedAddresses.addressType == "residential")
                                 orderTemplate.service = 0;
                             if (shippingData.selectedAddresses.addressType == "pickup")
-                                orderTemplate.service = 1;
+                                orderTemplate.service = 2;
                             items.map((product) => {
                                 productTemplate.id = product.id;
                                 productTemplate.units = product.quantity;
@@ -2309,15 +2299,18 @@ class OrdersController {
                                 history.push(historyObj);
                                 _orders.push(_order);
                             });
-                            findDocuments(Orders_1.default, { 'uid': companyUID, orderNumber: { '$in': orderNumbers } }, "", {}, '', '', 0, null, null).then((OrdersFind) => {
-                                let orderfinalToInsert = _orders.filter((order) => !OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber)); //filtramos ordenes para agregar, aqui obtenemos las ordenes a insertar
-                                let orderfinalNotInsert = _orders.filter((order) => OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber)); //filtramos ordenes para agregar, aqui obtenemos las ordenes que no vamos a insertar
-                                let historyToInsert = history.filter((history) => !OrdersFind.some((orders) => history.orderNumber == orders.orderNumber));
-                                if (orderfinalToInsert.length) {
-                                    insertManyDB(Orders_1.default, orderfinalToInsert).then((result) => {
-                                        if (result.length) {
-                                            findDocuments(Company_1.default, { _id: companyUID }, "", {}, '', '', 0, null, null).then((CompanyResult) => {
-                                                if (CompanyResult.length > 0) {
+                            let orderfinalToInsert;
+                            let orderfinalNotInsert;
+                            let historyToInsert;
+                            findDocuments(Company_1.default, { _id: companyUID }, "", {}, '', '', 0, null, null).then((CompanyResult) => {
+                                if (CompanyResult.length > 0) {
+                                    findDocuments(Orders_1.default, { 'uid': companyUID, orderNumber: { '$in': orderNumbers } }, "", {}, '', '', 0, null, null).then((OrdersFind) => {
+                                        orderfinalToInsert = _orders.filter((order) => !OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber)); //filtramos ordenes para agregar, aqui obtenemos las ordenes a insertar
+                                        orderfinalNotInsert = _orders.filter((order) => OrdersFind.some((fillOrder) => order.orderNumber == fillOrder.orderNumber)); //filtramos ordenes para agregar, aqui obtenemos las ordenes que no vamos a insertar
+                                        historyToInsert = history.filter((history) => !OrdersFind.some((orders) => history.orderNumber == orders.orderNumber));
+                                        if (orderfinalToInsert.length) {
+                                            insertManyDB(Orders_1.default, orderfinalToInsert).then((result) => {
+                                                if (result.length) {
                                                     result.map((order) => {
                                                         history.map((history) => {
                                                             if (order.orderNumber == history.orderNumber) {
@@ -2327,10 +2320,8 @@ class OrdersController {
                                                         });
                                                         let serviceDesc = "";
                                                         let companyName = CompanyResult[0].name;
-                                                        ServicesResult.map((service) => {
-                                                            if (service._id == order.service)
-                                                                serviceDesc = service.desc;
-                                                        });
+                                                        ServicesResult.map((service) => { if (service._id == order.service)
+                                                            serviceDesc = service.desc; });
                                                         //Aqui empieza creacion de data para el BI
                                                         let param = {
                                                             "CuentaCliente": companyName,
@@ -2398,7 +2389,7 @@ class OrdersController {
                                                     });
                                                 }
                                                 else {
-                                                    let jsonResponse = { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false };
+                                                    let jsonResponse = { message: "Error al ingresar las ordenes", success: false };
                                                     if (response)
                                                         response.json(jsonResponse);
                                                     else {
@@ -2415,7 +2406,14 @@ class OrdersController {
                                             });
                                         }
                                         else {
-                                            let jsonResponse = { message: "Error al ingresar las ordenes", success: false };
+                                            let jsonResponse = {
+                                                message: "Las ordenes que intentas agregar ya existen en el sistema",
+                                                ordersInsert: orderfinalToInsert,
+                                                ordersInsertCount: orderfinalToInsert.length,
+                                                ordersRepeat: orderfinalNotInsert,
+                                                ordersRepeatCount: orderfinalNotInsert.length,
+                                                success: false
+                                            };
                                             if (response)
                                                 response.json(jsonResponse);
                                             else {
@@ -2432,15 +2430,7 @@ class OrdersController {
                                     });
                                 }
                                 else {
-                                    let jsonResponse = {
-                                        message: "Las ordenes que intentas agregar ya existen en el sistema",
-                                        ordersInsert: orderfinalToInsert,
-                                        ordersInsertCount: orderfinalToInsert.length,
-                                        ordersRepeat: orderfinalNotInsert,
-                                        ordersRepeatCount: orderfinalNotInsert.length,
-                                        code: 'xxx',
-                                        success: false
-                                    };
+                                    let jsonResponse = { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false };
                                     if (response)
                                         response.json(jsonResponse);
                                     else {
@@ -2646,13 +2636,15 @@ class OrdersController {
                                             products.push(productTemplate);
                                         }
                                         orderTemplate.products = [...products];
-                                        orderTemplate.date = moment_1.default(order.date_add).format('YYYY-MM-DDTHH:mm:ss');
+                                        console.log(order.date_add);
+                                        orderTemplate.date = moment_1.default(order.date_add, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DDTHH:mm:ss');
                                         orderTemplate.service = 1;
                                         orderTemplate.channel = 'Marketplace';
                                         orderTemplate.orderNumber = order.id;
                                         orders.push(orderTemplate);
                                         ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e';
                                         ordersTemplate.orders = [...this.removeDuplicates(orders)];
+                                        console.log(order.id);
                                         resolve(ordersTemplate);
                                     }).catch((error) => {
                                         console.log(error);
