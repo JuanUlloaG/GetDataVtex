@@ -2535,8 +2535,10 @@ export class OrdersController {
                   }
 
                   requestify.request(customerapi, configSReques).then((response: any) => {
-                    orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`
+                    // console.log(response.getBody())
+                    orderTemplate.client.name = `${response.getBody().customers[0].firstname} ${response.getBody().customers[0].lastname}`
                     // Datos temporales que deben ser migrados a data obtenida desde prestashop
+                    // console.log(orderTemplate.client.name)
                     orderTemplate.client.lat = "-70.454545"
                     orderTemplate.client.long = "-70.454545"
                     orderTemplate.client.email = "temporal@temporal.com"
@@ -2596,7 +2598,7 @@ export class OrdersController {
       })
 
 
-    }, 6 * 60 * 1000);
-    // }, 10000);
+      // }, 6 * 60 * 1000);
+    }, 10000);
   }
 }
