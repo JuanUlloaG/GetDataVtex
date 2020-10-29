@@ -2414,6 +2414,7 @@ class OrdersController {
                                                     }
                                                 }
                                             }).catch((err) => {
+                                                console.log(err);
                                                 let jsonResponse = { message: err, success: false };
                                                 if (response)
                                                     response.json(jsonResponse);
@@ -2603,6 +2604,7 @@ class OrdersController {
             findDocuments(Company_1.default, queryCompany, "", {}, '', '', 0, null, null).then((CompanyResult) => {
                 if (CompanyResult.length > 0) {
                     const companyUID = CompanyResult[0]._id;
+                    console.log(companyUID);
                     let url = `https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[${start.format("YYYY-MM-DD")}%20${start.format("HH:mm:ss")},${end.format("YYYY-MM-DD")}%20${end.format("HH:mm:ss")}]&output_format=JSON`;
                     requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } }).then((response) => {
                         try {
@@ -2659,6 +2661,7 @@ class OrdersController {
                                                         products.push(pdTemplate);
                                                     });
                                                 }
+                                                console.log(order.id);
                                                 orderTemplate.products = [...products];
                                                 orderTemplate.date = moment_1.default(order.date_add, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DDTHH:mm:ss');
                                                 orderTemplate.service = 1;
@@ -2677,7 +2680,14 @@ class OrdersController {
                                 });
                                 Promise.all(promises).then((response) => {
                                     if (response.length) {
-                                        this.save(null, null, null, null, 1, response[0]).then((result) => {
+                                        let ordersArray = [];
+                                        response.map((orders) => {
+                                            orders.orders.map((unit) => {
+                                                ordersArray.push(unit);
+                                            });
+                                        });
+                                        const ordersToSave = { uid: response[0].uid, orders: ordersArray };
+                                        this.save(null, null, null, null, 1, ordersToSave).then((result) => {
                                             console.log("Result", result);
                                         }).catch((err) => {
                                             console.log("Err", err);
@@ -2698,8 +2708,8 @@ class OrdersController {
                     return { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false };
                 }
             }).catch((error) => { console.log("err:", error); });
-        }, 6 * 60 * 1000);
-        // }, 10000);
+            // }, 6 * 60 * 1000);
+        }, 10000);
     }
 }
 exports.OrdersController = OrdersController;
