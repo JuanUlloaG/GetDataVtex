@@ -2341,6 +2341,7 @@ export class OrdersController {
                           else { return jsonResponse }
                         }
                       }).catch((err: Error) => {
+                        console.log(err)
                         let jsonResponse = { message: err, success: false }
                         if (response) response.json(jsonResponse);
                         else { return jsonResponse }
@@ -2503,7 +2504,7 @@ export class OrdersController {
       findDocuments(Company, queryCompany, "", {}, '', '', 0, null, null).then((CompanyResult: Array<CompanyInterface>) => {
         if (CompanyResult.length > 0) {
           const companyUID = CompanyResult[0]._id
-
+          console.log(companyUID)
           let url: string = `https://4HK4ZVL5WLZ724FZ6S1IWZ7I42KZKKBA@sr1.ipxdigital.cl/api/orders?display=full&date=1&filter[date_add]=[${start.format("YYYY-MM-DD")}%20${start.format("HH:mm:ss")},${end.format("YYYY-MM-DD")}%20${end.format("HH:mm:ss")}]&output_format=JSON`
           requestify.request(url, { method: 'GET', headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' } }).then((response: any) => {
             try {
@@ -2540,10 +2541,8 @@ export class OrdersController {
                       }
 
                       requestify.request(customerapi, configSReques).then((response: any) => {
-                        // console.log(response.getBody())
                         orderTemplate.client.name = `${response.getBody().customers[0].firstname} ${response.getBody().customers[0].lastname}`
                         // Datos temporales que deben ser migrados a data obtenida desde prestashop
-                        // console.log(orderTemplate.client.name)
                         orderTemplate.client.lat = "-70.454545"
                         orderTemplate.client.long = "-70.454545"
                         orderTemplate.client.email = "temporal@temporal.com"
@@ -2554,7 +2553,6 @@ export class OrdersController {
 
 
                         if (Array.isArray(order.associations.order_rows)) {
-                          console.log(order.associations.order_rows)
                           order.associations.order_rows.map((product: any) => {
                             let pdTemplate = Object.assign({}, productTemplate)
                             pdTemplate.barcode = '0'
@@ -2568,6 +2566,8 @@ export class OrdersController {
                             products.push(pdTemplate)
                           })
                         }
+
+                        console.log(order.id)
 
                         orderTemplate.products = [...products]
                         orderTemplate.date = moment(order.date_add, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DDTHH:mm:ss')
@@ -2588,7 +2588,14 @@ export class OrdersController {
                 })
                 Promise.all(promises).then((response: any) => {
                   if (response.length) {
-                    this.save(null, null, null, null, 1, response[0]).then((result) => {
+                    let ordersArray: Array<any> = []
+                    response.map((orders: any) => {
+                      orders.orders.map((unit: any) => {
+                        ordersArray.push(unit)
+                      })
+                    })
+                    const ordersToSave = { uid: response[0].uid, orders: ordersArray }
+                    this.save(null, null, null, null, 1, ordersToSave).then((result) => {
                       console.log("Result", result)
                     }).catch((err) => {
                       console.log("Err", err)
@@ -2608,7 +2615,7 @@ export class OrdersController {
           return { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false }
         }
       }).catch((error: Error) => { console.log("err:", error) });
-    }, 6 * 60 * 1000);
-    // }, 10000);
+      // }, 6 * 60 * 1000);
+    }, 10000);
   }
 }

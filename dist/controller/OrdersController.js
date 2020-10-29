@@ -2636,10 +2636,8 @@ class OrdersController {
                                                 headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' }
                                             };
                                             requestify.request(customerapi, configSReques).then((response) => {
-                                                // console.log(response.getBody())
                                                 orderTemplate.client.name = `${response.getBody().customers[0].firstname} ${response.getBody().customers[0].lastname}`;
                                                 // Datos temporales que deben ser migrados a data obtenida desde prestashop
-                                                // console.log(orderTemplate.client.name)
                                                 orderTemplate.client.lat = "-70.454545";
                                                 orderTemplate.client.long = "-70.454545";
                                                 orderTemplate.client.email = "temporal@temporal.com";
@@ -2648,7 +2646,6 @@ class OrdersController {
                                                     orderTemplate.client.email = response.getBody().customers.email;
                                                 // --------------------
                                                 if (Array.isArray(order.associations.order_rows)) {
-                                                    console.log(order.associations.order_rows);
                                                     order.associations.order_rows.map((product) => {
                                                         let pdTemplate = Object.assign({}, productTemplate);
                                                         pdTemplate.barcode = '0';
