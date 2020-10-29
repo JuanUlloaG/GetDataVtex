@@ -88,6 +88,8 @@ export class OrdersController {
             updateOrder['endPickingDate'] = null
             updateOrder['starDeliveryDate'] = null
             updateOrder['endDeliveryDate'] = null
+            updateOrder['totalBroken'] = false
+            updateOrder['partialBroken'] = false
           }
 
           if (state == 1) {
@@ -96,6 +98,8 @@ export class OrdersController {
             updateOrder['pickerId'] = null
             updateOrder['startPickingDate'] = null
             updateOrder['endPickingDate'] = null
+            updateOrder['totalBroken'] = false
+            updateOrder['partialBroken'] = false
           }
 
           if (date) {
@@ -110,10 +114,12 @@ export class OrdersController {
             updateOrder['endPickingDate'] = null
             updateOrder['starDeliveryDate'] = null
             updateOrder['endDeliveryDate'] = null
+            updateOrder['totalBroken'] = false
+            updateOrder['partialBroken'] = false
           }
 
           let updateBag = { orderNumber: null }
-          let queryBag = { orderNumber: null }
+          let queryBag = { orderNumber: mongoose.Types.ObjectId(id) }
 
           findDocuments(Orders, queryOrder, "", {}, '', '', 0, null, null).then((OrderResult: Array<OrderInterface>) => {
             if (OrderResult.length > 0) {
@@ -1281,6 +1287,7 @@ export class OrdersController {
     try {
       const { company, shopId, orderNumber } = request.body
       let _query;
+      let _queryor;
       let query_: any = {}
       let populate: string = 'bag pickerId deliveryId state service shopId';
       let queryState: any
@@ -1297,6 +1304,10 @@ export class OrdersController {
           if (company) query_['uid'] = mongoose.Types.ObjectId(company)
           if (shopId) query_['shopId'] = mongoose.Types.ObjectId(shopId)
           if (orderNumber) query_['orderNumber'] = orderNumber
+          console.log("update ", query_)
+
+          _queryor = { $or: [query_, { partialBroken: true }, { totalBroken: true }] }
+
           findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
