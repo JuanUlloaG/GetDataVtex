@@ -673,13 +673,14 @@ export class OrderBagsController {
                 if (findResultState.length > 0) {
                     let stateId = findResultState[0]._id;
                     let stateDesc = findResultState[0].desc;
-                    const { orderNumber, bags, shopId, pickerId } = request.body
+                    const { orderNumber, bags, shopId, pickerId, partialBroken, totalBroken } = request.body
                     let bag = { orderNumber, bags, shopId, pickerId }
                     let valid = validate(bag)
                     let unitsPicked = 0
                     let unitsReplaced = 0
                     let unitsBroken = 0
                     let unitsDelivery = 0
+                    console.log("ada", partialBroken, "dasda", totalBroken)
                     if (valid) {
                         bags.map((row: any) => {
                             row.products.map((bag: any) => {
@@ -702,11 +703,13 @@ export class OrderBagsController {
                         let queryFind = { "orderNumber": mongoose.Types.ObjectId(orderNumber) }
                         let update = {
                             "pickerId": mongoose.Types.ObjectId(pickerId),
-                            bag: mongoose.Types.ObjectId(pickerId),
-                            shopId: mongoose.Types.ObjectId(shopId),
+                            "bag": mongoose.Types.ObjectId(pickerId),
+                            "shopId": mongoose.Types.ObjectId(shopId),
                             "state": mongoose.Types.ObjectId(stateId),
-                            endPickingDate: new Date(),
-                            pickerName: ""
+                            "endPickingDate": new Date(),
+                            "pickerName": "",
+                            "partialBroken": partialBroken,
+                            "totalBroken": totalBroken
                         }
                         findDocuments(User, { "_id": mongoose.Types.ObjectId(pickerId) }, "", {}, '', '', 0, null, null).then((userResult: Array<UserInterface>) => {
                             if (userResult.length) {
