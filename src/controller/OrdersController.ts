@@ -1308,7 +1308,7 @@ export class OrdersController {
 
           _queryor = { $or: [query_, { partialBroken: true }, { totalBroken: true }] }
 
-          findDocuments(Orders, query_, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
+          findDocuments(Orders, _queryor, "", {}, populate, '', 0, null, null).then((result: Array<OrderInterface>) => {
             if (result.length) {
               let newOrders = result.map((order, index) => {
                 let pickername = ""
@@ -2627,6 +2627,6 @@ export class OrdersController {
         }
       }).catch((error: Error) => { console.log("err:", error) });
       // }, 6 * 60 * 1000);
-    }, 10000);
+    }, 20 * 60 * 1000);
   }
 }
