@@ -25,7 +25,7 @@ const mongoose_1 = __importStar(require("mongoose"));
     
 */
 exports.schemaBags = {
-    orderNumber: { type: "string" },
+    orderNumber: { type: "string", required: "false" },
     shopId: { type: "string" },
     pickerId: { type: "string", required: "false" },
     deliveryId: { type: "string", required: "false" },
@@ -57,7 +57,7 @@ exports.schemaBags = {
     ]
 };
 const OrderBagsSchema = new mongoose_1.Schema({
-    orderNumber: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Order", autopopulate: true },
+    orderNumber: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Order", autopopulate: true },
     shopId: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "Shop", autopopulate: true },
     pickerId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },
     deliveryId: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "User", default: null, autopopulate: true },

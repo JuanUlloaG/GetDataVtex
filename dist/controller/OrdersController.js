@@ -17,6 +17,7 @@ const History_1 = __importDefault(require("../entity/History"));
 const Company_1 = __importDefault(require("../entity/Company"));
 const User_1 = __importDefault(require("../entity/User"));
 const config_1 = require("../config/config");
+const OrderBags_1 = __importDefault(require("../entity/OrderBags"));
 let start = 0;
 // mongoose.set('debug', true);
 class OrdersController {
@@ -99,23 +100,39 @@ class OrdersController {
                         updateOrder['starDeliveryDate'] = null;
                         updateOrder['endDeliveryDate'] = null;
                     }
+                    let updateBag = { orderNumber: null };
+                    let queryBag = { orderNumber: null };
                     findDocuments(Orders_1.default, queryOrder, "", {}, '', '', 0, null, null).then((OrderResult) => {
                         if (OrderResult.length > 0) {
-                            findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
-                                if (updateOrder) {
-                                    let event = Object.assign({}, config_1.config.paramEvent);
-                                    event.CuentaCliente = OrderResult[0].uid.name;
-                                    event.OrderTrabajo = OrderResult[0].orderNumber.toString();
-                                    event.Estado = stateName;
-                                    event.FechaEventoOMS = new Date();
-                                    let orderEvent = [];
-                                    orderEvent.push(event);
-                                    executeProcedure("[OMS].[InsertEvento]", orderEvent);
-                                    // let promiseEvent = orderEvent.map((event) => { return executeProcedure("[OMS].[InsertEvento]", event) })
-                                    response.json({
-                                        message: 'Orden actualizada exitosamente',
-                                        data: updateOrder,
-                                        success: true
+                            findOneAndUpdateDB(OrderBags_1.default, queryBag, updateBag, null, null).then((updateOrderBag) => {
+                                if (updateOrderBag) {
+                                    findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
+                                        if (updateOrder) {
+                                            let event = Object.assign({}, config_1.config.paramEvent);
+                                            event.CuentaCliente = OrderResult[0].uid.name;
+                                            event.OrderTrabajo = OrderResult[0].orderNumber.toString();
+                                            event.Estado = stateName;
+                                            event.FechaEventoOMS = new Date();
+                                            let orderEvent = [];
+                                            orderEvent.push(event);
+                                            executeProcedure("[OMS].[InsertEvento]", orderEvent);
+                                            response.json({
+                                                message: 'Orden actualizada exitosamente',
+                                                data: updateOrder,
+                                                success: true
+                                            });
+                                        }
+                                        else {
+                                            response.json({
+                                                message: "Error al actualizar orden: " + updateOrder,
+                                                success: false
+                                            });
+                                        }
+                                    }).catch((err) => {
+                                        response.json({
+                                            message: err,
+                                            success: false
+                                        });
                                     });
                                 }
                                 else {
@@ -2615,8 +2632,10 @@ class OrdersController {
                                         headers: { Host: 'sr1.ipxdigital.cl', Authorization: 'Basic NEhLNFpWTDVXTFo3MjRGWjZTMUlXWjdJNDJLWktLQkE6' }
                                     };
                                     requestify.request(customerapi, configSReques).then((response) => {
-                                        orderTemplate.client.name = `${response.getBody().customers.firstname} ${response.getBody().customerslastname}`;
+                                        // console.log(response.getBody())
+                                        orderTemplate.client.name = `${response.getBody().customers[0].firstname} ${response.getBody().customers[0].lastname}`;
                                         // Datos temporales que deben ser migrados a data obtenida desde prestashop
+                                        // console.log(orderTemplate.client.name)
                                         orderTemplate.client.lat = "-70.454545";
                                         orderTemplate.client.long = "-70.454545";
                                         orderTemplate.client.email = "temporal@temporal.com";
@@ -2642,7 +2661,7 @@ class OrdersController {
                                         orderTemplate.channel = 'Marketplace';
                                         orderTemplate.orderNumber = order.id;
                                         orders.push(orderTemplate);
-                                        ordersTemplate.uid = '5f8dfe714f9d03814ec77e1e';
+                                        ordersTemplate.uid = '5f99e61bfaf267793bea8947';
                                         ordersTemplate.orders = [...this.removeDuplicates(orders)];
                                         console.log(order.id);
                                         resolve(ordersTemplate);
@@ -2671,8 +2690,8 @@ class OrdersController {
                     console.log(error);
                 }
             });
-        }, 6 * 60 * 1000);
-        // }, 10000);
+            // }, 6 * 60 * 1000);
+        }, 10000);
     }
 }
 exports.OrdersController = OrdersController;
