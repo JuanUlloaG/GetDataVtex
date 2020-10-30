@@ -153,7 +153,7 @@ export class OrderBagsController {
                             }
                         }).catch((err: Error) => {
                             response.json({
-                                message: err,
+                                message: err.message,
                                 success: false
                             });
                         });
@@ -165,7 +165,7 @@ export class OrderBagsController {
                     }
                 }).catch((err: Error) => {
                     response.json({
-                        message: err,
+                        message: err.message,
                         success: false
                     });
                 })
