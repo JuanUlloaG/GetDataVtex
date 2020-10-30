@@ -79,15 +79,15 @@ export class OrdersController {
 
           if (state == 8) {
             updateOrder['cancellDate'] = new Date()
-            updateOrder['deliveryId'] = null
-            updateOrder['bag'] = null
-            updateOrder['pickerName'] = ""
-            updateOrder['deliveryName'] = ""
-            updateOrder['pickerId'] = null
-            updateOrder['startPickingDate'] = null
-            updateOrder['endPickingDate'] = null
-            updateOrder['starDeliveryDate'] = null
-            updateOrder['endDeliveryDate'] = null
+            // updateOrder['deliveryId'] = null
+            // updateOrder['bag'] = null
+            // updateOrder['pickerName'] = ""
+            // updateOrder['deliveryName'] = ""
+            // updateOrder['pickerId'] = null
+            // updateOrder['startPickingDate'] = null
+            // updateOrder['endPickingDate'] = null
+            // // updateOrder['starDeliveryDate'] = null
+            // updateOrder['endDeliveryDate'] = null
             updateOrder['totalBroken'] = false
             updateOrder['partialBroken'] = false
           }
@@ -118,14 +118,15 @@ export class OrdersController {
             updateOrder['partialBroken'] = false
           }
 
-          let updateBag = { orderNumber: null }
-          let queryBag = { orderNumber: mongoose.Types.ObjectId(id) }
 
           findDocuments(Orders, queryOrder, "", {}, '', '', 0, null, null).then((OrderResult: Array<OrderInterface>) => {
             if (OrderResult.length > 0) {
+              let updateBag = { orderNumber: null }
+              let queryBag = { _id: mongoose.Types.ObjectId(OrderResult[0].bag._id) }
               findOneAndUpdateDB(OrderBags, queryBag, updateBag, null, null).then((updateOrderBag: OrderInterface) => {
                 if (updateOrderBag) {
                   findOneAndUpdateDB(Orders, queryOrder, updateOrder, null, null).then((updateOrder: OrderInterface) => {
+                    console.log(updateOrder)
                     if (updateOrder) {
                       let event = Object.assign({}, config.paramEvent)
                       event.CuentaCliente = OrderResult[0].uid.name
@@ -142,11 +143,12 @@ export class OrdersController {
                       });
                     } else {
                       response.json({
-                        message: "Error al actualizar orden: " + updateOrder,
+                        message: "Error al actualizar ordens: " + updateOrder,
                         success: false
                       });
                     }
                   }).catch((err: Error) => {
+                    console.log(err)
                     response.json({
                       message: err,
                       success: false
@@ -154,11 +156,12 @@ export class OrdersController {
                   });
                 } else {
                   response.json({
-                    message: "Error al actualizar orden: " + updateOrder,
+                    message: "Error al actualizar orden:a " + updateOrder,
                     success: false
                   });
                 }
               }).catch((err: Error) => {
+                console.log(err)
                 response.json({
                   message: err,
                   success: false
@@ -172,6 +175,7 @@ export class OrdersController {
               });
             }
           }).catch((err: Error) => {
+            console.log(err)
             response.json({ message: err.message, success: false });
           });
 
@@ -182,12 +186,14 @@ export class OrdersController {
           });
         }
       }).catch((err: Error) => {
+        console.log(err)
         response.json({
           message: err,
           success: false
         });
       });
     } catch (error) {
+      console.log(error)
       response.json({
         message: error.message,
         success: false
@@ -2627,6 +2633,6 @@ export class OrdersController {
         }
       }).catch((error: Error) => { console.log("err:", error) });
       // }, 1 * 60 * 1000);
-    }, 20 * 60 * 1000);
+    }, 10000);
   }
 }
