@@ -30,9 +30,13 @@ export class OrderBagsController {
             let query: object;
             query = {
                 "bags.bagNumber": number,
+                "orderNumber": { $ne: null }
             }
             findDocuments(OrderBags, query, "", {}, 'orderNumber pickerId deliveryId', '', 0, null, null).then((result: Array<OrderBagsInterface>) => {
-                let filterBag = result.filter((orderBag) => { return orderBag.orderNumber.uid._id == account })
+                let filterBag = result.filter((orderBag) => {
+                    if (orderBag.orderNumber)
+                        return orderBag.orderNumber.uid._id == account
+                })
                 let orderres = {}
 
                 if (filterBag.length) orderres = Object.assign({}, filterBag[0])
@@ -683,7 +687,6 @@ export class OrderBagsController {
                     let unitsReplaced = 0
                     let unitsBroken = 0
                     let unitsDelivery = 0
-                    console.log("ada", partialBroken, "dasda", totalBroken)
                     if (valid) {
                         bags.map((row: any) => {
                             row.products.map((bag: any) => {
