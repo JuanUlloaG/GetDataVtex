@@ -314,7 +314,7 @@ export class OrderBagsController {
                                                     }
                                                 }).catch((err: Error) => {
                                                     response.json({
-                                                        message: err.message,
+                                                        message: "" + err.message,
                                                         success: false
                                                     });
                                                 });
@@ -326,7 +326,7 @@ export class OrderBagsController {
                                             }
                                         }).catch((err: Error) => {
                                             response.json({
-                                                message: err.message,
+                                                message: "" + err.message,
                                                 success: false,
                                             });
                                         });
@@ -338,7 +338,7 @@ export class OrderBagsController {
                                     }
                                 }).catch((err: Error) => {
                                     response.json({
-                                        message: err.message,
+                                        message: "" + err.message,
                                         success: false
                                     });
                                 });
@@ -350,7 +350,7 @@ export class OrderBagsController {
                             }
                         }).catch((err: Error) => {
                             response.json({
-                                message: err.message,
+                                message: "" + err.message,
                                 success: false
                             });
                         });
@@ -369,14 +369,14 @@ export class OrderBagsController {
                 }
             }).catch((err: Error) => {
                 response.json({
-                    message: err.message,
+                    message: "" + err.message,
                     success: false
                 });
             });
 
         } catch (error) {
             response.json({
-                message: error,
+                message: "" + error,
                 success: false
             });
         }
@@ -448,7 +448,7 @@ export class OrderBagsController {
                                                     }
                                                 }).catch((err: Error) => {
                                                     response.json({
-                                                        message: err.message,
+                                                        message: "" + err.message,
                                                         success: false
                                                     });
                                                 });
@@ -460,7 +460,7 @@ export class OrderBagsController {
                                             }
                                         }).catch((err: Error) => {
                                             response.json({
-                                                message: err.message,
+                                                message: "" + err.message,
                                                 success: false
                                             });
                                         });
@@ -473,7 +473,7 @@ export class OrderBagsController {
                                     }
                                 }).catch((err: Error) => {
                                     response.json({
-                                        message: err,
+                                        message: "" + err,
                                         success: false
                                     });
                                 });
@@ -486,7 +486,7 @@ export class OrderBagsController {
 
                         }).catch((err: Error) => {
                             response.json({
-                                message: err,
+                                message: "" + err,
                                 success: false
                             });
                         });
@@ -504,13 +504,13 @@ export class OrderBagsController {
                 }
             }).catch((err: Error) => {
                 response.json({
-                    message: err,
+                    message: "" + err,
                     success: false
                 });
             });
         } catch (error) {
             response.json({
-                message: error.message,
+                message: "" + error.message,
                 success: false
             });
         }
