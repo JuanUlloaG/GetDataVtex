@@ -2554,8 +2554,8 @@ export class OrdersController {
                       requestify.request(customerapi, configSReques).then((response: any) => {
                         orderTemplate.client.name = `${response.getBody().customers[0].firstname} ${response.getBody().customers[0].lastname}`
                         // Datos temporales que deben ser migrados a data obtenida desde prestashop
-                        orderTemplate.client.lat = "-70.454545"
-                        orderTemplate.client.long = "-70.454545"
+                        orderTemplate.client.lat = "-33.4552837"
+                        orderTemplate.client.long = "-70.6586257"
                         orderTemplate.client.email = "temporal@temporal.com"
                         orderTemplate.client.rut = "000000000-0"
                         if (response.getBody().customers.email)
@@ -2569,7 +2569,7 @@ export class OrdersController {
                             pdTemplate.barcode = '0'
                             pdTemplate.product = product.product_name
                             pdTemplate.id = product.id
-                            pdTemplate.image = '_'
+                            pdTemplate.image = `https://sr1.ipxdigital.cl/img/p/${product.product_attribute_id}/${product.product_attribute_id}-cart_default.jpg`
                             pdTemplate.location = 0
                             pdTemplate.description = product.product_reference
                             pdTemplate.name = product.product_name
