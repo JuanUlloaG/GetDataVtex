@@ -1211,7 +1211,7 @@ export class OrdersController {
       let query_: any = {}
 
       if (company) {
-        query_["company"] = mongoose.Types.ObjectId(company)
+        query_["uid"] = mongoose.Types.ObjectId(company)
       }
 
       if (shopId) {
