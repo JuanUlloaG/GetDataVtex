@@ -137,7 +137,8 @@ export class OrderBagsController {
                         findDocuments(OrderBags, query, "", {}, 'orderNumber', '', 0, null, null).then((result: Array<any>) => {
                             if (result.length) {
                                 let bagsResult = result.filter((bag) => {
-                                    return stateIds.toString() == bag.orderNumber.state._id.toString()
+                                    if (bag.orderNumber)
+                                        return stateIds.toString() == bag.orderNumber.state._id.toString()
                                 })
                                 response.json({
                                     message: 'Listado de bultos a despachar',
@@ -153,7 +154,7 @@ export class OrderBagsController {
                             }
                         }).catch((err: Error) => {
                             response.json({
-                                message: err,
+                                message: err.message,
                                 success: false
                             });
                         });
@@ -165,7 +166,7 @@ export class OrderBagsController {
                     }
                 }).catch((err: Error) => {
                     response.json({
-                        message: err,
+                        message: err.message,
                         success: false
                     });
                 })
