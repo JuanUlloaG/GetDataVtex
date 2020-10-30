@@ -190,7 +190,8 @@ export class OrderBagsController {
             let query: object;
             query = {
                 "shopId": shopId,
-                "deliveryId": null
+                "deliveryId": null,
+                "orderNumber": { $ne: null }
             }
 
             if (shopId) {
@@ -200,7 +201,8 @@ export class OrderBagsController {
                         findDocuments(OrderBags, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result: Array<OrderBagsInterface>) => {
                             if (result.length) {
                                 let filterBag = result.filter((orderBag) => {
-                                    return (orderBag.orderNumber.uid._id.toString() === account.toString() && orderBag.orderNumber.service._id.toString() !== serviceId.toString())
+                                    if (orderBag.orderNumber)
+                                        return (orderBag.orderNumber.uid._id.toString() === account.toString() && orderBag.orderNumber.service._id.toString() !== serviceId.toString())
                                 })
                                 response.json({
                                     message: 'Listado de bultos a despachar',
