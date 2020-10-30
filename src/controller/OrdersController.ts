@@ -2626,7 +2626,7 @@ export class OrdersController {
           return { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false }
         }
       }).catch((error: Error) => { console.log("err:", error) });
-      // }, 6 * 60 * 1000);
+      // }, 1 * 60 * 1000);
     }, 20 * 60 * 1000);
   }
 }
