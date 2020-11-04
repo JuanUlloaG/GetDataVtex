@@ -70,6 +70,7 @@ class OrderBagsController {
     async getNumber(request, response, next, app) {
         try {
             const { cantidad, ordersToPrint } = request.body;
+            console.log(ordersToPrint);
             let bagsNumbers = [];
             ordersToPrint.map((row) => {
                 for (let index = 0; index < cantidad; index++) {
@@ -77,36 +78,40 @@ class OrderBagsController {
                     bagsNumbers.push({ bag: null, numberBag: numbebag });
                 }
             });
-            if (!cantidad) {
+            if (cantidad) {
+                insertManyDB(Bag_1.default, bagsNumbers).then((result) => {
+                    if (result) {
+                        response.json({
+                            message: 'Bultos generados de forma exitosa',
+                            data: result.map((bagnumber) => { return bagnumber.numberBag; }),
+                            success: true
+                        });
+                    }
+                    else {
+                        response.json({
+                            message: 'Error al generar los numeros de bultos',
+                            profileNotSave: [],
+                            success: false
+                        });
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    response.json({
+                        message: err,
+                        success: false
+                    });
+                });
+            }
+            else {
                 response.json({
                     message: `No se puede generar bultos para ${cantidad} ordenes`,
-                    profileNotSave: [],
+                    data: [],
                     success: true
                 });
             }
-            insertManyDB(Bag_1.default, bagsNumbers).then((result) => {
-                if (result) {
-                    response.json({
-                        message: 'Bultos generados de forma exitosa',
-                        data: result.map((bagnumber) => { return bagnumber.numberBag; }),
-                        success: true
-                    });
-                }
-                else {
-                    response.json({
-                        message: 'Error al generar los numeros de bultos',
-                        profileNotSave: [],
-                        success: false
-                    });
-                }
-            }).catch((err) => {
-                response.json({
-                    message: err.message,
-                    success: false
-                });
-            });
         }
         catch (error) {
+            console.log(error);
             response.json({
                 message: error,
                 success: false

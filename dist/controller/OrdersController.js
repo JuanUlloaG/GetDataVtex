@@ -2724,7 +2724,7 @@ class OrdersController {
                 }
             }).catch((error) => { console.log("err:", error); });
             // }, 1 * 60 * 1000);
-        }, 10000);
+        }, 1 * 60 * 1000);
     }
 }
 exports.OrdersController = OrdersController;
