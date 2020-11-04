@@ -1,14 +1,16 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { CompanyInterface } from "./Company";
+import { OrderBagsInterface } from "./OrderBags";
 
-export interface BagInterface extends Document {
-
+export interface BagNumberInterface extends Document {
+    bag: OrderBagsInterface['_id'],
+    numberBag: number
 }
 
-const BagSchema: Schema = new Schema({
-    bag: { type: Schema.Types.ObjectId, required: false, ref: "Company" },
-    description: { type: Array, required: true }
+const BagNumberSchema: Schema = new Schema({
+    bag: { type: Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null, autopopulate: true },
+    numberBag: { type: Number, required: true, default: 0 }
 });
 
-const Bag = mongoose.model<BagInterface>("Bag", BagSchema, "bag");
-export default Bag;
+const BagNumber = mongoose.model<BagNumberInterface>("BagNumber", BagNumberSchema, "bagNumber");
+export default BagNumber;

@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const jwt = require('jsonwebtoken');
 import OrderBags, { OrderBagsInterface } from "../entity/OrderBags";
 import Orders, { OrderInterface } from "../entity/Orders";
-import BagNumber from "../entity/Bagnumber";
 import State, { StateInterface } from "../entity/State";
 import { schemaBags } from "../entity/OrderBags";
 import { sendEmail } from "./MailController";
@@ -15,6 +14,8 @@ import User, { UserInterface } from "../entity/User";
 import { config } from "../config/config";
 import { OrderInsertInterface } from "../entity/Procedures";
 import Service, { ServicesInterface } from "../entity/Services";
+import BagNumber, { BagNumberInterface } from "../entity/Bag";
+import moment from "moment";
 var ajv = new Ajv({ allErrors: true });
 
 var validate = ajv.compile(schemaBags)
@@ -69,45 +70,33 @@ export class OrderBagsController {
 
     async getNumber(request: Request, response: Response, next: NextFunction, app: any) {
         try {
-            const { cantidad } = request.body
-            findDocuments(OrderBags, {}, "", {}, '', '', 0, null, null).then((result: Array<OrderBagsInterface>) => {
-                let arrayBags: Array<string> = []
-                if (result.length) {
-                    result.map((bag) => {
-                        bag.bags.map((bg) => {
-                            arrayBags.push(bg.bagNumber)
-                        })
-                    })
-                    let arrayBags2: Array<string> = []
-                    for (var i = 1; i < 999999999; i++) {
-                        if (arrayBags2.length <= cantidad)
-                            if (!arrayBags.includes(i.toString())) {
-                                arrayBags2.push(i.toString());
-                            }
-                    }
+            const { cantidad, ordersToPrint } = request.body
+            let bagsNumbers: Array<{ bag: any, numberBag: number }> = []
+            ordersToPrint.map((row: string) => {
+                for (let index = 0; index < cantidad; index++) {
+                    let numbebag: number = parseInt(moment().format("YYYYMMDDHHmmss")) + Math.floor(Math.random() * 1000)
+                    bagsNumbers.push({ bag: null, numberBag: numbebag })
+                }
+            })
+
+
+            insertManyDB(BagNumber, bagsNumbers).then((result: Array<BagNumberInterface>) => {
+                if (result) {
                     response.json({
-                        message: 'Listado de bultos a despachar',
-                        data: arrayBags2,
+                        message: 'Bultos generados de forma exitosa',
+                        data: result.map((bagnumber) => { return bagnumber.numberBag }),
                         success: true
                     });
                 } else {
-
-                    let arrayBags2: Array<string> = []
-                    for (var i = 1; i < 999999999; i++) {
-                        if (arrayBags2.length <= cantidad)
-                            if (!arrayBags.includes(i.toString())) {
-                                arrayBags2.push(i.toString());
-                            }
-                    }
                     response.json({
-                        message: 'Listado de bultos a despachar',
-                        data: arrayBags2,
-                        success: true
+                        message: 'Error al generar los numeros de bultos',
+                        profileNotSave: [],
+                        success: false
                     });
                 }
             }).catch((err: Error) => {
                 response.json({
-                    message: err,
+                    message: err.message,
                     success: false
                 });
             });
