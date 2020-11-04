@@ -2633,6 +2633,6 @@ export class OrdersController {
         }
       }).catch((error: Error) => { console.log("err:", error) });
       // }, 1 * 60 * 1000);
-    }, 10000);
+    }, 1 * 60 * 1000);
   }
 }

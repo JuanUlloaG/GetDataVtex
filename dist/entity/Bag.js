@@ -20,9 +20,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const BagSchema = new mongoose_1.Schema({
-    bag: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "Company" },
-    description: { type: Array, required: true }
+const BagNumberSchema = new mongoose_1.Schema({
+    bag: { type: mongoose_1.Schema.Types.ObjectId, required: false, ref: "OrderBag", default: null, autopopulate: true },
+    numberBag: { type: Number, required: true, default: 0 }
 });
-const Bag = mongoose_1.default.model("Bag", BagSchema, "bag");
-exports.default = Bag;
+const BagNumber = mongoose_1.default.model("BagNumber", BagNumberSchema, "bagNumber");
+exports.default = BagNumber;

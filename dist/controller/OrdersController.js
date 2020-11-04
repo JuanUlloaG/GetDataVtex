@@ -70,15 +70,17 @@ class OrdersController {
                     let updateOrder = { state: mongoose_1.default.Types.ObjectId(stateId) };
                     if (state == 8) {
                         updateOrder['cancellDate'] = new Date();
-                        updateOrder['deliveryId'] = null;
-                        updateOrder['bag'] = null;
-                        updateOrder['pickerName'] = "";
-                        updateOrder['deliveryName'] = "";
-                        updateOrder['pickerId'] = null;
-                        updateOrder['startPickingDate'] = null;
-                        updateOrder['endPickingDate'] = null;
-                        updateOrder['starDeliveryDate'] = null;
-                        updateOrder['endDeliveryDate'] = null;
+                        // updateOrder['deliveryId'] = null
+                        // updateOrder['bag'] = null
+                        // updateOrder['pickerName'] = ""
+                        // updateOrder['deliveryName'] = ""
+                        // updateOrder['pickerId'] = null
+                        // updateOrder['startPickingDate'] = null
+                        // updateOrder['endPickingDate'] = null
+                        // // updateOrder['starDeliveryDate'] = null
+                        // updateOrder['endDeliveryDate'] = null
+                        updateOrder['totalBroken'] = false;
+                        updateOrder['partialBroken'] = false;
                     }
                     if (state == 1) {
                         updateOrder['bag'] = null;
@@ -86,6 +88,8 @@ class OrdersController {
                         updateOrder['pickerId'] = null;
                         updateOrder['startPickingDate'] = null;
                         updateOrder['endPickingDate'] = null;
+                        updateOrder['totalBroken'] = false;
+                        updateOrder['partialBroken'] = false;
                     }
                     if (date) {
                         updateOrder['realdatedelivery'] = new Date(date);
@@ -99,14 +103,17 @@ class OrdersController {
                         updateOrder['endPickingDate'] = null;
                         updateOrder['starDeliveryDate'] = null;
                         updateOrder['endDeliveryDate'] = null;
+                        updateOrder['totalBroken'] = false;
+                        updateOrder['partialBroken'] = false;
                     }
-                    let updateBag = { orderNumber: null };
-                    let queryBag = { orderNumber: null };
                     findDocuments(Orders_1.default, queryOrder, "", {}, '', '', 0, null, null).then((OrderResult) => {
                         if (OrderResult.length > 0) {
+                            let updateBag = { orderNumber: null };
+                            let queryBag = { _id: mongoose_1.default.Types.ObjectId(OrderResult[0].bag._id) };
                             findOneAndUpdateDB(OrderBags_1.default, queryBag, updateBag, null, null).then((updateOrderBag) => {
                                 if (updateOrderBag) {
                                     findOneAndUpdateDB(Orders_1.default, queryOrder, updateOrder, null, null).then((updateOrder) => {
+                                        console.log(updateOrder);
                                         if (updateOrder) {
                                             let event = Object.assign({}, config_1.config.paramEvent);
                                             event.CuentaCliente = OrderResult[0].uid.name;
@@ -124,11 +131,12 @@ class OrdersController {
                                         }
                                         else {
                                             response.json({
-                                                message: "Error al actualizar orden: " + updateOrder,
+                                                message: "Error al actualizar ordens: " + updateOrder,
                                                 success: false
                                             });
                                         }
                                     }).catch((err) => {
+                                        console.log(err);
                                         response.json({
                                             message: err,
                                             success: false
@@ -137,11 +145,12 @@ class OrdersController {
                                 }
                                 else {
                                     response.json({
-                                        message: "Error al actualizar orden: " + updateOrder,
+                                        message: "Error al actualizar orden:a " + updateOrder,
                                         success: false
                                     });
                                 }
                             }).catch((err) => {
+                                console.log(err);
                                 response.json({
                                     message: err,
                                     success: false
@@ -155,6 +164,7 @@ class OrdersController {
                             });
                         }
                     }).catch((err) => {
+                        console.log(err);
                         response.json({ message: err.message, success: false });
                     });
                 }
@@ -165,6 +175,7 @@ class OrdersController {
                     });
                 }
             }).catch((err) => {
+                console.log(err);
                 response.json({
                     message: err,
                     success: false
@@ -172,6 +183,7 @@ class OrdersController {
             });
         }
         catch (error) {
+            console.log(error);
             response.json({
                 message: error.message,
                 success: false
@@ -1227,7 +1239,7 @@ class OrdersController {
             const { company, profile, state, shopId, query } = request.body;
             let query_ = {};
             if (company) {
-                query_["company"] = mongoose_1.default.Types.ObjectId(company);
+                query_["uid"] = mongoose_1.default.Types.ObjectId(company);
             }
             if (shopId) {
                 query_["shopId"] = mongoose_1.default.Types.ObjectId(shopId);
@@ -1309,6 +1321,7 @@ class OrdersController {
         try {
             const { company, shopId, orderNumber } = request.body;
             let _query;
+            let _queryor;
             let query_ = {};
             let populate = 'bag pickerId deliveryId state service shopId';
             let queryState;
@@ -1327,7 +1340,9 @@ class OrdersController {
                         query_['shopId'] = mongoose_1.default.Types.ObjectId(shopId);
                     if (orderNumber)
                         query_['orderNumber'] = orderNumber;
-                    findDocuments(Orders_1.default, query_, "", {}, populate, '', 0, null, null).then((result) => {
+                    console.log("update ", query_);
+                    _queryor = { $or: [query_, { partialBroken: true }, { totalBroken: true }] };
+                    findDocuments(Orders_1.default, _queryor, "", {}, populate, '', 0, null, null).then((result) => {
                         if (result.length) {
                             let newOrders = result.map((order, index) => {
                                 let pickername = "";
@@ -2640,8 +2655,8 @@ class OrdersController {
                                             requestify.request(customerapi, configSReques).then((response) => {
                                                 orderTemplate.client.name = `${response.getBody().customers[0].firstname} ${response.getBody().customers[0].lastname}`;
                                                 // Datos temporales que deben ser migrados a data obtenida desde prestashop
-                                                orderTemplate.client.lat = "-70.454545";
-                                                orderTemplate.client.long = "-70.454545";
+                                                orderTemplate.client.lat = "-33.4552837";
+                                                orderTemplate.client.long = "-70.6586257";
                                                 orderTemplate.client.email = "temporal@temporal.com";
                                                 orderTemplate.client.rut = "000000000-0";
                                                 if (response.getBody().customers.email)
@@ -2653,7 +2668,7 @@ class OrdersController {
                                                         pdTemplate.barcode = '0';
                                                         pdTemplate.product = product.product_name;
                                                         pdTemplate.id = product.id;
-                                                        pdTemplate.image = '_';
+                                                        pdTemplate.image = `https://sr1.ipxdigital.cl/img/p/${product.product_attribute_id}/${product.product_attribute_id}-cart_default.jpg`;
                                                         pdTemplate.location = 0;
                                                         pdTemplate.description = product.product_reference;
                                                         pdTemplate.name = product.product_name;
@@ -2708,7 +2723,7 @@ class OrdersController {
                     return { message: "Error al ingresar las ordenes, no se han encontrado cuentas validas", success: false };
                 }
             }).catch((error) => { console.log("err:", error); });
-            // }, 6 * 60 * 1000);
+            // }, 1 * 60 * 1000);
         }, 10000);
     }
 }

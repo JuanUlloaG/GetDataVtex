@@ -71,6 +71,7 @@ export class OrderBagsController {
     async getNumber(request: Request, response: Response, next: NextFunction, app: any) {
         try {
             const { cantidad, ordersToPrint } = request.body
+            console.log(ordersToPrint)
             let bagsNumbers: Array<{ bag: any, numberBag: number }> = []
             ordersToPrint.map((row: string) => {
                 for (let index = 0; index < cantidad; index++) {
@@ -79,28 +80,37 @@ export class OrderBagsController {
                 }
             })
 
-
-            insertManyDB(BagNumber, bagsNumbers).then((result: Array<BagNumberInterface>) => {
-                if (result) {
+            if (cantidad) {
+                insertManyDB(BagNumber, bagsNumbers).then((result: Array<BagNumberInterface>) => {
+                    if (result) {
+                        response.json({
+                            message: 'Bultos generados de forma exitosa',
+                            data: result.map((bagnumber) => { return bagnumber.numberBag }),
+                            success: true
+                        });
+                    } else {
+                        response.json({
+                            message: 'Error al generar los numeros de bultos',
+                            profileNotSave: [],
+                            success: false
+                        });
+                    }
+                }).catch((err: Error) => {
+                    console.log(err)
                     response.json({
-                        message: 'Bultos generados de forma exitosa',
-                        data: result.map((bagnumber) => { return bagnumber.numberBag }),
-                        success: true
-                    });
-                } else {
-                    response.json({
-                        message: 'Error al generar los numeros de bultos',
-                        profileNotSave: [],
+                        message: err,
                         success: false
                     });
-                }
-            }).catch((err: Error) => {
-                response.json({
-                    message: err.message,
-                    success: false
                 });
-            });
+            } else {
+                response.json({
+                    message: `No se puede generar bultos para ${cantidad} ordenes`,
+                    data: [],
+                    success: true
+                });
+            }
         } catch (error) {
+            console.log(error)
             response.json({
                 message: error,
                 success: false

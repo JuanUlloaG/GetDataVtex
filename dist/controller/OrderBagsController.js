@@ -16,6 +16,8 @@ const History_1 = __importDefault(require("../entity/History"));
 const User_1 = __importDefault(require("../entity/User"));
 const config_1 = require("../config/config");
 const Services_1 = __importDefault(require("../entity/Services"));
+const Bag_1 = __importDefault(require("../entity/Bag"));
+const moment_1 = __importDefault(require("moment"));
 var ajv = new ajv_1.default({ allErrors: true });
 var validate = ajv.compile(OrderBags_2.schemaBags);
 class OrderBagsController {
@@ -27,9 +29,13 @@ class OrderBagsController {
             let query;
             query = {
                 "bags.bagNumber": number,
+                "orderNumber": { $ne: null }
             };
             findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber pickerId deliveryId', '', 0, null, null).then((result) => {
-                let filterBag = result.filter((orderBag) => { return orderBag.orderNumber.uid._id == account; });
+                let filterBag = result.filter((orderBag) => {
+                    if (orderBag.orderNumber)
+                        return orderBag.orderNumber.uid._id == account;
+                });
                 let orderres = {};
                 if (filterBag.length)
                     orderres = Object.assign({}, filterBag[0]);
@@ -63,45 +69,39 @@ class OrderBagsController {
     }
     async getNumber(request, response, next, app) {
         try {
-            const { cantidad } = request.body;
-            findDocuments(OrderBags_1.default, {}, "", {}, '', '', 0, null, null).then((result) => {
-                let arrayBags = [];
-                if (result.length) {
-                    result.map((bag) => {
-                        bag.bags.map((bg) => {
-                            arrayBags.push(bg.bagNumber);
-                        });
-                    });
-                    let arrayBags2 = [];
-                    for (var i = 1; i < 999999999; i++) {
-                        if (arrayBags2.length <= cantidad)
-                            if (!arrayBags.includes(i.toString())) {
-                                arrayBags2.push(i.toString());
-                            }
-                    }
+            const { cantidad, ordersToPrint } = request.body;
+            let bagsNumbers = [];
+            ordersToPrint.map((row) => {
+                for (let index = 0; index < cantidad; index++) {
+                    let numbebag = parseInt(moment_1.default().format("YYYYMMDDHHmmss")) + Math.floor(Math.random() * 1000);
+                    bagsNumbers.push({ bag: null, numberBag: numbebag });
+                }
+            });
+            if (!cantidad) {
+                response.json({
+                    message: `No se puede generar bultos para ${cantidad} ordenes`,
+                    profileNotSave: [],
+                    success: true
+                });
+            }
+            insertManyDB(Bag_1.default, bagsNumbers).then((result) => {
+                if (result) {
                     response.json({
-                        message: 'Listado de bultos a despachar',
-                        data: arrayBags2,
+                        message: 'Bultos generados de forma exitosa',
+                        data: result.map((bagnumber) => { return bagnumber.numberBag; }),
                         success: true
                     });
                 }
                 else {
-                    let arrayBags2 = [];
-                    for (var i = 1; i < 999999999; i++) {
-                        if (arrayBags2.length <= cantidad)
-                            if (!arrayBags.includes(i.toString())) {
-                                arrayBags2.push(i.toString());
-                            }
-                    }
                     response.json({
-                        message: 'Listado de bultos a despachar',
-                        data: arrayBags2,
-                        success: true
+                        message: 'Error al generar los numeros de bultos',
+                        profileNotSave: [],
+                        success: false
                     });
                 }
             }).catch((err) => {
                 response.json({
-                    message: err,
+                    message: err.message,
                     success: false
                 });
             });
@@ -133,7 +133,8 @@ class OrderBagsController {
                         findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', '', 0, null, null).then((result) => {
                             if (result.length) {
                                 let bagsResult = result.filter((bag) => {
-                                    return stateIds.toString() == bag.orderNumber.state._id.toString();
+                                    if (bag.orderNumber)
+                                        return stateIds.toString() == bag.orderNumber.state._id.toString();
                                 });
                                 response.json({
                                     message: 'Listado de bultos a despachar',
@@ -150,7 +151,7 @@ class OrderBagsController {
                             }
                         }).catch((err) => {
                             response.json({
-                                message: err,
+                                message: err.message,
                                 success: false
                             });
                         });
@@ -163,7 +164,7 @@ class OrderBagsController {
                     }
                 }).catch((err) => {
                     response.json({
-                        message: err,
+                        message: err.message,
                         success: false
                     });
                 });
@@ -188,7 +189,8 @@ class OrderBagsController {
             let query;
             query = {
                 "shopId": shopId,
-                "deliveryId": null
+                "deliveryId": null,
+                "orderNumber": { $ne: null }
             };
             if (shopId) {
                 findDocuments(Services_1.default, { key: "2" }, "", {}, '', '', 0, null, null).then((findResultSerives) => {
@@ -197,7 +199,8 @@ class OrderBagsController {
                         findDocuments(OrderBags_1.default, query, "", {}, 'orderNumber', 'client orderNumber', 0, null, null).then((result) => {
                             if (result.length) {
                                 let filterBag = result.filter((orderBag) => {
-                                    return (orderBag.orderNumber.uid._id.toString() === account.toString() && orderBag.orderNumber.service._id.toString() !== serviceId.toString());
+                                    if (orderBag.orderNumber)
+                                        return (orderBag.orderNumber.uid._id.toString() === account.toString() && orderBag.orderNumber.service._id.toString() !== serviceId.toString());
                                 });
                                 response.json({
                                     message: 'Listado de bultos a despachar',
@@ -316,7 +319,7 @@ class OrderBagsController {
                                                     }
                                                 }).catch((err) => {
                                                     response.json({
-                                                        message: err.message,
+                                                        message: "" + err.message,
                                                         success: false
                                                     });
                                                 });
@@ -329,7 +332,7 @@ class OrderBagsController {
                                             }
                                         }).catch((err) => {
                                             response.json({
-                                                message: err.message,
+                                                message: "" + err.message,
                                                 success: false,
                                             });
                                         });
@@ -342,7 +345,7 @@ class OrderBagsController {
                                     }
                                 }).catch((err) => {
                                     response.json({
-                                        message: err.message,
+                                        message: "" + err.message,
                                         success: false
                                     });
                                 });
@@ -355,7 +358,7 @@ class OrderBagsController {
                             }
                         }).catch((err) => {
                             response.json({
-                                message: err.message,
+                                message: "" + err.message,
                                 success: false
                             });
                         });
@@ -375,14 +378,14 @@ class OrderBagsController {
                 }
             }).catch((err) => {
                 response.json({
-                    message: err.message,
+                    message: "" + err.message,
                     success: false
                 });
             });
         }
         catch (error) {
             response.json({
-                message: error,
+                message: "" + error,
                 success: false
             });
         }
@@ -454,7 +457,7 @@ class OrderBagsController {
                                                     }
                                                 }).catch((err) => {
                                                     response.json({
-                                                        message: err.message,
+                                                        message: "" + err.message,
                                                         success: false
                                                     });
                                                 });
@@ -467,7 +470,7 @@ class OrderBagsController {
                                             }
                                         }).catch((err) => {
                                             response.json({
-                                                message: err.message,
+                                                message: "" + err.message,
                                                 success: false
                                             });
                                         });
@@ -480,7 +483,7 @@ class OrderBagsController {
                                     }
                                 }).catch((err) => {
                                     response.json({
-                                        message: err,
+                                        message: "" + err,
                                         success: false
                                     });
                                 });
@@ -493,7 +496,7 @@ class OrderBagsController {
                             }
                         }).catch((err) => {
                             response.json({
-                                message: err,
+                                message: "" + err,
                                 success: false
                             });
                         });
@@ -513,14 +516,14 @@ class OrderBagsController {
                 }
             }).catch((err) => {
                 response.json({
-                    message: err,
+                    message: "" + err,
                     success: false
                 });
             });
         }
         catch (error) {
             response.json({
-                message: error.message,
+                message: "" + error.message,
                 success: false
             });
         }
@@ -686,7 +689,7 @@ class OrderBagsController {
                 if (findResultState.length > 0) {
                     let stateId = findResultState[0]._id;
                     let stateDesc = findResultState[0].desc;
-                    const { orderNumber, bags, shopId, pickerId } = request.body;
+                    const { orderNumber, bags, shopId, pickerId, partialBroken, totalBroken } = request.body;
                     let bag = { orderNumber, bags, shopId, pickerId };
                     let valid = validate(bag);
                     let unitsPicked = 0;
@@ -714,11 +717,13 @@ class OrderBagsController {
                         let queryFind = { "orderNumber": mongoose_1.default.Types.ObjectId(orderNumber) };
                         let update = {
                             "pickerId": mongoose_1.default.Types.ObjectId(pickerId),
-                            bag: mongoose_1.default.Types.ObjectId(pickerId),
-                            shopId: mongoose_1.default.Types.ObjectId(shopId),
+                            "bag": mongoose_1.default.Types.ObjectId(pickerId),
+                            "shopId": mongoose_1.default.Types.ObjectId(shopId),
                             "state": mongoose_1.default.Types.ObjectId(stateId),
-                            endPickingDate: new Date(),
-                            pickerName: ""
+                            "endPickingDate": new Date(),
+                            "pickerName": "",
+                            "partialBroken": partialBroken,
+                            "totalBroken": totalBroken
                         };
                         findDocuments(User_1.default, { "_id": mongoose_1.default.Types.ObjectId(pickerId) }, "", {}, '', '', 0, null, null).then((userResult) => {
                             if (userResult.length) {
